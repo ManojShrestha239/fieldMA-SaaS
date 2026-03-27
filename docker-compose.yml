@@ -1,0 +1,90 @@
+# version: '3.8'
+
+services:
+  # PHP-FPM application server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fieldMA_SAAS_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+       # Set your domain here, or use .env variable
+      - PHP_IDE_CONFIG=serverName=${APP_URL:-saasfieldma.manojshrestha239.com.np}
+    depends_on:
+      - db
+    networks:
+      - fieldMA_SAAS_net
+
+  # Nginx web server
+  nginx:
+    image: nginx:alpine
+    container_name: fieldMA_SAAS_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - fieldMA_SAAS_net
+
+  # MySQL database
+  db:
+    image: mysql:8.0
+    platform: linux/amd64
+    container_name: fieldMA_SAAS_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: fieldMA_SAAS_root
+      MYSQL_DATABASE: fieldMA_SAAS_db
+      MYSQL_USER: fieldMA_SAAS_user
+      MYSQL_PASSWORD: fieldMA_SAAS_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - fieldMA_SAAS_net
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    platform: linux/amd64
+    container_name: fieldMA_SAAS_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 256M
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - fieldMA_SAAS_net
+
+  # (Optional) Cloudflare Tunnel – uncomment and configure to expose local dev site
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: fieldMA_SAAS_cloudflared
+    command: tunnel --no-autoupdate run --token eyJhIjoiZDM2ZjQ2N2MzMTlmNjA0NGVmYTc3ZTQ3NmU4NTZjYTgiLCJ0IjoiZTBhNGUxMzItY2FmOC00NTI0LWIyOGQtMzMxM2ZlY2NhYzU4IiwicyI6IlltWmxOVGMzWW1RdE5tTXlOaTAwTmpKbExUazROR1F0WVRGaE5ERmlNVGxoWlROaCJ9
+    depends_on:
+      - nginx
+    networks:
+      - fieldMA_SAAS_net
+    environment:
+      - CLOUDFLARED_TOKEN=eyJhIjoiZDM2ZjQ2N2MzMTlmNjA0NGVmYTc3ZTQ3NmU4NTZjYTgiLCJ0IjoiZTBhNGUxMzItY2FmOC00NTI0LWIyOGQtMzMxM2ZlY2NhYzU4IiwicyI6IlltWmxOVGMzWW1RdE5tTXlOaTAwTmpKbExUazROR1F0WVRGaE5ERmlNVGxoWlROaCJ9
+
+networks:
+  fieldMA_SAAS_net:
+    driver: bridge
+
+volumes:
+  db_data:

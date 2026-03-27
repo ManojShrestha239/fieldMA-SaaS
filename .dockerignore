@@ -1,0 +1,13 @@
+.git
+.env
+vendor
+node_modules
+storage
+bootstrap/cache
+public/hot
+public/storage
+*.log
+.DS_Store
+.idea
+.vscode
+composer.lock
