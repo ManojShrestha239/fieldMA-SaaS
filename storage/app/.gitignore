@@ -1,5 +1,5 @@
 *
-!fcm_files/
-!fcm_files/*
+# !fcm_files/
+# !fcm_files/*
 !/public
 !.gitignore
