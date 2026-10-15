@@ -1,5 +1,5 @@
 # Build stage
-FROM php:8.2-fpm-alpine AS builder
+FROM php:8.3-fpm-alpine AS builder
 
 # Install build dependencies and runtime libraries
 RUN apk add --no-cache --virtual .build-deps \
@@ -21,13 +21,13 @@ RUN apk add --no-cache --virtual .build-deps \
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        gd \
-        zip
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -52,7 +52,7 @@ RUN composer install \
 RUN apk del .build-deps
 
 # Production stage
-FROM php:8.2-fpm-alpine
+FROM php:8.3-fpm-alpine
 
 # Install runtime dependencies in single layer and clean up
 RUN apk add --no-cache \

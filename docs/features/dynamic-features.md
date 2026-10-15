@@ -457,7 +457,7 @@ Do not copy this verbatim into production. Only apply if you also run the subscr
 
     ```yaml
     networks:
-        - fieldma_2_net
+        - fieldma_saas_net
         - shared
     ```
 
@@ -465,7 +465,7 @@ Do not copy this verbatim into production. Only apply if you also run the subscr
 
     ```yaml
     networks:
-        fieldma_2_net: {}
+        fieldma_saas_net: {}
         shared:
             aliases:
                 - fieldma-api
@@ -487,7 +487,7 @@ Do not copy this verbatim into production. Only apply if you also run the subscr
 
     ```yaml
     networks:
-        fieldma_2_net:
+        fieldma_saas_net:
             driver: bridge
         shared:
             external: true
