@@ -195,7 +195,6 @@ return [
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
         'Intervention\Image\ImageServiceProvider',
         Maatwebsite\Excel\ExcelServiceProvider::class,
-        LaravelFCM\FCMServiceProvider::class,
         App\Providers\TelescopeServiceProvider::class,
     ],
 
@@ -253,8 +252,6 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'Image' => 'Intervention\Image\Facades\Image',
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-        'FCM'      => LaravelFCM\Facades\FCM::class,
-        'FCMGroup' => LaravelFCM\Facades\FCMGroup::class, // Optional
         'Helper' => App\Utilities\Helpers::class,
     ],
 

@@ -26,11 +26,11 @@ final class SiteRegistrationService
 {
     use CustomNepaliCalendarConverter;
 
-    private int $authId;
+    private ?int $authId;
 
     public function __construct()
     {
-        $this->authId = auth('api')->id();
+        $this->authId = auth('api')->id() ?? 0;
     }
 
     /**

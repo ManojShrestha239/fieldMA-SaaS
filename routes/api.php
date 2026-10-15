@@ -35,16 +35,16 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // count Amount and Visit of the day
     Route::get('/countAmountandVisit', [PaymentController::class, 'index']);
 
-    //     order history
-    Route::get('/orderHistory', 'API\OrderController@orderHistory');
+    // order history
+    Route::get('/orderHistory', [OrderController::class, 'orderHistory']);
 
     //collection History
     Route::get('/collectionHistory', [PaymentController::class, 'collectionHistory']);
 
     // visit schedule
-    Route::get('/visitSchedule', 'API\MobileuserController@visitSchedule');
-    Route::get('/today', 'API\MobileuserController@visitScheduleToday');
-    Route::get('/visit', 'API\MobileuserController@schedule');
+    Route::get('/visitSchedule', [MobileuserController::class, 'visitSchedule']);
+    Route::get('/today', [MobileuserController::class, 'visitScheduleToday']);
+    Route::get('/visit', [MobileuserController::class, 'schedule']);
     Route::get('/visit/{date}', [MobileuserController::class, 'visitHistory']);
     Route::get('/rangehistory', [MobileuserController::class, 'rangehistory']);
 
@@ -52,18 +52,10 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::get('/message', [MessageController::class, 'index']);
     Route::post('/send', [MessageController::class, 'store']);
 
-    Route::get('/banks', 'API\BankController@index');
-    Route::get('/purpose', 'API\PurposeController@index');
-
-    Route::get('/profile/{id}', 'API\MobileuserController@show');
-    Route::get('/profile/{id}/edit', 'API\MobileuserController@update');
-    Route::get('/mobileusers', 'API\MobileuserController@index');
-    Route::put('/profile/{id}/pass', 'API\MobileuserController@change');
-
-    Route::get('/sites', 'API\SiteController@index');
-    Route::post('/site', 'API\SiteController@store');
-    Route::get('/site/{id}', 'API\SiteController@show');
-    Route::put('/site/{id}', 'API\SiteController@update');
+    Route::get('/notice', [NoticeController::class, 'index']);
+    Route::get('/notice/{id}', [NoticeController::class, 'show']);
+    Route::get('/orderDetails/{id}', [NoticeController::class, 'orderDetails']);
+    Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetails']);
 
     //Dealer related routes
     Route::get('/dealers', [DealerController::class, 'index']);
@@ -72,44 +64,32 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::get('/dealer/{code}', [DealerController::class, 'show']);
     Route::get('/dealer/{code}/update', [DealerController::class, 'update']);
 
-    Route::post('/dealerlog', 'API\DealerlogController@store');
+    Route::post('/dealerlog', [DeviceLogController::class, 'store']);
 
-    Route::get('/areas', 'API\AreaController@index');
-    Route::get('/area/{areacodes}/reposition', 'API\AreaController@reposition');
-    Route::get('/area/{areacodes}/position', 'API\AreaController@position');
-    Route::get('/area/{areacodes}/pending', 'API\AreaController@pending');
-    Route::post('/area/{areacodes}/dist', 'API\AreaController@visit');
+    Route::get('/{id}/history/{date}', [SessionController::class, 'index']);
+    Route::post('/session', [SessionController::class, 'store']);
+    Route::post('/negotiation', [SessionController::class, 'new']);
+    Route::post('v5/negotiation', [SessionController::class, 'v5negotiation']);
 
-    Route::get('/{id}/history/{date}', 'API\SessionController@index');
-    Route::post('/session', [SessionController::class, 'store']); //
-    Route::post('/negotiation', [SessionController::class, 'new']); //negotiation
-    Route::post('v5/negotiation', [SessionController::class, 'v5negotiation']); //negotiation
+    Route::post('/locations', [SessionController::class, 'insert']);
+    Route::get('/locationinfo', [SessionController::class, 'index']);
 
-    Route::post('/locations', 'API\LocationController@insert');
-    Route::get('/locationinfo', 'API\LocationController@index');
-
-    Route::get('/products', 'API\ProductController@index');
+    Route::get('/products', [SessionController::class, 'index']);
 
     Route::post('/order', [OrderController::class, 'store']);
 
     Route::post('/payment', [PaymentController::class, 'store']);
 
-    Route::get('/notice', [NoticeController::class, 'index']);
-    Route::get('/notice/{id}', [NoticeController::class, 'show']);
-    Route::get('/orderDetails/{id}', [NoticeController::class, 'orderDetails']);
-    Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetails']);
-
-    Route::patch('/updatestatus/{id}', 'API\PaymentController@updatestatus');
+    Route::patch('/updatestatus/{id}', [PaymentController::class, 'updatestatus']);
 
     // test
-    Route::get('/test', 'API\SessionController@test');
-    Route::get('/m', 'API\MessageController@m');
-    Route::post('/attendance/offline', 'API\AttandenceController@offline');
-    Route::get('/all', 'API\NoticeController@all');
-    Route::get('/repeateschedule', 'API\RepeatescheduleController@index');
+    Route::get('/test', [SessionController::class, 'test']);
+    Route::get('/m', [MessageController::class, 'm']);
+    Route::post('/attendance/offline', [AttendanceController::class, 'offline']);
+    Route::get('/all', [NoticeController::class, 'all']);
+    Route::get('/repeateschedule', [SessionController::class, 'index']);
     Route::post('/attendance', [AttendanceController::class, 'store']);
 
-    Route::apiResource('ledger', 'API\LedgerController')->only(['store']);
     Route::post('/logout', [MobileuserController::class, 'logout']);
 
     // Device log
@@ -140,5 +120,5 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::delete('/tada/{id}', [\App\Http\Controllers\API\TadaReportController::class, 'destroy']);
 });
 
-Route::get('due/{area_code}/{dealer_code}', 'API\AccountController@getdue');
-Route::get('ageing/{area_code}/{dealer_code}', 'API\AccountController@getdata');
+Route::get('due/{area_code}/{dealer_code}', [SessionController::class, 'getdue']);
+Route::get('ageing/{area_code}/{dealer_code}', [SessionController::class, 'getdata']);

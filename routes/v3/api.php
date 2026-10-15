@@ -29,11 +29,10 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::post('/locations', [LocationController::class, 'store']);
     Route::post('/order', [OrderController::class, 'store']);
     Route::post('/negotiation', [SessionController::class, 'store']);
-    Route::get('/debateScheme', 'API\v3\DebateSchemeController@index');
     Route::get('/userlist', [MessageController::class, 'userlist']);
     Route::apiResource('message', MessageController::class)->only(['index', 'store']);
-    Route::resource('receipt', 'API\v3\ReceiptController')->only(['index', 'show', 'store']);
+
     Route::apiResource('payment', PaymentController::class)->only(['store', 'show']);
-    Route::post('/offline', 'API\v3\AttendanceController@offline');
+    Route::post('/offline', [AttendanceController::class, 'offline']);
     Route::apiResource('attendance', AttendanceController::class)->only(['store']);
 });

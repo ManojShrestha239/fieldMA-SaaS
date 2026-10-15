@@ -31,13 +31,13 @@ class SiteRegistrationController extends Controller
 {
     use CustomNepaliCalendarConverter;
 
-    private int $authId;
+    private ?int $authId;
     private string $todayNepaliDate;
     private SiteRegistrationService $service;
 
     public function __construct(SiteRegistrationService $service)
     {
-        $this->authId = auth('api')->id();
+        $this->authId = auth('api')->id() ?? 0;
         $this->todayNepaliDate = $this->custom_AD_to_BS(now()->format('Y-m-d'));
         $this->service = $service;
     }
