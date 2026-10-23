@@ -52,7 +52,7 @@
     }
 @endphp
 <a id="index" class="page-logo" href="{{ $routePath }}">
-    <img src="{{ asset('assets/pages/img/logo-fieldma.png') }}" alt="Logo">
+    <img src="{{ (function_exists('tenant') && tenant()) ? tenant()->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png') }}" alt="{{ (function_exists('tenant') && tenant()) ? tenant()->company_name : 'Logo' }}">
 </a>
 
 <div class="navbar-collapse hidden-sm hidden-xs navigation">
@@ -201,10 +201,12 @@
                 </ul>
             </li>
         @endcanany
+        @if(tenant_has_feature('site_registration'))
         <li
             class="{{ $isActive(['dashboard/site-registration*', 'site-registration*', 'site-map*']) }} classic-menu-dropdown">
             <a href="{{ route('site-registration-v2.index') }}" style="color: #315DA9;">Site Registration</a>
         </li>
+        @endif
     </ul>
 
     <!-- BEGIN TOPBAR ACTIONS -->
@@ -223,6 +225,13 @@
                         {{ Auth::user()->name }}</i></span>
             </button>
             <ul class="dropdown-menu-v2" role="menu">
+                @if(function_exists('tenant') && tenant())
+                <li>
+                    <a href="{{ route('tenant.settings.branding') }}" style="color: #315DA9;">
+                        <i class="fa fa-cogs" style="color: #315DA9;"></i> Company Settings
+                    </a>
+                </li>
+                @endif
                 <li>
                     <a href="/admin/{{ Auth::user()->id }}/edit" style="color: #315DA9;">
                         <i class="fa fa-edit" style="color: #315DA9;"></i> Edit Profile

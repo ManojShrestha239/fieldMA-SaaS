@@ -74,5 +74,8 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'token.api' => \App\Http\Middleware\AuthenticateToken::class,
+        'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
+        'tenant.feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
+        'tenant.api' => \App\Http\Middleware\InitializeTenancyForApi::class,
     ];
 }

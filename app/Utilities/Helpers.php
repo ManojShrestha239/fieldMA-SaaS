@@ -30,4 +30,19 @@ class Helpers {
         $count = Message::where(['is_read'=> 0])->where('from', '!=' , '0')->groupBy('from')->get('id');
         return count($count);
     }
+
+    public static function hasFeature(string $feature): bool
+    {
+        if (function_exists('tenant') && tenant() && method_exists(tenant(), 'hasFeature')) {
+            return tenant()->hasFeature($feature);
+        }
+        return true;
+    }
+}
+
+if (!function_exists('tenant_has_feature')) {
+    function tenant_has_feature(string $feature): bool
+    {
+        return \App\Utilities\Helpers::hasFeature($feature);
+    }
 }

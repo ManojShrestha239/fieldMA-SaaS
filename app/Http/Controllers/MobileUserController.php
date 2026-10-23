@@ -74,6 +74,16 @@ class MobileUserController extends Controller
             'team_members.*' => 'exists:mobileusers,id',
         ]);
 
+        $tenant = function_exists('tenant') ? tenant() : null;
+        if ($tenant && method_exists($tenant, 'canAddMobileUser')) {
+            $currentCount = Mobileuser::count();
+            if (!$tenant->canAddMobileUser($currentCount)) {
+                return back()->withInput()->withErrors([
+                    'email' => "Your subscription plan limit of {$tenant->plan->max_mobile_users} field users has been reached. Please contact your administrator to upgrade your plan."
+                ]);
+            }
+        }
+
         DB::beginTransaction();
 
         try {

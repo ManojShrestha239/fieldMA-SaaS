@@ -1,6 +1,9 @@
 <meta charset="utf-8" />
 @php
-    $titleName = strtolower(config('app.env')) === 'local' ? 'Dev Dashboard': config('app.company_name');
+    $currentTenant = function_exists('tenant') ? tenant() : null;
+    $titleName = $currentTenant ? $currentTenant->company_name : (config('app.company_name') ?? 'FieldMA');
+    $themeColor = $currentTenant ? $currentTenant->getThemeColor() : '#315DA9';
+    $favIcon = $currentTenant ? $currentTenant->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png');
 @endphp
 <title>{{ $titleName }}</title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -26,25 +29,29 @@
 <link rel="stylesheet" href="{{ URL::asset('assets/layouts/layout5/css/layout.css') }}">
 <link rel="stylesheet" href="{{ URL::asset('assets/layouts/layout5/css/custom.min.css') }}">
 <!-- END THEME LAYOUT STYLES -->
-<link rel="shortcut icon" href="{{{ asset('assets/pages/img/logo-fieldma.png') }}}" />
+<link rel="shortcut icon" href="{{ $favIcon }}" />
 <style>
+  :root {
+    --primary-theme-color: {{ $themeColor }};
+  }
+
   .navActive {
-    color: #315DA9 !important;
-    border-bottom: 2px solid #315DA9;
+    color: {{ $themeColor }} !important;
+    border-bottom: 2px solid {{ $themeColor }};
     font-weight: 600 !important;
   }
 
   .quickNav {
     color: white !important;
-    background: #315DA9 !important;
+    background: {{ $themeColor }} !important;
   }
 
   #quickNav {
     color: white !important;
-    background: #315DA9 !important;
+    background: {{ $themeColor }} !important;
   }
 
   .active {
-    background: #315DA9 !important;
+    background: {{ $themeColor }} !important;
   }
 </style>

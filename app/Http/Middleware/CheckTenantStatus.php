@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class CheckTenantStatus
+{
+    /**
+     * Handle an incoming request.
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $tenant = tenant();
+
+        if ($tenant) {
+            if ($tenant->status === 'suspended') {
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Your company workspace has been suspended. Please contact the administrator.',
+                    ], 403);
+                }
+
+                return response()->view('errors.tenant-suspended', [
+                    'tenant' => $tenant,
+                ], 403);
+            }
+
+            if ($tenant->status === 'inactive') {
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This workspace is currently inactive.',
+                    ], 403);
+                }
+
+                return response()->view('errors.tenant-inactive', [
+                    'tenant' => $tenant,
+                ], 403);
+            }
+        }
+
+        return $next($request);
+    }
+}

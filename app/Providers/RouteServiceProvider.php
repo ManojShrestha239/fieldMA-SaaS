@@ -39,19 +39,19 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function () {
             Route::prefix('api')
-                ->middleware('api')
+                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/api.php'));
             Route::prefix('api/v2')
-                ->middleware('api')
+                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/v2/api.php'));
             Route::prefix('api/v3')
-                ->middleware('api')
+                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/v3/api.php'));
             Route::prefix('api/v4')
-                ->middleware('api')
+                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/v4/api.php'));
 
