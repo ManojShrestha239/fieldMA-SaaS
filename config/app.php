@@ -196,6 +196,7 @@ return [
         'Intervention\Image\ImageServiceProvider',
         Maatwebsite\Excel\ExcelServiceProvider::class,
         App\Providers\TelescopeServiceProvider::class,
+        App\Providers\TenancyServiceProvider::class,
     ],
 
     /*

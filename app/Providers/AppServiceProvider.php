@@ -15,7 +15,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Define global tenant helpers
+        require_once app_path('helpers.php');
     }
 
     /**
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::if('super', function () {
             return auth()->check() && (auth()->user()->user_type == "super" || Auth::user()->user_type == 'ASM');
+        });
+        Blade::if('tenantFeature', function (string $feature) {
+            return \App\Utilities\Helpers::hasFeature($feature);
         });
         Blade::if('account', function () {
             return auth()->check() && auth()->user()->user_type == "account";

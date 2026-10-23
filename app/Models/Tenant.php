@@ -53,8 +53,36 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $this->status === 'suspended';
     }
 
+    public function isTrial(): bool
+    {
+        return $this->status === 'trial';
+    }
+
+    public function isTrialExpired(): bool
+    {
+        return $this->isTrial() && $this->trial_ends_at && $this->trial_ends_at->isPast();
+    }
+
+    public function isPlanExpired(): bool
+    {
+        return $this->plan_ends_at && $this->plan_ends_at->isPast();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->isTrialExpired() || $this->isPlanExpired();
+    }
+
     public function isActive(): bool
     {
+        if (in_array($this->status, ['suspended', 'inactive'], true)) {
+            return false;
+        }
+
+        if ($this->isExpired()) {
+            return false;
+        }
+
         return in_array($this->status, ['active', 'trial'], true);
     }
 
@@ -65,7 +93,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function getThemeColor(): string
     {
-        return $this->theme_color ?? $this->data['theme_color'] ?? '#32c5d2';
+        return $this->theme_color ?? $this->data['theme_color'] ?? '#315DA9';
     }
 
     public function getFcmTopic(): string

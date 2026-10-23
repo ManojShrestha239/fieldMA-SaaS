@@ -37,21 +37,32 @@
 
   .navActive {
     color: {{ $themeColor }} !important;
-    border-bottom: 2px solid {{ $themeColor }};
+    border-bottom: 2px solid {{ $themeColor }} !important;
     font-weight: 600 !important;
   }
 
-  .quickNav {
+  .quickNav, #quickNav, .active {
     color: white !important;
     background: {{ $themeColor }} !important;
   }
 
-  #quickNav {
-    color: white !important;
-    background: {{ $themeColor }} !important;
+  /* Tenant dynamic branding color */
+  .navigation .nav.navbar-nav > li > a:hover,
+  .dropdown-menu-v2 > li > a:hover {
+    color: {{ $themeColor }} !important;
   }
 
-  .active {
-    background: {{ $themeColor }} !important;
+  .btn.blue:not(.btn-outline),
+  .btn-primary {
+    background-color: {{ $themeColor }} !important;
+    border-color: {{ $themeColor }} !important;
+  }
+
+  .portlet.blue > .portlet-title,
+  .portlet.box.blue {
+    border-color: {{ $themeColor }} !important;
+  }
+  .portlet.box.blue > .portlet-title {
+    background-color: {{ $themeColor }} !important;
   }
 </style>

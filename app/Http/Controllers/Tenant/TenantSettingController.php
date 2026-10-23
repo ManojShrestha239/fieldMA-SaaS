@@ -31,25 +31,22 @@ class TenantSettingController extends Controller
         ]);
 
         $tenant = tenant();
-        $data = $tenant->data ?? [];
 
         if ($request->filled('theme_color')) {
-            $data['theme_color'] = $validated['theme_color'];
+            $tenant->theme_color = $validated['theme_color'];
         }
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('branding', 'public');
-            $data['logo_url'] = Storage::disk('public')->url($path);
+            $tenant->logo_url = Storage::disk('public')->url($path);
         }
 
-        $tenant->update([
-            'company_name' => $validated['company_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'vat_number' => $validated['vat_number'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'data' => $data,
-        ]);
+        $tenant->company_name = $validated['company_name'];
+        $tenant->email = $validated['email'];
+        $tenant->phone = $validated['phone'] ?? null;
+        $tenant->vat_number = $validated['vat_number'] ?? null;
+        $tenant->address = $validated['address'] ?? null;
+        $tenant->save();
 
         return back()->with('Status', 'Company settings & branding updated successfully.');
     }

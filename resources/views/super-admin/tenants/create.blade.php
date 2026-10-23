@@ -49,7 +49,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Brand Primary Color</label>
-                            <input type="color" name="theme_color" class="form-control form-control-color w-100" value="{{ old('theme_color', '#32c5d2') }}">
+                            <input type="color" name="theme_color" class="form-control form-control-color w-100" value="{{ old('theme_color', '#315DA9') }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">VAT / PAN Number</label>
@@ -98,6 +98,16 @@
                                 <option value="trial" {{ old('status') === 'trial' ? 'selected' : '' }}>Trial</option>
                                 <option value="suspended" {{ old('status') === 'suspended' ? 'selected' : '' }}>Suspended</option>
                             </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Trial Expiration Date (Optional)</label>
+                            <input type="date" name="trial_ends_at" class="form-control" value="{{ old('trial_ends_at') }}">
+                            <small class="text-muted">Defaults to +14 days if Workspace Status is set to Trial.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Plan Expiration Date (Optional)</label>
+                            <input type="date" name="plan_ends_at" class="form-control" value="{{ old('plan_ends_at') }}">
+                            <small class="text-muted">Defaults to billing cycle duration (monthly / yearly) when plan is chosen.</small>
                         </div>
                     </div>
 

@@ -26,19 +26,22 @@ class UserSeeder extends Seeder
         $allPermissions = Permission::all();
         $super->syncPermissions($allPermissions);
 
-        $user = User::firstOrCreate(
-            ['email' => 'test@test.com'],
-            [
-                'name' => 'Super Admin',
-                'phone' => '0000000000',
-                'password' => Hash::make('12345678'),
-                'user_type' => 'super',
-                'app' => 'SOA',
-                'status' => 'Active',
-            ]
-        );
+        // Only create default test user in legacy single-tenant environment, not in tenant DBs
+        if (!function_exists('tenant') || !tenant()) {
+            $user = User::firstOrCreate(
+                ['email' => 'test@test.com'],
+                [
+                    'name' => 'Super Admin',
+                    'phone' => '0000000000',
+                    'password' => Hash::make('12345678'),
+                    'user_type' => 'super',
+                    'app' => 'SOA',
+                    'status' => 'Active',
+                ]
+            );
 
-        $user->assignRole($super);
+            $user->assignRole($super);
+        }
 
         $users = User::where(['user_type' => 'super', 'app' => 'SOA'])->get();
         foreach ($users as $u) {

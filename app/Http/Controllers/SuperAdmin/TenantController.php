@@ -9,8 +9,10 @@ use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -25,8 +27,8 @@ class TenantController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('company_name', 'like', "%{$search}%")
-                  ->orWhere('slug', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -66,12 +68,34 @@ class TenantController extends Controller
             'subscription_plan_id' => ['nullable', 'exists:subscription_plans,id'],
             'status' => ['required', Rule::in(['active', 'trial', 'suspended', 'inactive'])],
             'theme_color' => ['nullable', 'string', 'max:20'],
+            'trial_ends_at' => ['nullable', 'date'],
+            'plan_ends_at' => ['nullable', 'date'],
         ]);
 
         $slug = Str::slug($validated['slug']);
+        $status = $validated['status'];
+
+        // Calculate trial_ends_at
+        $trialEndsAt = !empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at']) : null;
+        if ($status === 'trial' && !$trialEndsAt) {
+            $trialEndsAt = now()->addDays(14);
+        }
+
+        // Calculate plan_ends_at
+        $planEndsAt = !empty($validated['plan_ends_at']) ? Carbon::parse($validated['plan_ends_at']) : null;
+        if (!empty($validated['subscription_plan_id']) && !$planEndsAt) {
+            $plan = SubscriptionPlan::find($validated['subscription_plan_id']);
+            if ($plan) {
+                if ($plan->billing_interval === 'yearly') {
+                    $planEndsAt = now()->addYear();
+                } elseif ($plan->billing_interval === 'monthly') {
+                    $planEndsAt = now()->addMonth();
+                }
+            }
+        }
 
         try {
-            // 1. Create the tenant record (triggers DB creation, tenant migrations, and tenant seeders)
+            // 1. Create the tenant record
             $tenant = Tenant::create([
                 'id' => $slug,
                 'company_name' => $validated['company_name'],
@@ -80,19 +104,38 @@ class TenantController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'vat_number' => $validated['vat_number'] ?? null,
                 'address' => $validated['address'] ?? null,
-                'status' => $validated['status'],
+                'status' => $status,
                 'subscription_plan_id' => $validated['subscription_plan_id'] ?? null,
-                'data' => [
-                    'theme_color' => $validated['theme_color'] ?? '#32c5d2',
-                    'fcm_topic' => $slug . '_fieldMA_allUser',
-                    'feature_overrides' => [],
-                ],
+                'trial_ends_at' => $trialEndsAt,
+                'plan_ends_at' => $planEndsAt,
             ]);
 
-            // 2. Attach Subdomain
+            // Save virtual columns directly on model so VirtualColumn trait packs them
+            $tenant->theme_color = $validated['theme_color'] ?? '#315DA9';
+            $tenant->fcm_topic = $slug . '_fieldMA_allUser';
+            $tenant->feature_overrides = [];
+            $tenant->save();
+
+            // Ensure database exists and is migrated (fallback safety check)
+            if (!$tenant->database()->manager()->databaseExists($tenant->database()->getName())) {
+                $tenant->database()->manager()->createDatabase($tenant);
+                Artisan::call('tenants:migrate', [
+                    '--tenants' => [$tenant->id],
+                    '--force' => true,
+                ]);
+                Artisan::call('tenants:seed', [
+                    '--tenants' => [$tenant->id],
+                    '--force' => true,
+                ]);
+            }
+
+            // 2. Attach Subdomain and Domain Slug
             $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
             $subdomain = $slug . '.' . $centralDomain;
             $tenant->domains()->create(['domain' => $subdomain]);
+            if ($slug !== $subdomain) {
+                $tenant->domains()->create(['domain' => $slug]);
+            }
 
             // 3. Attach Custom Domain (if provided)
             if (!empty($validated['custom_domain'])) {
@@ -108,13 +151,15 @@ class TenantController extends Controller
                         ['name' => 'Super-Admin', 'guard_name' => 'web']
                     );
 
+                    // Remove default test@test.com
+                    User::where('email', 'test@test.com')->delete();
+
                     $user = User::updateOrCreate(
                         ['email' => $validated['email']],
                         [
                             'name' => $validated['company_name'] . ' Admin',
                             'phone' => $validated['phone'] ?? '0000000000',
                             'password' => Hash::make($validated['password']),
-                            'address' => $validated['address'] ?? '',
                             'user_type' => 'super',
                             'app' => 'SOA',
                             'status' => 'Active',
@@ -124,7 +169,7 @@ class TenantController extends Controller
                     $user->assignRole($role);
                 });
             } catch (\Throwable $e) {
-                \Log::warning("Tenant admin setup warning: " . $e->getMessage());
+                Log::warning("Tenant admin setup warning: " . $e->getMessage());
             }
 
             return redirect()->route('super-admin.tenants.show', $tenant)
@@ -133,13 +178,11 @@ class TenantController extends Controller
             if (isset($tenant) && $tenant->exists) {
                 try {
                     $tenant->delete();
-                } catch (\Throwable $delEx) {
-                    // Ignore rollback error
+                } catch (\Throwable $deleteErr) {
+                    // cleanup
                 }
             }
-            return back()->withInput()->withErrors([
-                'error' => 'Failed to provision tenant workspace: ' . $e->getMessage()
-            ]);
+            return back()->withInput()->withErrors(['error' => 'Failed to provision tenant workspace: ' . $e->getMessage()]);
         }
     }
 
@@ -182,6 +225,7 @@ class TenantController extends Controller
         $validated = $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
+            'password' => ['nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:30'],
             'vat_number' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -189,21 +233,73 @@ class TenantController extends Controller
             'status' => ['required', Rule::in(['active', 'trial', 'suspended', 'inactive'])],
             'theme_color' => ['nullable', 'string', 'max:20'],
             'custom_domain' => ['nullable', 'string', 'max:255'],
+            'trial_ends_at' => ['nullable', 'date'],
+            'plan_ends_at' => ['nullable', 'date'],
         ]);
 
-        $data = $tenant->data ?? [];
-        $data['theme_color'] = $validated['theme_color'] ?? ($data['theme_color'] ?? '#32c5d2');
+        $oldEmail = $tenant->email;
+        $newEmail = $validated['email'];
+        $newPassword = $validated['password'] ?? null;
+
+        // Calculate trial_ends_at
+        $trialEndsAt = !empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at']) : null;
+        if ($validated['status'] === 'trial' && !$trialEndsAt && !$tenant->trial_ends_at) {
+            $trialEndsAt = now()->addDays(14);
+        }
+
+        // Calculate plan_ends_at
+        $planEndsAt = !empty($validated['plan_ends_at']) ? Carbon::parse($validated['plan_ends_at']) : null;
+        if (!empty($validated['subscription_plan_id']) && !$planEndsAt && !$tenant->plan_ends_at) {
+            $plan = SubscriptionPlan::find($validated['subscription_plan_id']);
+            if ($plan) {
+                if ($plan->billing_interval === 'yearly') {
+                    $planEndsAt = now()->addYear();
+                } elseif ($plan->billing_interval === 'monthly') {
+                    $planEndsAt = now()->addMonth();
+                }
+            }
+        }
 
         $tenant->update([
             'company_name' => $validated['company_name'],
-            'email' => $validated['email'],
+            'email' => $newEmail,
             'phone' => $validated['phone'] ?? null,
             'vat_number' => $validated['vat_number'] ?? null,
             'address' => $validated['address'] ?? null,
             'status' => $validated['status'],
             'subscription_plan_id' => $validated['subscription_plan_id'] ?? null,
-            'data' => $data,
+            'trial_ends_at' => $trialEndsAt,
+            'plan_ends_at' => $planEndsAt,
         ]);
+
+        // Update virtual columns directly on model
+        if (!empty($validated['theme_color'])) {
+            $tenant->theme_color = $validated['theme_color'];
+            $tenant->save();
+        }
+
+        // Sync admin credentials inside the tenant's database
+        try {
+            $tenant->run(function () use ($oldEmail, $newEmail, $newPassword, $validated) {
+                $user = User::where('email', $oldEmail)->first()
+                     ?? User::where('email', $newEmail)->first()
+                     ?? User::where('user_type', 'super')->first();
+
+                if ($user) {
+                    $user->email = $newEmail;
+                    $user->name = $validated['company_name'] . ' Admin';
+                    if (!empty($validated['phone'])) {
+                        $user->phone = $validated['phone'];
+                    }
+                    if (!empty($newPassword)) {
+                        $user->password = Hash::make($newPassword);
+                    }
+                    $user->save();
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::warning("Tenant admin update warning: " . $e->getMessage());
+        }
 
         // Manage custom domain
         if (!empty($validated['custom_domain'])) {
@@ -218,7 +314,7 @@ class TenantController extends Controller
         }
 
         return redirect()->route('super-admin.tenants.show', $tenant)
-            ->with('success', 'Tenant details updated successfully.');
+            ->with('success', 'Tenant details and credentials updated successfully.');
     }
 
     public function toggleStatus(Tenant $tenant)
@@ -232,6 +328,10 @@ class TenantController extends Controller
     public function migrate(Tenant $tenant)
     {
         try {
+            if (!$tenant->database()->manager()->databaseExists($tenant->database()->getName())) {
+                $tenant->database()->manager()->createDatabase($tenant);
+            }
+
             Artisan::call('tenants:migrate', [
                 '--tenants' => [$tenant->id],
                 '--force' => true,

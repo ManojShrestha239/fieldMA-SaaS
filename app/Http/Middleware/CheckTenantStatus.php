@@ -43,6 +43,38 @@ class CheckTenantStatus
                     'tenant' => $tenant,
                 ], 403);
             }
+
+            if ($tenant->isTrialExpired()) {
+                $msg = 'Your trial period has expired. Please upgrade your subscription plan to continue accessing your workspace.';
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                    ], 403);
+                }
+
+                return response()->view('errors.tenant-expired', [
+                    'tenant' => $tenant,
+                    'reason' => 'trial',
+                    'message' => $msg,
+                ], 403);
+            }
+
+            if ($tenant->isPlanExpired()) {
+                $msg = 'Your subscription plan has expired. Please renew your plan to continue accessing your workspace.';
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                    ], 403);
+                }
+
+                return response()->view('errors.tenant-expired', [
+                    'tenant' => $tenant,
+                    'reason' => 'plan',
+                    'message' => $msg,
+                ], 403);
+            }
         }
 
         return $next($request);

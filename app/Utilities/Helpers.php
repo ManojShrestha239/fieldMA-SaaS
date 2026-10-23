@@ -39,10 +39,3 @@ class Helpers {
         return true;
     }
 }
-
-if (!function_exists('tenant_has_feature')) {
-    function tenant_has_feature(string $feature): bool
-    {
-        return \App\Utilities\Helpers::hasFeature($feature);
-    }
-}

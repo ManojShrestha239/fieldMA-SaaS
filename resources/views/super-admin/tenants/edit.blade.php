@@ -34,8 +34,18 @@
                     <input type="text" name="company_name" class="form-control" value="{{ old('company_name', $tenant->company_name) }}" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-semibold">Primary Contact Email <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-semibold">Primary Contact / Admin Email <span class="text-danger">*</span></label>
                     <input type="email" name="email" class="form-control" value="{{ old('email', $tenant->email) }}" required>
+                    <small class="text-muted">Updates tenant record and syncs with tenant admin user login.</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Reset Admin Password (Optional)</label>
+                    <input type="password" name="password" class="form-control" placeholder="Leave empty to keep existing password">
+                    <small class="text-muted">Enter at least 8 characters to reset the tenant admin's password.</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Brand Primary Color</label>
+                    <input type="color" name="theme_color" class="form-control form-control-color w-100" value="{{ old('theme_color', $tenant->getThemeColor()) }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-semibold">Phone Number</label>
@@ -49,13 +59,9 @@
                     <label class="form-label small fw-semibold">Address</label>
                     <textarea name="address" class="form-control" rows="2">{{ old('address', $tenant->address) }}</textarea>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12">
                     <label class="form-label small fw-semibold">Add Custom Domain</label>
                     <input type="text" name="custom_domain" class="form-control" placeholder="e.g. portal.acmecorp.com">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small fw-semibold">Brand Primary Color</label>
-                    <input type="color" name="theme_color" class="form-control form-control-color w-100" value="{{ old('theme_color', $tenant->getThemeColor()) }}">
                 </div>
             </div>
 
@@ -80,6 +86,14 @@
                         <option value="suspended" {{ old('status', $tenant->status) === 'suspended' ? 'selected' : '' }}>Suspended</option>
                         <option value="inactive" {{ old('status', $tenant->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Trial Expiration Date</label>
+                    <input type="date" name="trial_ends_at" class="form-control" value="{{ old('trial_ends_at', optional($tenant->trial_ends_at)->format('Y-m-d')) }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Plan Expiration Date</label>
+                    <input type="date" name="plan_ends_at" class="form-control" value="{{ old('plan_ends_at', optional($tenant->plan_ends_at)->format('Y-m-d')) }}">
                 </div>
             </div>
 
