@@ -70,64 +70,77 @@ class TenantController extends Controller
 
         $slug = Str::slug($validated['slug']);
 
-        // 1. Create the tenant record (triggers DB creation, tenant migrations, and tenant seeders)
-        $tenant = Tenant::create([
-            'id' => $slug,
-            'company_name' => $validated['company_name'],
-            'slug' => $slug,
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'vat_number' => $validated['vat_number'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'status' => $validated['status'],
-            'subscription_plan_id' => $validated['subscription_plan_id'] ?? null,
-            'data' => [
-                'theme_color' => $validated['theme_color'] ?? '#32c5d2',
-                'fcm_topic' => $slug . '_fieldMA_allUser',
-                'feature_overrides' => [],
-            ],
-        ]);
-
-        // 2. Attach Subdomain
-        $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
-        $subdomain = $slug . '.' . $centralDomain;
-        $tenant->domains()->create(['domain' => $subdomain]);
-
-        // 3. Attach Custom Domain (if provided)
-        if (!empty($validated['custom_domain'])) {
-            $customDomain = strtolower(trim($validated['custom_domain']));
-            $tenant->domains()->create(['domain' => $customDomain]);
-        }
-
-        // 4. Initialize Tenant Admin inside tenant database
         try {
-            $tenant->run(function () use ($validated) {
-                // Ensure Super-Admin role exists
-                $role = Role::firstOrCreate(
-                    ['name' => 'Super-Admin', 'guard_name' => 'web']
-                );
+            // 1. Create the tenant record (triggers DB creation, tenant migrations, and tenant seeders)
+            $tenant = Tenant::create([
+                'id' => $slug,
+                'company_name' => $validated['company_name'],
+                'slug' => $slug,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'vat_number' => $validated['vat_number'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'status' => $validated['status'],
+                'subscription_plan_id' => $validated['subscription_plan_id'] ?? null,
+                'data' => [
+                    'theme_color' => $validated['theme_color'] ?? '#32c5d2',
+                    'fcm_topic' => $slug . '_fieldMA_allUser',
+                    'feature_overrides' => [],
+                ],
+            ]);
 
-                $user = User::updateOrCreate(
-                    ['email' => $validated['email']],
-                    [
-                        'name' => $validated['company_name'] . ' Admin',
-                        'phone' => $validated['phone'] ?? '0000000000',
-                        'password' => Hash::make($validated['password']),
-                        'address' => $validated['address'] ?? '',
-                        'user_type' => 'super',
-                        'app' => 'SOA',
-                        'status' => 'Active',
-                    ]
-                );
+            // 2. Attach Subdomain
+            $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+            $subdomain = $slug . '.' . $centralDomain;
+            $tenant->domains()->create(['domain' => $subdomain]);
 
-                $user->assignRole($role);
-            });
+            // 3. Attach Custom Domain (if provided)
+            if (!empty($validated['custom_domain'])) {
+                $customDomain = strtolower(trim($validated['custom_domain']));
+                $tenant->domains()->create(['domain' => $customDomain]);
+            }
+
+            // 4. Initialize Tenant Admin inside tenant database
+            try {
+                $tenant->run(function () use ($validated) {
+                    // Ensure Super-Admin role exists
+                    $role = Role::firstOrCreate(
+                        ['name' => 'Super-Admin', 'guard_name' => 'web']
+                    );
+
+                    $user = User::updateOrCreate(
+                        ['email' => $validated['email']],
+                        [
+                            'name' => $validated['company_name'] . ' Admin',
+                            'phone' => $validated['phone'] ?? '0000000000',
+                            'password' => Hash::make($validated['password']),
+                            'address' => $validated['address'] ?? '',
+                            'user_type' => 'super',
+                            'app' => 'SOA',
+                            'status' => 'Active',
+                        ]
+                    );
+
+                    $user->assignRole($role);
+                });
+            } catch (\Throwable $e) {
+                \Log::warning("Tenant admin setup warning: " . $e->getMessage());
+            }
+
+            return redirect()->route('super-admin.tenants.show', $tenant)
+                ->with('success', "Tenant workspace '{$tenant->company_name}' was created successfully.");
         } catch (\Throwable $e) {
-            \Log::warning("Tenant admin setup warning: " . $e->getMessage());
+            if (isset($tenant) && $tenant->exists) {
+                try {
+                    $tenant->delete();
+                } catch (\Throwable $delEx) {
+                    // Ignore rollback error
+                }
+            }
+            return back()->withInput()->withErrors([
+                'error' => 'Failed to provision tenant workspace: ' . $e->getMessage()
+            ]);
         }
-
-        return redirect()->route('super-admin.tenants.show', $tenant)
-            ->with('success', "Tenant workspace '{$tenant->company_name}' was created successfully.");
     }
 
     public function show(Tenant $tenant)
