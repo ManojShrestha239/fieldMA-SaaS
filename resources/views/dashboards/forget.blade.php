@@ -2,7 +2,7 @@
     <!-- BEGIN HEAD -->
     <head>
         @include('dashboards.partials.head')
-        <link href="../assets/pages/css/login-2.css" rel="stylesheet" type="text/css" />
+        <link href="{{ asset('assets/pages/css/login-2.css') }}" rel="stylesheet" type="text/css" />
     </head>
     <!-- END HEAD -->
 
@@ -10,7 +10,7 @@
     <!-- BEGIN LOGO -->
         <div class="logo">
             <a>
-                <img src="../assets/pages/img/jas.png" style="height: 17px;" alt="" /> </a>
+                <img src="{{ asset('assets/pages/img/jas.png') }}" style="height: 17px;" alt="" /> </a>
         </div>
         <!-- END LOGO -->
         <!-- BEGIN LOGIN -->
@@ -33,10 +33,10 @@
         @include('dashboards.partials.js')
         <!-- END THEME GLOBAL SCRIPTS -->
         <!-- BEGIN PAGE LEVEL SCRIPTS -->
-        <script src="../assets/global/plugins/jquery-validation/js/jquery.validate.min.js" type="text/javascript"></script>
-        <script src="../assets/global/plugins/jquery-validation/js/additional-methods.min.js" type="text/javascript"></script>
-        <script src="../assets/global/plugins/select2/js/select2.full.min.js" type="text/javascript"></script>
-        <script src="../assets/pages/scripts/login.min.js" type="text/javascript"></script>
+        <script src="{{ asset('assets/global/plugins/jquery-validation/js/jquery.validate.min.js') }}" type="text/javascript"></script>
+        <script src="{{ asset('assets/global/plugins/jquery-validation/js/additional-methods.min.js') }}" type="text/javascript"></script>
+        <script src="{{ asset('assets/global/plugins/select2/js/select2.full.min.js') }}" type="text/javascript"></script>
+        <script src="{{ asset('assets/pages/scripts/login.min.js') }}" type="text/javascript"></script>
 
         <!-- END PAGE LEVEL SCRIPTS -->
     </body>

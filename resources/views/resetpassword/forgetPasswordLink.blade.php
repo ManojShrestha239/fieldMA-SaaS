@@ -3,7 +3,7 @@
     <!-- BEGIN HEAD -->
     <head>
 @include('dashboards.partials.head')
-    <link href="../assets/pages/css/login-2.css" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/pages/css/login-2.css') }}" rel="stylesheet" type="text/css" />
 </head>
     <!-- END HEAD -->
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Routing\UrlGenerator;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -51,5 +52,39 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Schema::defaultStringLength(191);
+
+        // Always take assets from the main domain
+        if (! UrlGenerator::hasMacro('setAssetRoot')) {
+            UrlGenerator::macro('setAssetRoot', function ($root) {
+                $this->assetRoot = $root;
+                return $this;
+            });
+        }
+
+        $applyAssetRoot = function ($request = null) {
+            $assetUrl = config('app.asset_url') ?: config('app.url');
+            if (! $assetUrl) {
+                return;
+            }
+
+            $isHttps = false;
+            if ($request instanceof \Illuminate\Http\Request) {
+                $isHttps = $request->isSecure() || strtolower((string) $request->header('x-forwarded-proto')) === 'https';
+            } elseif (! $this->app->runningInConsole()) {
+                $isHttps = request()->isSecure() || strtolower((string) request()->header('x-forwarded-proto')) === 'https';
+            }
+
+            if ($isHttps && str_starts_with($assetUrl, 'http://')) {
+                $assetUrl = preg_replace('/^http:/i', 'https:', $assetUrl);
+            }
+
+            $this->app['url']->setAssetRoot($assetUrl);
+        };
+
+        $applyAssetRoot();
+
+        $this->app->rebinding('request', function ($app, $request) use ($applyAssetRoot) {
+            $applyAssetRoot($request);
+        });
     }
 }

@@ -10,7 +10,8 @@
             </a>
             <h3 class="fw-bold mb-1">{{ $tenant->company_name }}</h3>
             <p class="text-muted small mb-0">Tenant ID: <code>{{ $tenant->id }}</code> | Slug:
-                <code>{{ $tenant->slug }}</code></p>
+                <code>{{ $tenant->slug }}</code>
+            </p>
         </div>
         <div class="d-flex gap-2">
             <form action="{{ route('super-admin.tenants.migrate', $tenant) }}" method="POST">
@@ -169,7 +170,7 @@
                                     <i class="fa-solid fa-globe text-primary me-2"></i>
                                     <strong>{{ $domain->domain }}</strong>
                                 </div>
-                                <a href="http://{{ $domain->domain }}:8000" target="_blank"
+                                <a href="http://{{ $domain->domain }}" target="_blank"
                                     class="btn btn-sm btn-outline-secondary">
                                     Open Portal <i class="fa-solid fa-external-link-alt fa-xs ms-1"></i>
                                 </a>

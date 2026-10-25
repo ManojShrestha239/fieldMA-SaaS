@@ -282,8 +282,8 @@ class TenantController extends Controller
         try {
             $tenant->run(function () use ($oldEmail, $newEmail, $newPassword, $validated) {
                 $user = User::where('email', $oldEmail)->first()
-                     ?? User::where('email', $newEmail)->first()
-                     ?? User::where('user_type', 'super')->first();
+                    ?? User::where('email', $newEmail)->first()
+                    ?? User::where('user_type', 'super')->first();
 
                 if ($user) {
                     $user->email = $newEmail;
