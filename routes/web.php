@@ -21,6 +21,9 @@ $centralDomains = config('tenancy.central_domains') ?: ['localhost', '127.0.0.1'
 foreach ($centralDomains as $domain) {
     Route::domain($domain)->group(function () {
         Route::get('/', function () {
+            if (Auth::guard('super_admin')->check()) {
+                return redirect()->route('super-admin.dashboard');
+            }
             return redirect()->route('super-admin.login');
         });
     });

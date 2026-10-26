@@ -34,10 +34,11 @@ class AuthController extends Controller
                 Auth::guard('super_admin')->logout();
                 return back()->withErrors(['email' => 'Your account has been deactivated.']);
             }
+            $request->session()->forget('url.intended');
 
-            return redirect()->intended(route('super-admin.dashboard'));
+            // dd('1', "Login successful. Redirecting to dashboard...");
+            return redirect()->route('super-admin.dashboard');
         }
-
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');

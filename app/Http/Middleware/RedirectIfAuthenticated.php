@@ -20,13 +20,17 @@ class RedirectIfAuthenticated
     public function handle(Request $request, Closure $next, $guard = null)
     {
         if (Auth::guard($guard)->check()) {
-            if (Auth::user()->user_type == 'super' || Auth::user()->user_type == 'marketing') {
+            if ($guard === 'super_admin' || $request->is('super-admin*')) {
+                return redirect()->route('super-admin.dashboard');
+            }
+
+            if (Auth::user() && (Auth::user()->user_type == 'super' || Auth::user()->user_type == 'marketing')) {
                 return redirect('/dashboard');
             }
-            if (Auth::user()->user_type == 'account') {
+            if (Auth::user() && Auth::user()->user_type == 'account') {
                 return redirect('/collection');
             }
-            if (Auth::user()->user_type == 'dispatch') {
+            if (Auth::user() && Auth::user()->user_type == 'dispatch') {
                 return redirect('/order');
             }
         }
