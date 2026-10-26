@@ -114,7 +114,7 @@ class TenantController extends Controller
             ]);
 
             // Save virtual columns directly on model so VirtualColumn trait packs them
-            $tenant->theme_color = $validated['theme_color'] ?? '#315DA9';
+            $tenant->theme_color = $validated['theme_color'] ?? '#C0392B';
             $tenant->fcm_topic = $slug . '_fieldMA_allUser';
             $tenant->feature_overrides = [];
 
@@ -165,8 +165,8 @@ class TenantController extends Controller
                         ['name' => 'Super-Admin', 'guard_name' => 'web']
                     );
 
-                    // Remove default test@test.com
-                    User::where('email', 'test@test.com')->delete();
+                    // // Remove default test@test.com
+                    // User::where('email', 'test@test.com')->delete();
 
                     $user = User::updateOrCreate(
                         ['email' => $validated['email']],

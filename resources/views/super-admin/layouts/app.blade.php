@@ -7,8 +7,8 @@
     <title>@yield('title', 'Super Admin') - FieldMA SaaS</title>
 
     <!-- Favicon (Super-Admin Console Only) -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/pages/img/favicon-superadmin.svg') }}">
-    <link rel="alternate icon" type="image/png" href="{{ asset('assets/pages/img/favicon-superadmin.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/pages/img/favicon-logo-512.png') }}">
+    <link rel="alternate icon" type="image/png" href="{{ asset('assets/pages/img/favicon-logo-64.png') }}">
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
