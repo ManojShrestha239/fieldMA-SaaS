@@ -48,6 +48,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $this->belongsTo(SubscriptionPlan::class, 'subscription_plan_id');
     }
 
+    /**
+     * Retrieve the model for a bound value (supports both id and slug).
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('id', $value)->orWhere('slug', $value)->firstOrFail();
+    }
+
     public function isSuspended(): bool
     {
         return $this->status === 'suspended';

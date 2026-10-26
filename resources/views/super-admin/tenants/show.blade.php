@@ -3,7 +3,7 @@
 @section('title', $tenant->company_name)
 
 @section('content')
-    <div class="mb-4 d-flex justify-content-between align-items-center">
+    <div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
             <a href="{{ route('super-admin.tenants.index') }}" class="btn btn-sm btn-outline-secondary mb-2">
                 <i class="fa-solid fa-arrow-left me-1"></i> Back to Companies
@@ -13,11 +13,30 @@
                 <code>{{ $tenant->slug }}</code>
             </p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
             <form action="{{ route('super-admin.tenants.migrate', $tenant) }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-outline-primary btn-sm">
+                <button type="submit" class="btn btn-outline-primary btn-sm" title="Run migrations for this tenant">
                     <i class="fa-solid fa-sync me-1"></i> Run Migrations
+                </button>
+            </form>
+            <form action="{{ route('super-admin.tenants.rollback', $tenant) }}" method="POST"
+                onsubmit="return confirm('Are you sure you want to rollback the last migration batch for tenant \'{{ $tenant->company_name }}\'?');">
+                @csrf
+                <button type="submit" class="btn btn-outline-warning btn-sm" title="Rollback migrations for this tenant">
+                    <i class="fa-solid fa-rotate-left me-1"></i> Migrate Rollback
+                </button>
+            </form>
+            <form action="{{ route('super-admin.tenants.storage-link', $tenant) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-outline-secondary btn-sm" title="Run storage:link">
+                    <i class="fa-solid fa-link me-1"></i> Storage Link
+                </button>
+            </form>
+            <form action="{{ route('super-admin.tenants.optimize-clear', $tenant) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-outline-dark btn-sm" title="Run optimize:clear && config:cache">
+                    <i class="fa-solid fa-broom me-1"></i> Clear & Cache Config
                 </button>
             </form>
             <form action="{{ route('super-admin.tenants.toggle-status', $tenant) }}" method="POST">

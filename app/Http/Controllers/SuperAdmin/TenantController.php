@@ -402,6 +402,43 @@ class TenantController extends Controller
         }
     }
 
+    public function rollback(Tenant $tenant)
+    {
+        try {
+            Artisan::call('tenants:rollback', [
+                '--tenants' => [$tenant->id],
+                '--force' => true,
+            ]);
+
+            return back()->with('success', "Migration rollback executed successfully for tenant {$tenant->company_name}.");
+        } catch (\Throwable $e) {
+            return back()->with('error', "Migration rollback failed: " . $e->getMessage());
+        }
+    }
+
+    public function storageLink(Tenant $tenant)
+    {
+        try {
+            Artisan::call('storage:link');
+
+            return back()->with('success', "Storage symbolic link created successfully.");
+        } catch (\Throwable $e) {
+            return back()->with('error', "Storage link failed: " . $e->getMessage());
+        }
+    }
+
+    public function optimizeClear(Tenant $tenant)
+    {
+        try {
+            Artisan::call('optimize:clear');
+            Artisan::call('config:cache');
+
+            return back()->with('success', "Application cache cleared and configuration cached successfully.");
+        } catch (\Throwable $e) {
+            return back()->with('error', "Failed to optimize and cache config: " . $e->getMessage());
+        }
+    }
+
     public function destroy(Request $request, Tenant $tenant)
     {
         $dropDatabase = $request->boolean('drop_database', false);

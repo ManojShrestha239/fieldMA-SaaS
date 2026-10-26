@@ -46,6 +46,9 @@ Route::prefix('super-admin')->group(function () {
         ]);
         Route::post('tenants/{tenant}/toggle-status', [SuperAdminTenants::class, 'toggleStatus'])->name('super-admin.tenants.toggle-status');
         Route::post('tenants/{tenant}/migrate', [SuperAdminTenants::class, 'migrate'])->name('super-admin.tenants.migrate');
+        Route::post('tenants/{tenant}/rollback', [SuperAdminTenants::class, 'rollback'])->name('super-admin.tenants.rollback');
+        Route::post('tenants/{tenant}/storage-link', [SuperAdminTenants::class, 'storageLink'])->name('super-admin.tenants.storage-link');
+        Route::post('tenants/{tenant}/optimize-clear', [SuperAdminTenants::class, 'optimizeClear'])->name('super-admin.tenants.optimize-clear');
 
         // Subscription Plans Management
         Route::resource('plans', SuperAdminPlans::class, [

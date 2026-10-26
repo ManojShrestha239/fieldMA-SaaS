@@ -127,7 +127,7 @@
                                     @foreach ($plans as $p)
                                         <option value="{{ $p->id }}"
                                             {{ old('subscription_plan_id') == $p->id ? 'selected' : '' }}>
-                                            {{ $p->name }} (${{ $p->price }}/{{ $p->billing_interval }}) -
+                                            {{ $p->name }} (Rs. {{ $p->price }}/{{ $p->billing_interval }}) -
                                             {{ $p->max_mobile_users > 0 ? $p->max_mobile_users . ' mobile users' : 'Unlimited users' }}
                                         </option>
                                     @endforeach
