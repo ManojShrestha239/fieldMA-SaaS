@@ -38,14 +38,14 @@
 
         .button {
             width: 80% !important;
-            background-color: #dd3234;
-            border: 2px solid #dd3234;
+            background-color: var(--primary-theme-color);
+            border: 2px solid var(--primary-theme-color);
         }
 
         .button:hover {
             transition: 0.3s;
-            background-color: #dd3234;
-            border: 2px solid #dd3234;
+            background-color: var(--primary-theme-color);
+            border: 2px solid var(--primary-theme-color);
         }
     </style>
     <style>
@@ -363,13 +363,13 @@
                                                                                 class="price">{{ $today_onlinevisit }}</span>
                                                                         </li>
                                                                         <!-- <li>
-                                                                        <a href="#">
-                                                                            <span class="product">OFFLINE VISIT</span>
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <span class="price">1107</span>
-                                                                    </li> -->
+                                                                                <a href="#">
+                                                                                    <span class="product">OFFLINE VISIT</span>
+                                                                                </a>
+                                                                            </li>
+                                                                            <li>
+                                                                                <span class="price">1107</span>
+                                                                            </li> -->
 
 
                                                                         <li>

@@ -8,7 +8,8 @@
             </td>
         </tr>
         <tr>
-            <td colspan="9" style="text-align:center;background-color:#dd3234;color:white;height:100px;vertical-align:center;font-weight:bold;font-size:18px;">
+            <td colspan="9"
+                style="text-align:center;background-color:var(--primary-theme-color);color:white;height:100px;vertical-align:center;font-weight:bold;font-size:18px;">
                 {{ env('COMPANY_NAME') }} <br> {{ env('COMPANY_ADDRESS') }}
             </td>
         </tr>
@@ -34,22 +35,22 @@
     <tbody>
 
         @if (!empty($attendances))
-        @foreach ($attendances as $attendance)
-        <tr>
-            <td style="vertical-align:center;">{!! $loop->iteration !!}</td>
-            <td style="vertical-align:center;">
-                {{ $attendance->mobileuser['name'] }}-({{ $attendance->mobileuser['id'] }})
-            </td>
-            <td style="vertical-align:center;"> {{ $attendance->early }} </td>
-            <td style="vertical-align:center;"> {{ $attendance->late }} </td>
-            <td style="vertical-align:center;"> {{ $attendance->earlycheckout }} </td>
-            <td style="vertical-align:center;"> {{ $attendance->latecheckout }} </td>
-            <td style="vertical-align:center;"> {{ $total }} </td>
-            <td style="vertical-align:center;"> {{ $attendance->total_present }} </td>
-            <td style="vertical-align:center;"> {{ $attendance->absent }} </td>
-            <td style="vertical-align:center;"> {{round($attendance->final_km,2)}} KM </td>
-        </tr>
-        @endforeach
+            @foreach ($attendances as $attendance)
+                <tr>
+                    <td style="vertical-align:center;">{!! $loop->iteration !!}</td>
+                    <td style="vertical-align:center;">
+                        {{ $attendance->mobileuser['name'] }}-({{ $attendance->mobileuser['id'] }})
+                    </td>
+                    <td style="vertical-align:center;"> {{ $attendance->early }} </td>
+                    <td style="vertical-align:center;"> {{ $attendance->late }} </td>
+                    <td style="vertical-align:center;"> {{ $attendance->earlycheckout }} </td>
+                    <td style="vertical-align:center;"> {{ $attendance->latecheckout }} </td>
+                    <td style="vertical-align:center;"> {{ $total }} </td>
+                    <td style="vertical-align:center;"> {{ $attendance->total_present }} </td>
+                    <td style="vertical-align:center;"> {{ $attendance->absent }} </td>
+                    <td style="vertical-align:center;"> {{ round($attendance->final_km, 2) }} KM </td>
+                </tr>
+            @endforeach
         @endif
 
     </tbody>

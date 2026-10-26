@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --bs-primary: #dd3234;
+            --bs-primary: var(--primary-theme-color);
             --bs-secondary: #ED9300;
         }
 

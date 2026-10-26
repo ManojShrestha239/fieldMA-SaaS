@@ -1,7 +1,7 @@
 <meta charset="utf-8" />
 @php
     $currentTenant = function_exists('tenant') ? tenant() : null;
-    $titleName = $currentTenant ? $currentTenant->company_name : (config('app.company_name') ?? 'FieldMA');
+    $titleName = $currentTenant ? $currentTenant->company_name : config('app.company_name') ?? 'FieldMA';
     $themeColor = $currentTenant ? $currentTenant->getThemeColor() : '#315DA9';
     $favIcon = $currentTenant ? $currentTenant->getFaviconUrl() : asset('assets/pages/img/logo-fieldma.png');
 @endphp
@@ -32,38 +32,42 @@
 <link rel="shortcut icon" href="{{ $favIcon }}" />
 <link rel="icon" href="{{ $favIcon }}" />
 <style>
-  :root {
-    --primary-theme-color: {{ $themeColor }};
-  }
+    :root {
+        --primary-theme-color: {{ $themeColor }};
+        --nav-text-color: #315DA9;
+    }
 
-  .navActive {
-    color: {{ $themeColor }} !important;
-    border-bottom: 2px solid {{ $themeColor }} !important;
-    font-weight: 600 !important;
-  }
+    .navActive {
+        color: {{ $themeColor }} !important;
+        border-bottom: 2px solid {{ $themeColor }} !important;
+        font-weight: 600 !important;
+    }
 
-  .quickNav, #quickNav, .active {
-    color: white !important;
-    background: {{ $themeColor }} !important;
-  }
+    .quickNav,
+    #quickNav,
+    .active {
+        color: white !important;
+        background: {{ $themeColor }} !important;
+    }
 
-  /* Tenant dynamic branding color */
-  .navigation .nav.navbar-nav > li > a:hover,
-  .dropdown-menu-v2 > li > a:hover {
-    color: {{ $themeColor }} !important;
-  }
+    /* Tenant dynamic branding color */
+    .navigation .nav.navbar-nav>li>a:hover,
+    .dropdown-menu-v2>li>a:hover {
+        color: #ffffff !important
+    }
 
-  .btn.blue:not(.btn-outline),
-  .btn-primary {
-    background-color: {{ $themeColor }} !important;
-    border-color: {{ $themeColor }} !important;
-  }
+    .btn.blue:not(.btn-outline),
+    .btn-primary {
+        background-color: {{ $themeColor }} !important;
+        border-color: {{ $themeColor }} !important;
+    }
 
-  .portlet.blue > .portlet-title,
-  .portlet.box.blue {
-    border-color: {{ $themeColor }} !important;
-  }
-  .portlet.box.blue > .portlet-title {
-    background-color: {{ $themeColor }} !important;
-  }
+    .portlet.blue>.portlet-title,
+    .portlet.box.blue {
+        border-color: {{ $themeColor }} !important;
+    }
+
+    .portlet.box.blue>.portlet-title {
+        background-color: {{ $themeColor }} !important;
+    }
 </style>

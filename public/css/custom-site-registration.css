@@ -83,13 +83,13 @@
 /* Active State */
 .msjk-view-toggle .btn.active {
     background: #fff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
 }
 
 .msjk-view-toggle .btn.active svg path {
-    stroke: #dd3234 !important;
-    fill: #dd3234 !important;
+    stroke: var(--primary-theme-color) !important;
+    fill: var(--primary-theme-color) !important;
 }
 
 .msjk-view-toggle .btn:hover {
@@ -98,8 +98,8 @@
 }
 
 .msjk-add-followup {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
     padding: 8px 18px;
     display: inline-flex;
     align-items: center;
@@ -142,8 +142,8 @@
 }
 
 .msjk-filter-btn.active {
-    background: #dd3234 !important;
-    border-color: #dd3234 !important;
+    background: var(--primary-theme-color) !important;
+    border-color: var(--primary-theme-color) !important;
     color: #fff !important;
 }
 
@@ -188,7 +188,7 @@
 }
 
 .msjk-active-row {
-    border-left: 3px solid #dd3234;
+    border-left: 3px solid var(--primary-theme-color);
     background: #fafbff;
 }
 
@@ -263,7 +263,7 @@
 }
 
 .msjk-action-btn:hover {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 
@@ -292,7 +292,7 @@
 .msjk-priority-badge {
     display: inline-block;
     padding: 4px 8px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
     border-radius: 4px;
     font-size: 10px;
@@ -469,8 +469,8 @@
 }
 
 .msjk-btn-primary {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-btn-outline {
@@ -507,12 +507,12 @@
 }
 
 .msjk-tab:hover {
-    color: #dd3234;
+    color: var(--primary-theme-color);
     text-decoration: none;
 }
 
 .msjk-tab.active {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-tab.active:after {
@@ -522,7 +522,7 @@
     right: 0;
     bottom: -1px;
     height: 2px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
 }
 
 .msjk-tab-count {
@@ -580,8 +580,8 @@
 }
 
 .msjk-completion-card {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-completion-card .msjk-stat-label,
@@ -674,7 +674,7 @@
 }
 
 .msjk-blue-text {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-spec-approved-brands {
@@ -716,7 +716,7 @@
 .msjk-view-all {
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #dd3234 !important;
+    color: var(--primary-theme-color) !important;
     text-decoration: none;
 }
 
@@ -763,7 +763,7 @@
 
 .msjk-contact-phone {
     font-size: 14px;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     text-decoration: none;
 }
 
@@ -816,7 +816,7 @@
 
 .msjk-primary {
     background: #dbeafe;
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-info {
@@ -950,8 +950,8 @@
 .msjk-register-btn {
     margin-right: 8px;
     color: #fff;
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-export-btn {
@@ -1110,7 +1110,7 @@
     height: 8px;
     margin-right: 8px;
     border-radius: 50%;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     display: inline-block;
 }
 
@@ -1157,7 +1157,7 @@
 
 .msjk-action-menu a:hover {
     background: #f7f9fb;
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 @media (max-width: 1024px) {
@@ -1225,7 +1225,7 @@
 .msjk-followup-complete-btn {
     padding: 10px 18px;
     border-radius: 6px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
 }
 
@@ -1277,8 +1277,8 @@
 .msjk-followup-card-icon {
     width: 24px;
     height: 24px;
-    border: 2px solid #dd3234;
-    color: #dd3234;
+    border: 2px solid var(--primary-theme-color);
+    color: var(--primary-theme-color);
     border-radius: 50%;
     font-size: 13px;
     font-weight: 600;
@@ -1377,7 +1377,7 @@
 }
 
 .msjk-followup-site-link {
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-size: 14px;
     font-weight: 500;
 }
@@ -1455,11 +1455,11 @@
 }
 
 .msjk-site-tab-btn:hover {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-site-tab-active {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-site-tab-active::after {
@@ -1469,7 +1469,7 @@
     bottom: -1px;
     width: 100%;
     height: 3px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
 }
 
 .msjk-site-tab-pane {
@@ -1519,7 +1519,7 @@
     height: 38px;
     border-radius: 50%;
     background: #fff;
-    border: 2px solid #dd3234;
+    border: 2px solid var(--primary-theme-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1544,7 +1544,7 @@
 
 .msjk-site-timeline-tag {
     background: #eef2ff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
@@ -1624,8 +1624,8 @@
 }
 
 .msjk-contact-add-btn {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
     border-radius: 10px;
     padding: 10px 20px;
     font-weight: 500;
@@ -1677,7 +1677,7 @@
 }
 
 .msjk-contact-phone {
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-size: 15px;
     text-decoration: none;
 }
@@ -1807,7 +1807,7 @@
 
 .msjk-product-btn {
     border: none;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
     display: flex;
     align-items: center;
@@ -1962,9 +1962,9 @@ MYCSSS
 
 /* Active Page Button (Blue box matching image 1 & 2) */
 .table-pagination-custom .active-page-btn {
-    background-color: #dd3234 !important;
+    background-color: var(--primary-theme-color) !important;
     color: #ffffff !important;
-    border: 1px solid #dd3234 !important;
+    border: 1px solid var(--primary-theme-color) !important;
 }
 
 /* Unselected Page Numbers Style (No border box) */
@@ -1976,7 +1976,7 @@ MYCSSS
 
 /* Hover effect for unselected numbers */
 .table-pagination-custom .page-num-btn:hover {
-    color: #dd3234 !important;
+    color: var(--primary-theme-color) !important;
     /* Changes to match theme color on focus */
     background-color: #edf2f7 !important;
     /* Subtle box hover look */
@@ -2063,7 +2063,7 @@ MYCSSS
 }
 
 .msjk-search-input:focus {
-    border-color: #dd3234 !important;
+    border-color: var(--primary-theme-color) !important;
 }
 
 /* Registered site CSS ends */
@@ -2144,7 +2144,7 @@ MYCSSS
 }
 
 .msjk-marker-blue {
-    background: #dd3234;
+    background: var(--primary-theme-color);
     top: 55%;
     left: 48%;
 }
@@ -2184,7 +2184,7 @@ MYCSSS
     left: 15px;
     bottom: 10px;
     background: #fff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-size: 12px;
     font-weight: 600;
     padding: 5px 10px;
@@ -2234,7 +2234,7 @@ MYCSSS
 .msjk-stage-progress-fill {
     width: 70%;
     height: 100%;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     border-radius: 20px;
 }
 
@@ -2245,7 +2245,7 @@ MYCSSS
 }
 
 .msjk-stage-steps .active {
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-weight: 600;
 }
 
@@ -2264,8 +2264,8 @@ MYCSSS
 }
 
 .btn-primary {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-site-discovery {
@@ -2318,9 +2318,9 @@ MYCSSS
 }
 
 .msjk-filter-btn.active {
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
-    border-color: #dd3234;
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-site-list {
@@ -2561,7 +2561,7 @@ Ollama
 }
 
 .msjk-step-item.msjk-step-item-active {
-    border: 2px solid #dd3234;
+    border: 2px solid var(--primary-theme-color);
 }
 
 .msjk-step-number {
@@ -2569,7 +2569,7 @@ Ollama
     height: 40px;
     border-radius: 50%;
     background: #eef2ff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -2577,7 +2577,7 @@ Ollama
 }
 
 .msjk-step-item.msjk-step-item-active .msjk-step-number {
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
 }
 
@@ -2626,7 +2626,7 @@ Ollama
 }
 
 .msjk-pagination-dots span.msjk-pagination-dots-active {
-    background: #dd3234;
+    background: var(--primary-theme-color);
 }
 
 /* .msjk-follow-card {
@@ -2674,7 +2674,7 @@ Ollama
 }
 
 .msjk-form-control:focus {
-    border-color: #dd3234;
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-status-group {
@@ -2694,8 +2694,8 @@ Ollama
 
 .msjk-status-btn.msjk-status-btn-active {
     background: #e9edff;
-    border-color: #dd3234;
-    color: #dd3234;
+    border-color: var(--primary-theme-color);
+    color: var(--primary-theme-color);
     font-weight: 600;
 }
 
@@ -2720,7 +2720,7 @@ Ollama
 }
 
 .msjk-stage-card.msjk-stage-card-active {
-    border: 2px solid #dd3234;
+    border: 2px solid var(--primary-theme-color);
 }
 
 .msjk-stage-icon {
@@ -2736,7 +2736,7 @@ Ollama
 }
 
 .msjk-stage-icon.msjk-stage-icon-active {
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
 }
 
@@ -2773,8 +2773,8 @@ Ollama
 
 .msjk-time-slot.msjk-time-slot-active {
     background: #e9edff;
-    border-color: #dd3234;
-    color: #dd3234;
+    border-color: var(--primary-theme-color);
+    color: var(--primary-theme-color);
     font-weight: 600;
 }
 
@@ -2828,7 +2828,7 @@ Ollama
 }
 
 .msjk-switch input:checked+.msjk-slider {
-    background: #dd3234;
+    background: var(--primary-theme-color);
 }
 
 .msjk-switch input:checked+.msjk-slider:before {
@@ -2936,12 +2936,12 @@ Ollama
 }
 
 .msjk-sitereg-step.msjk-sitereg-step-active span {
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
 }
 
 .msjk-sitereg-step.msjk-sitereg-step-active p {
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-weight: 600;
 }
 
@@ -2985,7 +2985,7 @@ Ollama
     padding: 12px 34px;
     border: none;
     border-radius: 24px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
     font-size: 16px;
     font-weight: 600;
@@ -3084,8 +3084,8 @@ Ollama
 }
 
 .msjk-sitereg-type-btn.active {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
     color: #fff;
 }
 
@@ -3112,7 +3112,7 @@ Ollama
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
     border: none;
     border-radius: 30px;
@@ -3171,7 +3171,7 @@ Ollama
 .msjk-sitereg-add-contact-btn {
     border: none;
     background: #eef2ff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     padding: 12px 20px;
     border-radius: 10px;
     font-weight: 600;
@@ -3189,7 +3189,7 @@ Ollama
 }
 
 /* .msjk-sitereg-contact-card.active {
-    border: 2px solid #dd3234;
+    border: 2px solid var(--primary-theme-color);
 } */
 
 .msjk-sitereg-contact-top {
@@ -3204,7 +3204,7 @@ Ollama
     height: 50px;
     border-radius: 50%;
     background: #eef2ff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3249,7 +3249,7 @@ Ollama
     bottom: 20px;
     display: flex;
     gap: 8px;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-size: 20px;
 }
 
@@ -3317,24 +3317,24 @@ Ollama
 }
 
 .msjk-sitereg-stage-item.completed .msjk-sitereg-stage-icon {
-    border-color: #dd3234;
-    color: #dd3234;
+    border-color: var(--primary-theme-color);
+    color: var(--primary-theme-color);
     background: #eef3ff;
 }
 
 .msjk-sitereg-stage-item.completed span {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-sitereg-stage-item.msjk-sitereg-stage-item-active .msjk-sitereg-stage-icon {
-    background: #dd3234;
-    border-color: #dd3234;
+    background: var(--primary-theme-color);
+    border-color: var(--primary-theme-color);
     color: #fff;
     box-shadow: 0 10px 20px rgba(23, 67, 209, .20);
 }
 
 .msjk-sitereg-stage-item.msjk-sitereg-stage-item-active span {
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-sitereg-stage-line {
@@ -3345,7 +3345,7 @@ Ollama
 }
 
 .msjk-sitereg-stage-item-active .msjk-sitereg-stage-icon {
-    background: #dd3234;
+    background: var(--primary-theme-color);
 }
 
 .msjk-sitereg-info-box {
@@ -3361,7 +3361,7 @@ Ollama
 .msjk-sitereg-info-box strong {
     display: block;
     font-size: 18px;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     margin-bottom: 6px;
 }
 
@@ -3392,7 +3392,7 @@ Ollama
 
 .msjk-sitereg-form-control:focus {
     outline: none;
-    border-color: #dd3234;
+    border-color: var(--primary-theme-color);
 }
 
 .msjk-sitereg-estimation-card {
@@ -3406,7 +3406,7 @@ Ollama
 
 .msjk-sitereg-estimation-icon {
     font-size: 28px;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     margin-bottom: 20px;
 }
 
@@ -3418,7 +3418,7 @@ Ollama
 }
 
 .msjk-sitereg-estimation-card h2 {
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 10px;
@@ -3433,7 +3433,7 @@ Ollama
 .msjk-sitereg-link-btn {
     background: transparent;
     border: none;
-    color: #dd3234;
+    color: var(--primary-theme-color);
     font-weight: 600;
     cursor: pointer;
 }
@@ -3478,9 +3478,9 @@ Ollama
 }
 
 .msjk-sitereg-followup-btn.active {
-    border-color: #dd3234;
+    border-color: var(--primary-theme-color);
     background: #eef3ff;
-    color: #dd3234;
+    color: var(--primary-theme-color);
 }
 
 .msjk-sitereg-notes {
@@ -3542,7 +3542,7 @@ Ollama
 .msjk-sitereg-slider {
     position: absolute;
     inset: 0;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     border-radius: 30px;
     cursor: pointer;
 }
@@ -3616,7 +3616,7 @@ Ollama
 }
 
 .msjk-sitereg-upload-box:hover {
-    border-color: #dd3234;
+    border-color: var(--primary-theme-color);
     background: #eef3ff;
 }
 
@@ -3662,7 +3662,7 @@ Ollama
 
 .msjk-sitereg-notes-box:focus {
     outline: none;
-    border-color: #dd3234;
+    border-color: var(--primary-theme-color);
 }
 
 /* REGISTER BUTTON */
@@ -3729,7 +3729,7 @@ Ollama
     height: 56px;
     border: none;
     border-radius: 999px;
-    background: #dd3234;
+    background: var(--primary-theme-color);
     color: #fff;
     font-weight: 600;
     margin-bottom: 16px;
@@ -3768,6 +3768,6 @@ Ollama
 
 .msjk-site-item.active {
     background: #f6f7fb !important;
-    border-color: #dd3234 !important;
+    border-color: var(--primary-theme-color) !important;
     border-bottom: none !important;
 }

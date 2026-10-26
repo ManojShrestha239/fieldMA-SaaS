@@ -52,7 +52,8 @@
     }
 @endphp
 <a id="index" class="page-logo" href="{{ $routePath }}">
-    <img src="{{ (function_exists('tenant') && tenant()) ? tenant()->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png') }}" alt="{{ (function_exists('tenant') && tenant()) ? tenant()->company_name : 'Logo' }}">
+    <img src="{{ function_exists('tenant') && tenant() ? tenant()->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png') }}"
+        alt="{{ function_exists('tenant') && tenant() ? tenant()->company_name : 'Logo' }}">
 </a>
 
 <div class="navbar-collapse hidden-sm hidden-xs navigation">
@@ -62,18 +63,18 @@
         @endphp
 
         {{-- <li class="{{ $isActive(['dashboard', 'activeuser*']) }} classic-menu-dropdown">
-        <a href="/dashboard" style="color: var(--primary-theme-color);">Home</a>
+        <a href="/dashboard" style="color: var(--nav-text-color);">Home</a>
         </li> --}}
 
         @can('notice')
             <li class="{{ $isActive(['notice*']) }} classic-menu-dropdown">
-                <a href="/notice" style="color: var(--primary-theme-color);">Notice</a>
+                <a href="/notice" style="color: var(--nav-text-color);">Notice</a>
             </li>
         @endcan
 
         @can('order')
             <li class="{{ $isActive(['order*']) }} classic-menu-dropdown" style="position:relative;">
-                <a href="/order" style="color: var(--primary-theme-color);">
+                <a href="/order" style="color: var(--nav-text-color);">
                     Orders
                     @if (Helper::todayorders() > 0)
                         <span class="today-count">{{ Helper::todayorders() }}</span>
@@ -85,7 +86,7 @@
         @can('collection')
             <li class="{{ $isActive(['collection*', 'cheque*', 'token*', '*-collection']) }} classic-menu-dropdown"
                 style="position:relative;">
-                <a href="/collection-report" style="color: var(--primary-theme-color);">
+                <a href="/collection-report" style="color: var(--nav-text-color);">
                     Collection
                     @if (Helper::todaycollections() > 0)
                         <span class="today-count">{{ Helper::todaycollections() }}</span>
@@ -96,13 +97,13 @@
 
         @can('schedule')
             <li class="{{ $isActive(['schedule*', 'repeated-schedule', 'repeated*']) }} classic-menu-dropdown">
-                <a href="/schedule" style="color: var(--primary-theme-color);">Visit Schedule</a>
+                <a href="/schedule" style="color: var(--nav-text-color);">Schedule</a>
             </li>
         @endcan
 
         @can('chat')
             <li class="{{ $isActive(['chat*']) }} classic-menu-dropdown" style="position:relative;">
-                <a href="/chat" style="color: var(--primary-theme-color);">
+                <a href="/chat" style="color: var(--nav-text-color);">
                     Chat
                 </a>
             </li>
@@ -110,14 +111,14 @@
 
         @can('complaint')
             <li class="{{ $isActive(['complaint*']) }} classic-menu-dropdown">
-                <a href="/complaint" style="color: var(--primary-theme-color);">Complaint</a>
+                <a href="/complaint" style="color: var(--nav-text-color);">Complaint</a>
             </li>
         @endcan
 
         @can('reports')
             <li
                 class="{{ $isActive(['visit*', 'visitdealer*', 'attendance*', 'negotiation*', 'monthlySummary*', 'tada-report*']) }} classic-menu-dropdown">
-                <a href="/visithistory" style="color: var(--primary-theme-color);">Reports</a>
+                <a href="/visithistory" style="color: var(--nav-text-color);">Reports</a>
             </li>
         @endcan
 
@@ -142,70 +143,71 @@
                     'purpose*',
                     'role*',
                 ]) }} classic-menu-dropdown">
-                <a class="setup" style="color: var(--primary-theme-color);">Setup</a>
+                <a class="setup" style="color: var(--nav-text-color);">Setup</a>
                 <ul class="multi-level">
                     @can('user')
                         <li class="{{ $isActive(['admin*', 'user*']) }} classic-menu-dropdown">
-                            <a href="/user" style="color: var(--primary-theme-color);">Users</a>
+                            <a href="/user" style="color: var(--nav-text-color);">Users</a>
                         </li>
                     @endcan
                     @can('dealer')
                         <li class="{{ $isActive(['dealer*']) }} classic-menu-dropdown">
-                            <a href="/dealer" style="color: var(--primary-theme-color);">Dealers</a>
+                            <a href="/dealer" style="color: var(--nav-text-color);">Dealers</a>
                         </li>
                     @endcan
                     @can('area')
                         <li class="{{ $isActive(['area*', 'users-assign*']) }} classic-menu-dropdown">
-                            <a href="/area" style="color: var(--primary-theme-color);">Areas</a>
+                            <a href="/area" style="color: var(--nav-text-color);">Areas</a>
                         </li>
                     @endcan
                     @can('product')
                         <li class="{{ $isActive(['product*', 'final-product*', 'categor*', 'size*']) }} classic-menu-dropdown">
-                            <a href="/final-product" style="color: var(--primary-theme-color);">Products</a>
+                            <a href="/final-product" style="color: var(--nav-text-color);">Products</a>
                         </li>
                     @endcan
                     @can('productinventory')
                         <li class="{{ $isActive(['productinventory*', 'producinventory*']) }} classic-menu-dropdown">
-                            <a href="/producinventory" style="color: var(--primary-theme-color);">Product Inventory</a>
+                            <a href="/producinventory" style="color: var(--nav-text-color);">Product Inventory</a>
                         </li>
                     @endcan
                     @can('rawmaterial')
                         <li
                             class="{{ $isActive(['raw-material*', 'raw*', 'raw-product*', 'rawpurchase*', 'inventory*']) }} classic-menu-dropdown">
-                            <a href="/raw" style="color: var(--primary-theme-color);">Raw Materials</a>
+                            <a href="/raw" style="color: var(--nav-text-color);">Raw Materials</a>
                         </li>
                     @endcan
                     @canany(['bank', 'upload-due', 'distance', 'denomination', 'purpose', 'role'])
                         <li
                             class="{{ $isActive(['bank*', 'upload*', 'distance*', 'bank/create*', 'denomination*', 'purpose*', 'role*']) }} classic-menu-dropdown">
                             @if (Auth::user()->can('bank'))
-                                <a href="/bank" style="color: var(--primary-theme-color);">Miscellaneous</a>
+                                <a href="/bank" style="color: var(--nav-text-color);">Miscellaneous</a>
                             @elseif (Auth::user()->can('upload-due'))
-                                <a href="/uploadfile/create" style="color: var(--primary-theme-color);">Miscellaneous</a>
+                                <a href="/uploadfile/create" style="color: var(--nav-text-color);">Miscellaneous</a>
                             @elseif (Auth::user()->can('distance'))
-                                <a href="/distance" style="color: var(--primary-theme-color);">Miscellaneous</a>
+                                <a href="/distance" style="color: var(--nav-text-color);">Miscellaneous</a>
                             @elseif (Auth::user()->can('denomination'))
-                                <a href="/denomination" style="color: var(--primary-theme-color);">Miscellaneous</a>
+                                <a href="/denomination" style="color: var(--nav-text-color);">Miscellaneous</a>
                             @elseif (Auth::user()->can('purpose'))
-                                <a href="/purpose" style="color: var(--primary-theme-color);">Miscellaneous</a>
+                                <a href="/purpose" style="color: var(--nav-text-color);">Miscellaneous</a>
                             @else
-                                <a href="/role" style="color: var(--primary-theme-color);">Miscellaneous</a>
+                                <a href="/role" style="color: var(--nav-text-color);">Miscellaneous</a>
                             @endif
                         </li>
                     @endcanany
                     @can('privacy-policy')
                         <li class="{{ $isActive(['dashboard/privacy-policy*', 'privacy-policy*']) }} classic-menu-dropdown">
-                            <a href="/privacy-policy" style="color: var(--primary-theme-color);">Privacy-Policy</a>
+                            <a href="/privacy-policy" style="color: var(--nav-text-color);">Privacy-Policy</a>
                         </li>
                     @endcan
                 </ul>
             </li>
         @endcanany
-        @if(\App\Utilities\Helpers::hasFeature('site_registration'))
-        <li
-            class="{{ $isActive(['dashboard/site-registration*', 'site-registration*', 'site-map*']) }} classic-menu-dropdown">
-            <a href="{{ route('site-registration-v2.index') }}" style="color: var(--primary-theme-color);">Site Registration</a>
-        </li>
+        @if (\App\Utilities\Helpers::hasFeature('site_registration'))
+            <li
+                class="{{ $isActive(['dashboard/site-registration*', 'site-registration*', 'site-map*']) }} classic-menu-dropdown">
+                <a href="{{ route('site-registration-v2.index') }}" style="color: var(--nav-text-color);">Site
+                    Registration</a>
+            </li>
         @endif
     </ul>
 
@@ -225,28 +227,28 @@
                         {{ Auth::user()->name }}</i></span>
             </button>
             <ul class="dropdown-menu-v2" role="menu">
-                @if(function_exists('tenant') && tenant())
-                <li>
-                    <a href="{{ route('tenant.settings.branding') }}" style="color: var(--primary-theme-color);">
-                        <i class="fa fa-cogs" style="color: var(--primary-theme-color);"></i> Company Settings
-                    </a>
-                </li>
+                @if (function_exists('tenant') && tenant())
+                    <li>
+                        <a href="{{ route('tenant.settings.branding') }}" style="color: var(--nav-text-color);">
+                            <i class="fa fa-cogs" style="color: var(--nav-text-color);"></i> Company Settings
+                        </a>
+                    </li>
                 @endif
                 <li>
-                    <a href="/admin/{{ Auth::user()->id }}/edit" style="color: var(--primary-theme-color);">
-                        <i class="fa fa-edit" style="color: var(--primary-theme-color);"></i> Edit Profile
+                    <a href="/admin/{{ Auth::user()->id }}/edit" style="color: var(--nav-text-color);">
+                        <i class="fa fa-edit" style="color: var(--nav-text-color);"></i> Edit Profile
                     </a>
                 </li>
                 <li>
-                    <a href="/admin/{{ Auth::user()->id }}/pass" style="color: var(--primary-theme-color);">
-                        <i class="icon-key" style="color: var(--primary-theme-color);"></i> Change Password
+                    <a href="/admin/{{ Auth::user()->id }}/pass" style="color: var(--nav-text-color);">
+                        <i class="icon-key" style="color: var(--nav-text-color);"></i> Change Password
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('logout') }}"
                         onclick="event.preventDefault();document.getElementById('logout-form').submit();"
-                        style="color: var(--primary-theme-color);">
-                        <i class="icon-logout" style="color: var(--primary-theme-color);"></i> Log Out
+                        style="color: var(--nav-text-color);">
+                        <i class="icon-logout" style="color: var(--nav-text-color);"></i> Log Out
                     </a>
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf

@@ -12,7 +12,7 @@
     <link rel="shortcut icon" href="{{{ asset('assets/pages/img/logo-fieldma.png') }}}" />
     <style>
         :root {
-            --primary-color: #dd3234;
+            --primary-color: var(--primary-theme-color);
             --primary-hover: #b90d10;
             --success-color: #10b981;
             --text-primary: #1f2937;

@@ -33,14 +33,14 @@
 
         .button {
             width: 80% !important;
-            background-color: #dd3234;
-            border: 2px solid #dd3234;
+            background-color: var(--primary-theme-color);
+            border: 2px solid var(--primary-theme-color);
         }
 
         .button:hover {
             transition: 0.3s;
-            background-color: #dd3234;
-            border: 2px solid #dd3234;
+            background-color: var(--primary-theme-color);
+            border: 2px solid var(--primary-theme-color);
         }
 
         @media (max-width: 550px) {
@@ -200,7 +200,7 @@
                                         @else
                                             @foreach ($users as $use)
                                                 <?php
-
+                                                
                                                 $lastsynced = (array) $use->coordinates;
                                                 $lastsynced = $lastsynced[count($lastsynced) - 1];
                                                 $lastsynced = (object) $lastsynced;

@@ -11,7 +11,7 @@
         </tr>
         <tr>
             <td colspan="8"
-                style="text-align:center;background-color:#dd3234;color:white;height:100px;vertical-align:center;font-weight:bold;font-size:18px;">
+                style="text-align:center;background-color:var(--primary-theme-color);color:white;height:100px;vertical-align:center;font-weight:bold;font-size:18px;">
                 {{ env('COMPANY_NAME') }} <br> {{ env('COMPANY_ADDRESS') }}</td>
         </tr>
         <tr>
@@ -50,7 +50,7 @@
                         <?php
                         $start = new DateTime($lis->start_time);
                         $end = new DateTime($lis->end_time);
-
+                        
                         $interval = $end->diff($start);
                         echo '(' . $interval->format('%h') . ' hrs ' . $interval->format('%i') . ' min' . $interval->format('%s') . ' sec)';
                         ?>

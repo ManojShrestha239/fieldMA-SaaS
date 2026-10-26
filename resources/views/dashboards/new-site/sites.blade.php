@@ -100,7 +100,7 @@
         }
 
         /* Row negative-margin fix: reduces gutter from 15px to 7px and
-                                                                                                                                                                   keeps the row inside the card. */
+                                                                                                                                                                       keeps the row inside the card. */
         .msjk-filters-form .msjk-filter-row {
             margin-left: -7px;
             margin-right: -7px;
@@ -150,7 +150,7 @@
 
         .msjk-filters-form .msjk-form-control:focus {
             outline: none;
-            border-color: #dd3234;
+            border-color: var(--primary-theme-color);
             box-shadow: 0 0 0 3px rgba(58, 139, 253, .15);
         }
 
@@ -239,7 +239,7 @@
         }
 
         .msjk-filter-apply {
-            background: #dd3234;
+            background: var(--primary-theme-color);
             color: #fff;
         }
 
@@ -302,7 +302,7 @@
             display: block;
             height: 2px;
             margin-top: 8px;
-            background: linear-gradient(90deg, transparent, #dd3234, transparent);
+            background: linear-gradient(90deg, transparent, var(--primary-theme-color), transparent);
             animation: msjk-shimmer 1.2s infinite linear;
         }
 
