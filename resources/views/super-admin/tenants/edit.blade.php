@@ -23,7 +23,7 @@
             </div>
         @endif
 
-        <form action="{{ route('super-admin.tenants.update', $tenant) }}" method="POST">
+        <form action="{{ route('super-admin.tenants.update', $tenant) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -47,6 +47,51 @@
                     <label class="form-label small fw-semibold">Brand Primary Color</label>
                     <input type="color" name="theme_color" class="form-control form-control-color w-100" value="{{ old('theme_color', $tenant->getThemeColor()) }}">
                 </div>
+
+                <!-- Company Logo -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Company Logo</label>
+                    <div class="d-flex align-items-center gap-3 mb-2 p-2 bg-light rounded border">
+                        <img src="{{ $tenant->getLogoUrl() }}" alt="Current Logo" class="bg-white rounded border p-1" style="max-height: 50px; max-width: 120px; object-fit: contain;">
+                        <div>
+                            <small class="text-muted d-block">{{ $tenant->hasCustomLogo() ? 'Custom Logo uploaded' : 'Using default FieldMA Logo' }}</small>
+                            @if($tenant->hasCustomLogo())
+                                <div class="form-check form-check-inline mt-1 mb-0">
+                                    <input class="form-check-input" type="checkbox" name="remove_logo" id="remove_logo" value="1">
+                                    <label class="form-check-label small text-danger" for="remove_logo">Remove custom logo</label>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <input type="file" name="logo" id="tenant_logo_input" class="form-control" accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp">
+                    <small class="text-muted">Upload a new image to replace current logo (PNG, JPG, SVG, WebP - max 2MB).</small>
+                    <div id="logo_preview_container" class="mt-2 d-none">
+                        <img id="logo_preview" src="" alt="New Logo Preview" class="img-thumbnail bg-white" style="max-height: 50px;">
+                    </div>
+                </div>
+
+                <!-- Company Favicon -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Company Favicon</label>
+                    <div class="d-flex align-items-center gap-3 mb-2 p-2 bg-light rounded border">
+                        <img src="{{ $tenant->getFaviconUrl() }}" alt="Current Favicon" class="bg-white rounded border p-1" style="width: 36px; height: 36px; object-fit: contain;">
+                        <div>
+                            <small class="text-muted d-block">{{ $tenant->hasCustomFavicon() ? 'Custom Favicon uploaded' : 'Using default Favicon' }}</small>
+                            @if($tenant->hasCustomFavicon())
+                                <div class="form-check form-check-inline mt-1 mb-0">
+                                    <input class="form-check-input" type="checkbox" name="remove_favicon" id="remove_favicon" value="1">
+                                    <label class="form-check-label small text-danger" for="remove_favicon">Remove custom favicon</label>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <input type="file" name="favicon" id="tenant_favicon_input" class="form-control" accept=".ico,image/x-icon,image/png,image/svg+xml,image/webp,image/jpeg">
+                    <small class="text-muted">Upload a new icon (ICO, PNG, SVG, WebP - 32x32/64x64, max 1MB).</small>
+                    <div id="favicon_preview_container" class="mt-2 d-none">
+                        <img id="favicon_preview" src="" alt="New Favicon Preview" class="img-thumbnail bg-white" style="width: 36px; height: 36px; object-fit: contain;">
+                    </div>
+                </div>
+
                 <div class="col-md-6">
                     <label class="form-label small fw-semibold">Phone Number</label>
                     <input type="text" name="phone" class="form-control" value="{{ old('phone', $tenant->phone) }}">
@@ -104,4 +149,33 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    function setupPreview(inputId, previewId, containerId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const container = document.getElementById(containerId);
+        if (!input || !preview || !container) return;
+
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                container.classList.add('d-none');
+            }
+        });
+    }
+
+    setupPreview('tenant_logo_input', 'logo_preview', 'logo_preview_container');
+    setupPreview('tenant_favicon_input', 'favicon_preview', 'favicon_preview_container');
+</script>
 @endsection

@@ -28,6 +28,7 @@ class TenantSettingController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'theme_color' => ['nullable', 'string', 'regex:/^#[a-fA-F0-9]{6}$/'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp', 'max:2048'],
+            'favicon' => ['nullable', 'mimes:jpeg,png,jpg,svg,webp,ico', 'max:1024'],
         ]);
 
         $tenant = tenant();
@@ -37,8 +38,19 @@ class TenantSettingController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('branding', 'public');
-            $tenant->logo_url = Storage::disk('public')->url($path);
+            if ($tenant->logo_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->logo_url));
+            }
+            $path = $request->file('logo')->store('branding/logos', 'public');
+            $tenant->logo_url = '/storage/' . $path;
+        }
+
+        if ($request->hasFile('favicon')) {
+            if ($tenant->favicon_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->favicon_url));
+            }
+            $path = $request->file('favicon')->store('branding/favicons', 'public');
+            $tenant->favicon_url = '/storage/' . $path;
         }
 
         $tenant->company_name = $validated['company_name'];

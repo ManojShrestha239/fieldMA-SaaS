@@ -88,7 +88,32 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function getLogoUrl(): ?string
     {
-        return $this->logo_url ?? $this->data['logo_url'] ?? asset('assets/pages/img/logo-fieldma.png');
+        $url = $this->logo_url ?? ($this->data['logo_url'] ?? null);
+        if ($url) {
+            return \Illuminate\Support\Str::startsWith($url, ['http://', 'https://']) ? $url : asset($url);
+        }
+
+        return asset('assets/pages/img/logo-fieldma.png');
+    }
+
+    public function getFaviconUrl(): ?string
+    {
+        $url = $this->favicon_url ?? ($this->data['favicon_url'] ?? null);
+        if ($url) {
+            return \Illuminate\Support\Str::startsWith($url, ['http://', 'https://']) ? $url : asset($url);
+        }
+
+        return $this->getLogoUrl();
+    }
+
+    public function hasCustomLogo(): bool
+    {
+        return !empty($this->logo_url ?? ($this->data['logo_url'] ?? null));
+    }
+
+    public function hasCustomFavicon(): bool
+    {
+        return !empty($this->favicon_url ?? ($this->data['favicon_url'] ?? null));
     }
 
     public function getThemeColor(): string

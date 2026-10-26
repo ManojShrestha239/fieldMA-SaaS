@@ -3,7 +3,7 @@
     $currentTenant = function_exists('tenant') ? tenant() : null;
     $titleName = $currentTenant ? $currentTenant->company_name : (config('app.company_name') ?? 'FieldMA');
     $themeColor = $currentTenant ? $currentTenant->getThemeColor() : '#315DA9';
-    $favIcon = $currentTenant ? $currentTenant->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png');
+    $favIcon = $currentTenant ? $currentTenant->getFaviconUrl() : asset('assets/pages/img/logo-fieldma.png');
 @endphp
 <title>{{ $titleName }}</title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="{{ URL::asset('assets/layouts/layout5/css/custom.min.css') }}">
 <!-- END THEME LAYOUT STYLES -->
 <link rel="shortcut icon" href="{{ $favIcon }}" />
+<link rel="icon" href="{{ $favIcon }}" />
 <style>
   :root {
     --primary-theme-color: {{ $themeColor }};

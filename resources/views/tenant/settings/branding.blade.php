@@ -91,6 +91,23 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="col-md-3 control-label">Current Favicon</label>
+                            <div class="col-md-6">
+                                <div style="padding: 6px; background: #fafafa; border: 1px solid #ddd; display: inline-block; border-radius: 4px;">
+                                    <img src="{{ $tenant->getFaviconUrl() }}" alt="Favicon" style="width: 32px; height: 32px; object-fit: contain;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">Upload New Favicon</label>
+                            <div class="col-md-6">
+                                <input type="file" name="favicon" accept=".ico,image/x-icon,image/png,image/svg+xml,image/webp,image/jpeg" class="form-control">
+                                <span class="help-block">Recommended format: 32x32 or 64x64 ICO or PNG (max 1MB).</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label class="col-md-3 control-label">Theme Primary Color</label>
                             <div class="col-md-3">
                                 <div class="input-group">

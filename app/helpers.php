@@ -54,10 +54,25 @@ if (!function_exists('tenant_logo_url')) {
      */
     function tenant_logo_url(?string $default = null): ?string
     {
-        $logo = tenant_setting('logo_url');
-        if ($logo) {
-            return $logo;
+        if (function_exists('tenant') && tenant()) {
+            return tenant()->getLogoUrl();
         }
-        return $default ?: asset('assets/layouts/layout2/img/logo-default.png');
+        return $default ?: asset('assets/pages/img/logo-fieldma.png');
+    }
+}
+
+if (!function_exists('tenant_favicon_url')) {
+    /**
+     * Retrieve the tenant favicon URL.
+     *
+     * @param string|null $default
+     * @return string|null
+     */
+    function tenant_favicon_url(?string $default = null): ?string
+    {
+        if (function_exists('tenant') && tenant()) {
+            return tenant()->getFaviconUrl();
+        }
+        return $default ?: asset('assets/pages/img/logo-fieldma.png');
     }
 }

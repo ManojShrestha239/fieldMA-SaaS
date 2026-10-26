@@ -63,11 +63,16 @@
                 @forelse ($tenants as $tenant)
                     <tr>
                         <td>
-                            <div class="fw-bold">{{ $tenant->company_name }}</div>
-                            <small class="text-muted">{{ $tenant->email }}</small>
-                            @if($tenant->phone)
-                                <small class="text-muted d-block"><i class="fa fa-phone fa-xs"></i> {{ $tenant->phone }}</small>
-                            @endif
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ $tenant->getLogoUrl() }}" alt="{{ $tenant->company_name }}" class="rounded border p-1 bg-white flex-shrink-0" style="width: 40px; height: 40px; object-fit: contain;">
+                                <div>
+                                    <div class="fw-bold">{{ $tenant->company_name }}</div>
+                                    <small class="text-muted">{{ $tenant->email }}</small>
+                                    @if($tenant->phone)
+                                        <small class="text-muted d-block"><i class="fa fa-phone fa-xs"></i> {{ $tenant->phone }}</small>
+                                    @endif
+                                </div>
+                            </div>
                         </td>
                         <td>
                             @foreach ($tenant->domains as $d)

@@ -25,7 +25,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('super-admin.tenants.store') }}" method="POST">
+                <form action="{{ route('super-admin.tenants.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <h5 class="fw-bold text-primary mb-3">1. Company Profile</h5>
@@ -51,6 +51,27 @@
                             <label class="form-label small fw-semibold">Brand Primary Color</label>
                             <input type="color" name="theme_color" class="form-control form-control-color w-100" value="{{ old('theme_color', '#315DA9') }}">
                         </div>
+
+                        <!-- Company Logo -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Company Logo</label>
+                            <input type="file" name="logo" id="tenant_logo_input" class="form-control" accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp">
+                            <small class="text-muted">PNG or SVG with transparent background (Max 2MB).</small>
+                            <div id="logo_preview_container" class="mt-2 d-none">
+                                <img id="logo_preview" src="" alt="Logo Preview" class="img-thumbnail bg-white" style="max-height: 55px;">
+                            </div>
+                        </div>
+
+                        <!-- Company Favicon -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Company Favicon</label>
+                            <input type="file" name="favicon" id="tenant_favicon_input" class="form-control" accept=".ico,image/x-icon,image/png,image/svg+xml,image/webp,image/jpeg">
+                            <small class="text-muted">Square 32x32 or 64x64 PNG or ICO (Max 1MB).</small>
+                            <div id="favicon_preview_container" class="mt-2 d-none">
+                                <img id="favicon_preview" src="" alt="Favicon Preview" class="img-thumbnail bg-white" style="width: 36px; height: 36px; object-fit: contain;">
+                            </div>
+                        </div>
+
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">VAT / PAN Number</label>
                             <input type="text" name="vat_number" class="form-control" value="{{ old('vat_number') }}" placeholder="Tax registration number">
@@ -153,5 +174,31 @@
     slugInput.addEventListener('input', function() {
         slugInput.dataset.manual = 'true';
     });
+
+    // Image previews
+    function setupPreview(inputId, previewId, containerId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const container = document.getElementById(containerId);
+        if (!input || !preview || !container) return;
+
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                container.classList.add('d-none');
+            }
+        });
+    }
+
+    setupPreview('tenant_logo_input', 'logo_preview', 'logo_preview_container');
+    setupPreview('tenant_favicon_input', 'favicon_preview', 'favicon_preview_container');
 </script>
 @endsection

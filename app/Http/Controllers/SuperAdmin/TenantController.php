@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -70,6 +71,8 @@ class TenantController extends Controller
             'theme_color' => ['nullable', 'string', 'max:20'],
             'trial_ends_at' => ['nullable', 'date'],
             'plan_ends_at' => ['nullable', 'date'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp', 'max:2048'],
+            'favicon' => ['nullable', 'mimes:jpeg,png,jpg,svg,webp,ico', 'max:1024'],
         ]);
 
         $slug = Str::slug($validated['slug']);
@@ -114,6 +117,17 @@ class TenantController extends Controller
             $tenant->theme_color = $validated['theme_color'] ?? '#315DA9';
             $tenant->fcm_topic = $slug . '_fieldMA_allUser';
             $tenant->feature_overrides = [];
+
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('branding/logos', 'public');
+                $tenant->logo_url = '/storage/' . $logoPath;
+            }
+
+            if ($request->hasFile('favicon')) {
+                $faviconPath = $request->file('favicon')->store('branding/favicons', 'public');
+                $tenant->favicon_url = '/storage/' . $faviconPath;
+            }
+
             $tenant->save();
 
             // Ensure database exists and is migrated (fallback safety check)
@@ -235,6 +249,10 @@ class TenantController extends Controller
             'custom_domain' => ['nullable', 'string', 'max:255'],
             'trial_ends_at' => ['nullable', 'date'],
             'plan_ends_at' => ['nullable', 'date'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp', 'max:2048'],
+            'favicon' => ['nullable', 'mimes:jpeg,png,jpg,svg,webp,ico', 'max:1024'],
+            'remove_logo' => ['nullable', 'boolean'],
+            'remove_favicon' => ['nullable', 'boolean'],
         ]);
 
         $oldEmail = $tenant->email;
@@ -275,8 +293,37 @@ class TenantController extends Controller
         // Update virtual columns directly on model
         if (!empty($validated['theme_color'])) {
             $tenant->theme_color = $validated['theme_color'];
-            $tenant->save();
         }
+
+        // Handle logo upload / removal
+        if ($request->boolean('remove_logo')) {
+            if ($tenant->logo_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->logo_url));
+            }
+            $tenant->logo_url = null;
+        } elseif ($request->hasFile('logo')) {
+            if ($tenant->logo_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->logo_url));
+            }
+            $logoPath = $request->file('logo')->store('branding/logos', 'public');
+            $tenant->logo_url = '/storage/' . $logoPath;
+        }
+
+        // Handle favicon upload / removal
+        if ($request->boolean('remove_favicon')) {
+            if ($tenant->favicon_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->favicon_url));
+            }
+            $tenant->favicon_url = null;
+        } elseif ($request->hasFile('favicon')) {
+            if ($tenant->favicon_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->favicon_url));
+            }
+            $faviconPath = $request->file('favicon')->store('branding/favicons', 'public');
+            $tenant->favicon_url = '/storage/' . $faviconPath;
+        }
+
+        $tenant->save();
 
         // Sync admin credentials inside the tenant's database
         try {

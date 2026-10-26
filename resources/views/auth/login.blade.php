@@ -12,7 +12,7 @@
     <!-- BEGIN LOGO -->
     <div class="logo">
         <a href="#">
-            <img height="100px" src="{{ asset('assets/pages/img/logo-fieldma.png') }}" alt="" /> </a>
+            <img height="100px" src="{{ (function_exists('tenant') && tenant()) ? tenant()->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png') }}" alt="{{ (function_exists('tenant') && tenant()) ? tenant()->company_name : 'Logo' }}" style="max-height: 100px; max-width: 250px; object-fit: contain;" /> </a>
     </div>
 
     <!-- END LOGO -->
