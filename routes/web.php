@@ -16,9 +16,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return redirect()->route('super-admin.login');
-});
+$centralDomains = config('tenancy.central_domains') ?: ['localhost', '127.0.0.1', 'manojshrestha239.com.np'];
+
+foreach ($centralDomains as $domain) {
+    Route::domain($domain)->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('super-admin.login');
+        });
+    });
+}
 
 // Super Admin Guest Routes
 Route::prefix('super-admin')->group(function () {
