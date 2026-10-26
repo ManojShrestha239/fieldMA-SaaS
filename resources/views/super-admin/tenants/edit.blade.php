@@ -105,8 +105,11 @@
                     <textarea name="address" class="form-control" rows="2">{{ old('address', $tenant->address) }}</textarea>
                 </div>
                 <div class="col-12">
-                    <label class="form-label small fw-semibold">Add Custom Domain</label>
-                    <input type="text" name="custom_domain" class="form-control" placeholder="e.g. portal.acmecorp.com">
+                    <label class="form-label small fw-semibold">Custom Domain (Optional)</label>
+                    <input type="text" name="custom_domain" class="form-control"
+                        value="{{ old('custom_domain', $tenant->getCustomDomain()) }}"
+                        placeholder="e.g. portal.acmecorp.com">
+                    <small class="text-muted">CNAME mapping point for tenant's white-label domain. Leave blank if not using a custom domain.</small>
                 </div>
             </div>
 

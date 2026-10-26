@@ -662,8 +662,8 @@
         <div class="admin-sidebar-footer">
             <div class="d-flex align-items-center justify-content-between text-muted small">
                 <span>FieldMA SaaS</span>
-                <span class="badge bg-dark border border-secondary font-monospace"
-                    style="font-size: 10px; color: #94A3B8;">v2.0 LTS</span>
+                {{-- <span class="badge bg-dark border border-secondary font-monospace"
+                    style="font-size: 10px; color: #94A3B8;">v2.0 LTS</span> --}}
             </div>
         </div>
     </aside>

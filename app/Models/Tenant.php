@@ -127,6 +127,36 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
+     * Get the primary subdomain FQDN (e.g. acme.fieldma.com).
+     */
+    public function getPrimaryDomain(): ?string
+    {
+        $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+        $subdomain = $this->slug . '.' . $centralDomain;
+
+        $match = $this->domains->firstWhere('domain', $subdomain);
+        if ($match) {
+            return $match->domain;
+        }
+
+        return $this->domains->first(function ($d) use ($centralDomain) {
+            return \Illuminate\Support\Str::endsWith($d->domain, $centralDomain);
+        })?->domain;
+    }
+
+    /**
+     * Get the optional custom domain (e.g. portal.acmecorp.com).
+     */
+    public function getCustomDomain(): ?string
+    {
+        $primary = $this->getPrimaryDomain();
+
+        return $this->domains->first(function ($d) use ($primary) {
+            return $d->domain !== $primary && $d->domain !== $this->slug;
+        })?->domain;
+    }
+
+    /**
      * Check if a feature is enabled for this tenant (checks tenant override, then subscription plan).
      */
     public function hasFeature(string $featureKey): bool

@@ -83,11 +83,13 @@
                         </td>
                         <td>
                             @foreach ($tenant->domains as $d)
+                                @if ($d->domain !== $tenant->slug)
                                 <div class="mb-1">
                                     <a href="http://{{ $d->domain }}" target="_blank" class="badge bg-light text-dark text-decoration-none border">
                                         <i class="fa-solid fa-globe fa-xs text-primary me-1"></i> {{ $d->domain }}
                                     </a>
                                 </div>
+                                @endif
                             @endforeach
                         </td>
                         <td>

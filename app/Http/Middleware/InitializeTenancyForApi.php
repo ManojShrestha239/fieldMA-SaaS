@@ -7,14 +7,14 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Symfony\Component\HttpFoundation\Response;
 
 class InitializeTenancyForApi
 {
-    protected InitializeTenancyByDomainOrSubdomain $domainResolver;
+    protected InitializeTenancyByDomain $domainResolver;
 
-    public function __construct(InitializeTenancyByDomainOrSubdomain $domainResolver)
+    public function __construct(InitializeTenancyByDomain $domainResolver)
     {
         $this->domainResolver = $domainResolver;
     }

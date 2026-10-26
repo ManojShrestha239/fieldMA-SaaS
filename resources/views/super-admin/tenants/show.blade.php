@@ -138,7 +138,9 @@
                             <td class="text-muted">Company Logo:</td>
                             <td>
                                 <div class="d-inline-flex align-items-center gap-2 p-1 bg-light rounded border">
-                                    <img src="{{ $tenant->getLogoUrl() }}" alt="{{ $tenant->company_name }}" class="bg-white rounded border p-1" style="max-height: 40px; max-width: 140px; object-fit: contain;">
+                                    <img src="{{ $tenant->getLogoUrl() }}" alt="{{ $tenant->company_name }}"
+                                        class="bg-white rounded border p-1"
+                                        style="max-height: 40px; max-width: 140px; object-fit: contain;">
                                 </div>
                                 <span class="badge {{ $tenant->hasCustomLogo() ? 'bg-success' : 'bg-secondary' }} ms-1">
                                     {{ $tenant->hasCustomLogo() ? 'Custom' : 'Default' }}
@@ -149,7 +151,9 @@
                             <td class="text-muted">Company Favicon:</td>
                             <td>
                                 <div class="d-inline-flex align-items-center gap-2 p-1 bg-light rounded border">
-                                    <img src="{{ $tenant->getFaviconUrl() }}" alt="{{ $tenant->company_name }} Favicon" class="bg-white rounded border p-1" style="width: 28px; height: 28px; object-fit: contain;">
+                                    <img src="{{ $tenant->getFaviconUrl() }}" alt="{{ $tenant->company_name }} Favicon"
+                                        class="bg-white rounded border p-1"
+                                        style="width: 28px; height: 28px; object-fit: contain;">
                                 </div>
                                 <span class="badge {{ $tenant->hasCustomFavicon() ? 'bg-success' : 'bg-secondary' }} ms-1">
                                     {{ $tenant->hasCustomFavicon() ? 'Custom' : 'Default' }}
@@ -159,7 +163,8 @@
                         <tr>
                             <td class="text-muted">Brand Theme Color:</td>
                             <td>
-                                <span class="d-inline-block rounded border me-1 align-middle" style="width: 18px; height: 18px; background-color: {{ $tenant->getThemeColor() }};"></span>
+                                <span class="d-inline-block rounded border me-1 align-middle"
+                                    style="width: 18px; height: 18px; background-color: {{ $tenant->getThemeColor() }};"></span>
                                 <code>{{ $tenant->getThemeColor() }}</code>
                             </td>
                         </tr>
@@ -193,11 +198,16 @@
                 </div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush mb-0">
-                        @forelse ($tenant->domains as $domain)
+                        @forelse ($tenant->domains->where('domain', '!=', $tenant->slug) as $domain)
                             <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <div>
                                     <i class="fa-solid fa-globe text-primary me-2"></i>
                                     <strong>{{ $domain->domain }}</strong>
+                                    @if ($domain->domain === $tenant->getPrimaryDomain())
+                                        <span class="badge bg-primary-subtle text-primary border ms-1">Subdomain</span>
+                                    @else
+                                        <span class="badge bg-info-subtle text-info border ms-1">Custom Domain</span>
+                                    @endif
                                 </div>
                                 <a href="http://{{ $domain->domain }}" target="_blank"
                                     class="btn btn-sm btn-outline-secondary">
@@ -248,7 +258,7 @@
         </div>
     </div>
 
-    <!-- Danger Zone -->
+    {{-- <!-- Danger Zone -->
     <div class="card border-danger mt-4">
         <div class="card-header bg-danger-subtle text-danger py-3">
             <h6 class="fw-bold mb-0"><i class="fa fa-triangle-exclamation me-1"></i> Danger Zone</h6>
@@ -274,5 +284,5 @@
                 </button>
             </form>
         </div>
-    </div>
+    </div> --}}
 @endsection

@@ -143,15 +143,12 @@ class TenantController extends Controller
                 ]);
             }
 
-            // 2. Attach Subdomain and Domain Slug
+            // 2. Attach Primary Subdomain (created from slug)
             $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
             $subdomain = $slug . '.' . $centralDomain;
             $tenant->domains()->create(['domain' => $subdomain]);
-            if ($slug !== $subdomain) {
-                $tenant->domains()->create(['domain' => $slug]);
-            }
 
-            // 3. Attach Custom Domain (if provided)
+            // 3. Attach Custom Domain (only if explicitly provided in request)
             if (!empty($validated['custom_domain'])) {
                 $customDomain = strtolower(trim($validated['custom_domain']));
                 $tenant->domains()->create(['domain' => $customDomain]);
@@ -246,7 +243,14 @@ class TenantController extends Controller
             'subscription_plan_id' => ['nullable', 'exists:subscription_plans,id'],
             'status' => ['required', Rule::in(['active', 'trial', 'suspended', 'inactive'])],
             'theme_color' => ['nullable', 'string', 'max:20'],
-            'custom_domain' => ['nullable', 'string', 'max:255'],
+            'custom_domain' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('domains', 'domain')->where(function ($query) use ($tenant) {
+                    return $query->where('tenant_id', '!=', $tenant->id);
+                }),
+            ],
             'trial_ends_at' => ['nullable', 'date'],
             'plan_ends_at' => ['nullable', 'date'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp', 'max:2048'],
@@ -348,17 +352,25 @@ class TenantController extends Controller
             Log::warning("Tenant admin update warning: " . $e->getMessage());
         }
 
-        // Manage custom domain
-        if (!empty($validated['custom_domain'])) {
-            $domainStr = strtolower(trim($validated['custom_domain']));
-            $existing = $tenant->domains()->where('domain', $domainStr)->first();
-            if (!$existing) {
-                // Ensure not taken
-                if (!\Stancl\Tenancy\Database\Models\Domain::where('domain', $domainStr)->where('tenant_id', '!=', $tenant->id)->exists()) {
-                    $tenant->domains()->create(['domain' => $domainStr]);
+        // Manage custom domain (optional)
+        $currentCustomDomain = $tenant->getCustomDomain();
+        $newCustomDomain = !empty($validated['custom_domain']) ? strtolower(trim($validated['custom_domain'])) : null;
+
+        if ($newCustomDomain) {
+            if ($currentCustomDomain) {
+                if ($currentCustomDomain !== $newCustomDomain) {
+                    $tenant->domains()->where('domain', $currentCustomDomain)->update(['domain' => $newCustomDomain]);
                 }
+            } else {
+                $tenant->domains()->create(['domain' => $newCustomDomain]);
             }
+        } elseif ($currentCustomDomain) {
+            // User cleared the optional custom domain, remove it
+            $tenant->domains()->where('domain', $currentCustomDomain)->delete();
         }
+
+        // Clean up any legacy bare slug domain record
+        $tenant->domains()->where('domain', $tenant->slug)->delete();
 
         return redirect()->route('super-admin.tenants.show', $tenant)
             ->with('success', 'Tenant details and credentials updated successfully.');
