@@ -9,28 +9,41 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes (v4)
 |--------------------------------------------------------------------------
 |
 | Here is where you can register API routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
+| is assigned the "api" middleware group.
 |
 */
 
 Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], function () {
+    // [ACTIVE] Unlisted Dealer Visit (Ref: Api_Audit.md #45)
     Route::post('/negotiation', [SessionController::class, 'new']);
-    Route::post('/offline/negotiation', [SessionController::class, 'store']);
+
+    // [INACTIVE] Not used in Flutter (Ref: Api_Audit.md #40)
+    // Route::post('/offline/negotiation', [SessionController::class, 'store']);
+
+    // [ACTIVE] Field Reminders & Alerts (Ref: Api_Audit.md #46)
     Route::apiResource('reminder', AlertReminderController::class);
-    Route::apiResource('complaint', ComplaintController::class, array("as" => "api"));
-    Route::get('issue_type', [ComplaintController::class, 'issue_type'], array("as" => "api"));
-    Route::post('/location', [SessionController::class, 'loctaion'], array("as" => "api"));
 
-    //Attendance
-    Route::post('attendance', [AttendanceController::class, 'online'], array("as" => "api"));
-    Route::post('attendancewithkm', [AttendanceController::class, 'onlinewithkm'], array("as" => "api"));
+    // [ACTIVE] Field Complaints & Issue Types (Ref: Api_Audit.md #47, #48)
+    Route::apiResource('complaint', ComplaintController::class, ["as" => "api"]);
+    Route::get('issue_type', [ComplaintController::class, 'issue_type'], ["as" => "api"]);
 
-    Route::post('/offline', [AttendanceController::class, 'offline'], array("as" => "api"));
+    // [INACTIVE] Flutter uses /api/v3/locations (Ref: Api_Audit.md #41)
+    // Route::post('/location', [SessionController::class, 'loctaion'], ["as" => "api"]);
 
-    Route::get('/attendance', [AttendanceController::class, 'getAttendance']);
+    // [ACTIVE] GPS Attendance + KM (Ref: Api_Audit.md #44)
+    Route::post('attendancewithkm', [AttendanceController::class, 'onlinewithkm'], ["as" => "api"]);
+
+    // [INACTIVE] Flutter uses /api/v4/attendancewithkm (Ref: Api_Audit.md #42)
+    // Route::post('attendance', [AttendanceController::class, 'online'], ["as" => "api"]);
+
+    // [INACTIVE] Not used in Flutter (Ref: Api_Audit.md #43)
+    // Route::post('/offline', [AttendanceController::class, 'offline'], ["as" => "api"]);
+
+    // [INACTIVE] Flutter uses /api/v2/attendance (Ref: Api_Audit.md #44)
+    // Route::get('/attendance', [AttendanceController::class, 'getAttendance']);
 });

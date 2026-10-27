@@ -24,26 +24,27 @@ These **39 endpoints** are actively consumed by the Flutter mobile application a
 
 ### 1.1 Core / SFA Endpoints (`/api`)
 
-|  #  | HTTP Method | Endpoint Path                        | Target Controller & Action                          | Flutter App Constant             | Domain / Feature       |
-| :-: | :---------- | :----------------------------------- | :-------------------------------------------------- | :------------------------------- | :--------------------- |
-|  1  | `GET`       | `/api/home`                          | `API\MobileuserController@home`                     | `HOME`                           | Field Staff Dashboard  |
-|  2  | `GET`       | `/api/dealers`                       | `API\DealerController@index`                        | `DEALERS`                        | Dealer Directory       |
-|  3  | `GET`       | `/api/countAmountandVisit`           | `API\PaymentController@index`                       | `COUNT_AMOUNT_AND_VISIT`         | Daily Metrics          |
-|  4  | `GET`       | `/api/collectionDetails/{id}`        | `API\NoticeController@collectionDetails`            | `COLLECTION_HISTORY_DETAILS`     | Payment Collections    |
-|  5  | `GET`       | `/api/dealers/position`              | `API\DealerController@position`                     | `DEALER_POSITION`                | Dealer Geolocation     |
-|  6  | `GET`       | `/api/dealers/reposition`            | `API\DealerController@reposition`                   | `DEALER_REPOSITION`              | Dealer Repositioning   |
-|  7  | `GET`       | `/api/dealerWithboundry`             | `API\DealerController@dealerWithboundry`            | `DEALER_WITH_BOUNDARY`           | Geofenced Dealers      |
-|  8  | `POST`      | `/api/session`                       | `API\SessionController@store`                       | `OFFLINE_VISIT` / `ONLINE_VISIT` | Visit Sessions         |
-|  9  | `GET`       | `/api/visit`                         | `API\MobileuserController@schedule`                 | `VISIT_HISTORY`                  | Visit Schedules        |
-| 10  | `GET`       | `/api/rangehistory`                  | `API\MobileuserController@rangehistory`             | `VISIT_HISTORY_RANGE`            | Historical Visits      |
-| 11  | `GET`       | `/api/contractors`                   | `API\v2\SiteRegistrationController@indexContractor` | `PAINT_CONTRACTOR`               | Contractor Directory   |
-| 12  | `POST`      | `/api/contractors`                   | `API\v2\SiteRegistrationController@storeContractor` | `PAINT_CONTRACTOR`               | Create Contractor      |
-| 13  | `GET`       | `/api/my-teams`                      | `API\MyTeamController@index`                        | `myTeams`                        | Team Hierarchy         |
-| 14  | `GET`       | `/api/my-team/{user}/{date}`         | `API\MyTeamController@show`                         | `myTeam`                         | Team Member Activity   |
-| 15  | `GET`       | `/api/tada/authorized-users`         | `API\TadaReportController@authorizedUsers`          | `TADA_AUTHORIZED_USERS`          | TADA Approvers         |
-| 16  | `GET`       | `/api/tada/expense-authorized-users` | `API\TadaReportController@expenseAuthorizedUsers`   | `TADA_EXPENSE_AUTHORIZED_USER`   | TADA Expense Approvers |
-| 17  | `POST`      | `/api/v5/negotiation`                | `API\SessionController@v5negotiation`               | `UNLISTED_VISIT_V5`              | Unlisted Dealer Visit  |
-| 18  | `POST`      | `/api/device-log`                    | `API\DeviceLogController@store`                     | Not used in Flutter              |
+|  #  | HTTP Method | Endpoint Path                                     | Target Controller & Action                          | Flutter App Constant             | Domain / Feature       |
+| :-: | :---------- | :------------------------------------------------ | :-------------------------------------------------- | :------------------------------- | :--------------------- |
+|  1  | `GET`       | `/api/home`                                       | `API\MobileuserController@home`                     | `HOME`                           | Field Staff Dashboard  |
+|  2  | `GET`       | `/api/dealers`                                    | `API\DealerController@index`                        | `DEALERS`                        | Dealer Directory       |
+|  3  | `GET`       | `/api/countAmountandVisit`                        | `API\PaymentController@index`                       | `COUNT_AMOUNT_AND_VISIT`         | Daily Metrics          |
+|  4  | `GET`       | `/api/collectionDetails/{id}`                     | `API\NoticeController@collectionDetails`            | `COLLECTION_HISTORY_DETAILS`     | Payment Collections    |
+|  5  | `GET`       | `/api/dealers/position`                           | `API\DealerController@position`                     | `DEALER_POSITION`                | Dealer Geolocation     |
+|  6  | `GET`       | `/api/dealers/reposition`                         | `API\DealerController@reposition`                   | `DEALER_REPOSITION`              | Dealer Repositioning   |
+|  7  | `GET`       | `/api/dealerWithboundry`                          | `API\DealerController@dealerWithboundry`            | `DEALER_WITH_BOUNDARY`           | Geofenced Dealers      |
+|  8  | `POST`      | `/api/session`                                    | `API\SessionController@store`                       | `OFFLINE_VISIT` / `ONLINE_VISIT` | Visit Sessions         |
+|  9  | `GET`       | `/api/visit`                                      | `API\MobileuserController@schedule`                 | `VISIT_HISTORY`                  | Visit Schedules        |
+| 10  | `GET`       | `/api/rangehistory`                               | `API\MobileuserController@rangehistory`             | `VISIT_HISTORY_RANGE`            | Historical Visits      |
+| 11  | `GET`       | `/api/contractors`                                | `API\v2\SiteRegistrationController@indexContractor` | `PAINT_CONTRACTOR`               | Contractor Directory   |
+| 12  | `POST`      | `/api/contractors`                                | `API\v2\SiteRegistrationController@storeContractor` | `PAINT_CONTRACTOR`               | Create Contractor      |
+| 13  | `GET`       | `/api/my-teams`                                   | `API\MyTeamController@index`                        | `myTeams`                        | Team Hierarchy         |
+| 14  | `GET`       | `/api/my-team/{user}/{date}`                      | `API\MyTeamController@show`                         | `myTeam`                         | Team Member Activity   |
+| 15  | `GET`       | `/api/tada/authorized-users`                      | `API\TadaReportController@authorizedUsers`          | `TADA_AUTHORIZED_USERS`          | TADA Approvers         |
+| 16  | `GET`       | `/api/tada/expense-authorized-users`              | `API\TadaReportController@expenseAuthorizedUsers`   | `TADA_EXPENSE_AUTHORIZED_USER`   | TADA Expense Approvers |
+| 17  | `POST`      | `/api/v5/negotiation`                             | `API\SessionController@v5negotiation`               | `UNLISTED_VISIT_V5`              | Unlisted Dealer Visit  |
+| 18  | `POST`      | `/api/device-log`                                 | `API\DeviceLogController@store`                     | Not used in Flutter              |
+| 19  | `GET`       | `/api/dealer/{code}`, `/api/dealer/{code}/update` | `API\DealerController`                              | Not used in Flutter              |
 
 ### 1.2 TADA Expense Claims (`/api/tada*`)
 
