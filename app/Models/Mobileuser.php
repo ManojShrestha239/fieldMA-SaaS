@@ -64,7 +64,9 @@ class Mobileuser extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'tenant_id' => tenant('id'),
+        ];
     }
     public function role()
     {

@@ -56,6 +56,30 @@ return Application::configure(basePath: dirname(__DIR__))
             'token.api' => \App\Http\Middleware\AuthenticateToken::class,
             'user.status' => \App\Http\Middleware\UserStatusMiddleware::class,
         ]);
+        $middleware->priority([
+            \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+            \App\Http\Middleware\InitializeTenancyForApi::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+            \App\Http\Middleware\CheckTenantStatus::class,
+            \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \App\Http\Middleware\Authenticate::class,
+            \App\Http\Middleware\AuthenticateToken::class,
+            \App\Http\Middleware\UserStatusMiddleware::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
+            \Illuminate\Contracts\Session\Middleware\AuthenticatesSessions::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Auth\Middleware\Authorize::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -24,6 +24,10 @@ class InitializeTenancyForApi
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (tenancy()->initialized) {
+            return $next($request);
+        }
+
         // 1. Check for X-Tenant header or query parameter
         $tenantIdentifier = $request->header('X-Tenant') ?? $request->query('tenant');
 
@@ -36,6 +40,7 @@ class InitializeTenancyForApi
             if (!$tenant) {
                 return response()->json([
                     'success' => false,
+                    'status' => 'error',
                     'message' => "Tenant workspace '{$tenantIdentifier}' was not found.",
                 ], 404);
             }
@@ -44,7 +49,35 @@ class InitializeTenancyForApi
             return $next($request);
         }
 
-        // 2. Otherwise fall back to Domain or Subdomain resolution
-        return $this->domainResolver->handle($request, $next);
+        // 2. Check for tenant_id embedded in JWT Bearer token
+        $bearerToken = $request->bearerToken();
+        if ($bearerToken) {
+            try {
+                $payload = auth('api')->setToken($bearerToken)->getPayload();
+                $tokenTenantId = $payload->get('tenant_id');
+                if (!empty($tokenTenantId)) {
+                    $tenant = Tenant::where('id', $tokenTenantId)
+                        ->orWhere('slug', $tokenTenantId)
+                        ->first();
+                    if ($tenant) {
+                        tenancy()->initialize($tenant);
+                        return $next($request);
+                    }
+                }
+            } catch (\Throwable $e) {
+                // If token is invalid or expired, continue to domain resolver or let auth guard handle it
+            }
+        }
+
+        // 3. Fall back to Domain or Subdomain resolution
+        try {
+            return $this->domainResolver->handle($request, $next);
+        } catch (\Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Tenant workspace could not be identified. Please specify a valid tenant domain or pass the X-Tenant header.',
+            ], 404);
+        }
     }
 }

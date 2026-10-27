@@ -21,17 +21,17 @@ class AuthenticateToken
     public function handle(Request $request, Closure $next)
     {
         $bearerToken = $request->header('authorization');
-        $token = '';
         if ($bearerToken && Str::start($bearerToken, 'Bearer ')) {
             $token = substr($bearerToken, 7); // Remove 'Bearer ' prefix
-            $user = Mobileuser::where('remember_token',$token)->first();
-            if ($user) {
-                Auth::login($user); // Manually authenticate the user
+            if (!Auth::check()) {
+                $user = Mobileuser::where('remember_token', $token)->first();
+                if ($user) {
+                    Auth::setUser($user);
+                }
             }
             return $next($request);
-        }else{
-            $token = $bearerToken;
-            return $next($request);
         }
+
+        return $next($request);
     }
 }

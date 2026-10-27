@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/login', [MobileuserController::class, 'authenticate']);
+Route::post('/login', [\App\Http\Controllers\API\v3\MobileuserController::class, 'authenticate']);
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
