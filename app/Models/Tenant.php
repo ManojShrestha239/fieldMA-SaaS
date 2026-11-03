@@ -167,18 +167,56 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /**
      * Check if a feature is enabled for this tenant (checks tenant override, then subscription plan).
      */
-    public function hasFeature(string $featureKey): bool
+    public function hasFeature(string $featureKey, ?string $subFeature = null): bool
     {
+        // Support dot notation: "dealer_orders.new_order"
+        if (str_contains($featureKey, '.') && $subFeature === null) {
+            [$featureKey, $subFeature] = explode('.', $featureKey, 2);
+        }
+
+        $canonicalKey = (new SubscriptionPlan())->normalizeFeatureKey($featureKey);
         $overrides = $this->data['feature_overrides'] ?? [];
-        if (array_key_exists($featureKey, $overrides)) {
-            return (bool) $overrides[$featureKey];
+
+        // Check specific sub-feature override if requested: e.g. "dealer_orders.new_order"
+        if ($subFeature !== null) {
+            $subOverrideKey = "{$canonicalKey}.{$subFeature}";
+            if (array_key_exists($subOverrideKey, $overrides)) {
+                return (bool) $overrides[$subOverrideKey];
+            }
+        }
+
+        // Check module-level override
+        if (array_key_exists($canonicalKey, $overrides)) {
+            $val = $overrides[$canonicalKey];
+            if (is_bool($val) && !$val) {
+                return false;
+            }
+            if (is_bool($val) && $val && $subFeature === null) {
+                return true;
+            }
+        } elseif (array_key_exists($featureKey, $overrides)) {
+            $val = $overrides[$featureKey];
+            if (is_bool($val) && !$val) {
+                return false;
+            }
+            if (is_bool($val) && $val && $subFeature === null) {
+                return true;
+            }
         }
 
         if ($this->plan) {
-            return $this->plan->hasFeature($featureKey);
+            return $this->plan->hasFeature($canonicalKey, $subFeature);
         }
 
         return true;
+    }
+
+    /**
+     * Check if a specific sub-feature is enabled for this tenant.
+     */
+    public function hasSubFeature(string $featureKey, string $subFeature): bool
+    {
+        return $this->hasFeature($featureKey, $subFeature);
     }
 
     /**

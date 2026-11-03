@@ -52,16 +52,25 @@
                         <span class="text-muted small fw-semibold d-block mb-2 text-uppercase tracking-wider" style="font-size: 11px;">Included Modules:</span>
                         @if ($plan->features && count($plan->features) > 0)
                             <div class="d-flex flex-wrap gap-1">
-                                @foreach ($plan->features as $featureKey => $enabled)
-                                    @if ($enabled)
-                                        <span class="badge bg-light text-dark border small" style="font-size: 11px;">
-                                            <i class="fa-solid fa-check text-success fa-xs me-1"></i>{{ ucwords(str_replace('_', ' ', $featureKey)) }}
-                                        </span>
-                                    @endif
+                                @foreach ($plan->features as $featureKey => $featureData)
+                                    @php
+                                        $fConfig = config("features.map.{$featureKey}");
+                                        $label = is_array($fConfig) ? ($fConfig['label'] ?? ucwords(str_replace('_', ' ', $featureKey))) : ucwords(str_replace('_', ' ', $featureKey));
+                                        $subs = is_array($featureData) && isset($featureData['sub_features'])
+                                            ? (array) $featureData['sub_features']
+                                            : [];
+                                        $subCount = count($subs);
+                                    @endphp
+                                    <span class="badge bg-light text-dark border small" style="font-size: 11px;">
+                                        <i class="fa-solid fa-check text-success fa-xs me-1"></i>{{ $label }}
+                                        @if ($subCount > 0)
+                                            <span class="text-primary ms-1" title="{{ implode(', ', $subs) }}">({{ $subCount }})</span>
+                                        @endif
+                                    </span>
                                 @endforeach
                             </div>
                         @else
-                            <span class="text-muted small fst-italic">All standard modules included</span>
+                            <span class="text-muted small fst-italic">No optional modules enabled</span>
                         @endif
                     </div>
 

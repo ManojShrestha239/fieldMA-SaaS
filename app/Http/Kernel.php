@@ -76,6 +76,39 @@ class Kernel extends HttpKernel
         'token.api' => \App\Http\Middleware\AuthenticateToken::class,
         'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
         'tenant.feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
+        'feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
+        'tenant.api' => \App\Http\Middleware\InitializeTenancyForApi::class,
+    ];
+
+    /**
+     * The application's middleware aliases (Laravel 10+ / 11+ / 12+ / 13+ standard).
+     *
+     * @var array<string, class-string|string>
+     */
+    protected $middlewareAliases = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'super' => \App\Http\Middleware\SuperAdminMiddleware::class,
+        'dispatch' => \App\Http\Middleware\DispatchAdminMiddleware::class,
+        'account' => \App\Http\Middleware\AccountAdminMiddleware::class,
+        'marketing' => \App\Http\Middleware\marketingAdminMiddleware::class,
+        'combo' => \App\Http\Middleware\ComboAdminMiddleware::class,
+        'usermgnt' =>  \App\Http\Middleware\UserManagement::class,
+        'custom_auth' =>  \App\Http\Middleware\AuthCheck::class,
+        'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        'token.api' => \App\Http\Middleware\AuthenticateToken::class,
+        'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
+        'tenant.feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
+        'feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
         'tenant.api' => \App\Http\Middleware\InitializeTenancyForApi::class,
     ];
 }

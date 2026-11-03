@@ -21,16 +21,18 @@ class SubscriptionPlanSeeder extends Seeder
                 'max_mobile_users' => 5,
                 'max_admin_users' => 2,
                 'features' => [
-                    'attendance' => true,
-                    'order_booking' => true,
-                    'dealers_management' => true,
-                    'notices' => true,
-                    'payments' => true,
-                    'tada' => false,
-                    'site_registration' => false,
-                    'raw_inventory' => false,
-                    'stock_management' => false,
-                    'live_tracking' => false,
+                    'notices' => (object) [],
+                    'dealer_orders' => [
+                        'sub_features' => ['new_order', 'order_history'],
+                    ],
+                    'collections' => [
+                        'sub_features' => ['new_collection', 'collection_history'],
+                    ],
+                    'schedules' => (object) [],
+                    'visits' => [
+                        'sub_features' => ['online_visit', 'offline_visit'],
+                    ],
+                    'reminder_alert' => (object) [],
                 ],
                 'is_active' => true,
             ],
@@ -43,16 +45,30 @@ class SubscriptionPlanSeeder extends Seeder
                 'max_mobile_users' => 25,
                 'max_admin_users' => 5,
                 'features' => [
-                    'attendance' => true,
-                    'order_booking' => true,
-                    'dealers_management' => true,
-                    'notices' => true,
-                    'payments' => true,
-                    'tada' => true,
-                    'site_registration' => true,
-                    'raw_inventory' => false,
-                    'stock_management' => true,
-                    'live_tracking' => true,
+                    'notices' => (object) [],
+                    'dealer_orders' => [
+                        'sub_features' => ['new_order', 'order_history', 'saved_orders'],
+                    ],
+                    'retailer_orders' => [
+                        'sub_features' => ['new_order', 'order_history', 'saved_orders'],
+                    ],
+                    'collections' => [
+                        'sub_features' => ['new_collection', 'collection_history'],
+                    ],
+                    'schedules' => (object) [],
+                    'chats' => (object) [],
+                    'complaints' => (object) [],
+                    'visits' => [
+                        'sub_features' => ['online_visit', 'offline_visit', 'unlisted_visit'],
+                    ],
+                    'reminder_alert' => (object) [],
+                    'position' => [
+                        'sub_features' => ['dealer_position', 'dealer_reposition'],
+                    ],
+                    'daily_reports' => (object) [],
+                    'tracking_toggle' => (object) [],
+                    'team_hierarchy' => (object) [],
+                    'site_registration' => (object) [],
                 ],
                 'is_active' => true,
             ],
@@ -65,23 +81,38 @@ class SubscriptionPlanSeeder extends Seeder
                 'max_mobile_users' => 0, // 0 = unlimited
                 'max_admin_users' => 0,
                 'features' => [
-                    'attendance' => true,
-                    'order_booking' => true,
-                    'dealers_management' => true,
-                    'notices' => true,
-                    'payments' => true,
-                    'tada' => true,
-                    'site_registration' => true,
-                    'raw_inventory' => true,
-                    'stock_management' => true,
-                    'live_tracking' => true,
+                    'notices' => (object) [],
+                    'dealer_orders' => [
+                        'sub_features' => ['new_order', 'order_history', 'saved_orders'],
+                    ],
+                    'retailer_orders' => [
+                        'sub_features' => ['new_order', 'order_history', 'saved_orders'],
+                    ],
+                    'collections' => [
+                        'sub_features' => ['new_collection', 'collection_history'],
+                    ],
+                    'schedules' => (object) [],
+                    'chats' => (object) [],
+                    'complaints' => (object) [],
+                    'visits' => [
+                        'sub_features' => ['online_visit', 'offline_visit', 'unlisted_visit'],
+                    ],
+                    'reminder_alert' => (object) [],
+                    'position' => [
+                        'sub_features' => ['dealer_position', 'dealer_reposition'],
+                    ],
+                    'inventory' => (object) [],
+                    'daily_reports' => (object) [],
+                    'tracking_toggle' => (object) [],
+                    'team_hierarchy' => (object) [],
+                    'site_registration' => (object) [],
                 ],
                 'is_active' => true,
             ],
         ];
 
         foreach ($plans as $plan) {
-            SubscriptionPlan::firstOrCreate(['slug' => $plan['slug']], $plan);
+            SubscriptionPlan::updateOrCreate(['slug' => $plan['slug']], $plan);
         }
     }
 }

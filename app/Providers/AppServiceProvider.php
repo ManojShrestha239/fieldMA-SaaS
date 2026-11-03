@@ -18,6 +18,10 @@ class AppServiceProvider extends ServiceProvider
     {
         // Define global tenant helpers
         require_once app_path('helpers.php');
+
+        // IoC container bindings for feature middleware aliases
+        $this->app->bind('feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
+        $this->app->bind('tenant.feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
     }
 
     /**
@@ -25,11 +29,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /** @var \Illuminate\Routing\Router $router */
+        $router = $this->app->make('router');
+        $router->aliasMiddleware('feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
+        $router->aliasMiddleware('tenant.feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
 
         Blade::if('super', function () {
             return auth()->check() && (auth()->user()->user_type == "super" || Auth::user()->user_type == 'ASM');
         });
         Blade::if('tenantFeature', function (string $feature) {
+            return \App\Utilities\Helpers::hasFeature($feature);
+        });
+        Blade::if('feature', function (string $feature) {
             return \App\Utilities\Helpers::hasFeature($feature);
         });
         Blade::if('account', function () {

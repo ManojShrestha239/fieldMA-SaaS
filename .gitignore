@@ -29,3 +29,5 @@ storage/app/fcm_files/fcm-prod.json
 storage/app/fcm_files/fcm-dev.json
 storage/app/fcm_files/
 storage/tenant*
+.agents/
+skills-*

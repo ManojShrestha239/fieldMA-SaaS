@@ -10,6 +10,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./app:/var/www/app:delegated
+      - ./bootstrap:/var/www/bootstrap:delegated
       - ./config:/var/www/config
       - ./database:/var/www/database
       - ./public:/var/www/public:delegated
@@ -104,6 +105,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./app:/var/www/app:delegated
+      - ./bootstrap:/var/www/bootstrap:delegated
       - ./config:/var/www/config
       - ./database:/var/www/database
       - ./routes:/var/www/routes

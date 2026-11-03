@@ -259,12 +259,22 @@
                             <strong>Active Plan Modules:</strong>
                             <div class="mt-2 d-flex flex-wrap gap-1">
                                 @if (!empty($tenant->plan->features))
-                                    @foreach ($tenant->plan->features as $key => $enabled)
-                                        @if ($enabled)
-                                            <span class="badge bg-light text-dark border"><i
-                                                    class="fa fa-check text-success me-1"></i>
-                                                {{ ucwords(str_replace('_', ' ', $key)) }}</span>
-                                        @endif
+                                    @foreach ($tenant->plan->features as $key => $featureData)
+                                        @php
+                                            $fConfig = config("features.map.{$key}");
+                                            $label = is_array($fConfig) ? ($fConfig['label'] ?? ucwords(str_replace('_', ' ', $key))) : ucwords(str_replace('_', ' ', $key));
+                                            $subs = is_array($featureData) && isset($featureData['sub_features'])
+                                                ? (array) $featureData['sub_features']
+                                                : [];
+                                            $subCount = count($subs);
+                                        @endphp
+                                        <span class="badge bg-light text-dark border"><i
+                                                class="fa fa-check text-success me-1"></i>
+                                            {{ $label }}
+                                            @if ($subCount > 0)
+                                                <span class="text-primary ms-1" title="{{ implode(', ', $subs) }}">({{ $subCount }})</span>
+                                            @endif
+                                        </span>
                                     @endforeach
                                 @endif
                             </div>

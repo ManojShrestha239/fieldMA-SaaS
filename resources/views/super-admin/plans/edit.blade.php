@@ -82,18 +82,76 @@
                     </div>
                 </div>
 
-                <h5 class="fw-bold text-primary mb-3">3. Module Feature Flags</h5>
-                <p class="text-muted small mb-3">Select which modules are accessible by companies on this plan:</p>
-                <div class="row g-2 mb-4">
-                    @foreach ($availableFeatures as $fKey => $fLabel)
-                        <div class="col-md-6">
-                            <div class="form-check p-2 border rounded bg-light">
-                                <input class="form-check-input ms-0 me-2" type="checkbox"
-                                    name="features[{{ $fKey }}]" value="1" id="feat_{{ $fKey }}"
-                                    {{ $plan->hasFeature($fKey) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold small" for="feat_{{ $fKey }}">
-                                    {{ $fLabel }}
-                                </label>
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+                    <div>
+                        <h5 class="fw-bold text-primary mb-0">3. Module Feature Flags</h5>
+                        <p class="text-muted small mb-0">Select which modules and sub-features are included in this plan tier:</p>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary" id="btnSelectAllFeatures">
+                            <i class="fa-solid fa-check-double me-1"></i> Select All
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btnDeselectAllFeatures">
+                            <i class="fa-solid fa-xmark me-1"></i> Deselect All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    @foreach ($availableFeatures as $fKey => $fConfig)
+                        @php
+                            $label = is_array($fConfig) ? ($fConfig['label'] ?? ucwords(str_replace('_', ' ', $fKey))) : $fConfig;
+                            $details = is_array($fConfig) ? ($fConfig['details'] ?? '') : '';
+                            $subFeatures = is_array($fConfig) ? ($fConfig['sub_features'] ?? []) : [];
+                            $hasSubs = !empty($subFeatures);
+                            $isModuleChecked = $plan->hasFeature($fKey);
+                        @endphp
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100 border rounded shadow-none bg-white p-3 module-feature-card" data-feature="{{ $fKey }}">
+                                <div class="form-check d-flex align-items-start gap-2 mb-0">
+                                    <input class="form-check-input mt-1 module-master-checkbox" type="checkbox"
+                                        name="features[{{ $fKey }}][enabled]" value="1"
+                                        id="feat_{{ $fKey }}"
+                                        {{ $isModuleChecked ? 'checked' : '' }}>
+                                    <div class="flex-grow-1">
+                                        <label class="form-check-label fw-bold text-dark d-block mb-1" for="feat_{{ $fKey }}">
+                                            {{ $label }}
+                                            @if ($hasSubs)
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-1 fw-normal" style="font-size: 11px;">
+                                                    {{ count($subFeatures) }} sub-features
+                                                </span>
+                                            @endif
+                                        </label>
+                                        @if ($details)
+                                            <p class="text-muted small mb-0">{{ $details }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if ($hasSubs)
+                                    <div class="mt-3 pt-2 border-top sub-features-wrapper">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted text-uppercase fw-semibold" style="font-size: 10px; letter-spacing: 0.5px;">Sub-features</span>
+                                        </div>
+                                        <div class="d-flex flex-column gap-2 ps-2 border-start border-2 border-primary-subtle">
+                                            @foreach ($subFeatures as $subKey)
+                                                @php
+                                                    $isSubChecked = $isModuleChecked && $plan->hasSubFeature($fKey, $subKey);
+                                                @endphp
+                                                <div class="form-check">
+                                                    <input class="form-check-input module-sub-checkbox" type="checkbox"
+                                                        name="features[{{ $fKey }}][sub_features][{{ $subKey }}]"
+                                                        value="1"
+                                                        id="sub_{{ $fKey }}_{{ $subKey }}"
+                                                        {{ $isSubChecked ? 'checked' : '' }}>
+                                                    <label class="form-check-label small fw-medium text-secondary" for="sub_{{ $fKey }}_{{ $subKey }}">
+                                                        {{ ucwords(str_replace('_', ' ', $subKey)) }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -114,4 +172,69 @@
             </form>
         </div>
     </div>
+
+    @section('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const cards = document.querySelectorAll('.module-feature-card');
+
+                function updateCardVisuals(card) {
+                    const master = card.querySelector('.module-master-checkbox');
+                    const subWrapper = card.querySelector('.sub-features-wrapper');
+                    if (!master || !subWrapper) return;
+
+                    if (master.checked) {
+                        subWrapper.style.opacity = '1';
+                    } else {
+                        subWrapper.style.opacity = '0.45';
+                    }
+                }
+
+                cards.forEach(card => {
+                    const master = card.querySelector('.module-master-checkbox');
+                    const subs = card.querySelectorAll('.module-sub-checkbox');
+
+                    // When main feature is toggled: auto select or deselect all sub features
+                    if (master) {
+                        master.addEventListener('change', function() {
+                            if (this.checked) {
+                                subs.forEach(s => s.checked = true);
+                            } else {
+                                subs.forEach(s => s.checked = false);
+                            }
+                            updateCardVisuals(card);
+                        });
+                    }
+
+                    // When any sub-feature is selected, AUTO SELECT THE MAIN FEATURE
+                    subs.forEach(sub => {
+                        sub.addEventListener('change', function() {
+                            if (this.checked && master) {
+                                master.checked = true;
+                            }
+                            updateCardVisuals(card);
+                        });
+                    });
+
+                    updateCardVisuals(card);
+                });
+
+                // SELECT ALL MODULES & SUB-FEATURES
+                document.getElementById('btnSelectAllFeatures')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.module-master-checkbox').forEach(m => m.checked = true);
+                    document.querySelectorAll('.module-sub-checkbox').forEach(s => s.checked = true);
+                    cards.forEach(updateCardVisuals);
+                });
+
+                // DESELECT ALL MODULES & SUB-FEATURES
+                document.getElementById('btnDeselectAllFeatures')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.module-master-checkbox').forEach(m => m.checked = false);
+                    document.querySelectorAll('.module-sub-checkbox').forEach(s => s.checked = false);
+                    cards.forEach(updateCardVisuals);
+                });
+            });
+        </script>
+    @endsection
 @endsection
