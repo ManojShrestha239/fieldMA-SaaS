@@ -9,16 +9,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     volumes:
-      - ./app:/var/www/app:delegated
-      - ./bootstrap:/var/www/bootstrap:delegated
-      - ./config:/var/www/config
-      - ./database:/var/www/database
-      - ./public:/var/www/public:delegated
-      - ./resources:/var/www/resources:delegated
-      - ./routes:/var/www/routes
-      - ./storage:/var/www/storage:delegated
-      - .env:/var/www/.env
-      - ./vendor:/var/www/vendor:delegated
+      - .:/var/www:delegated
     networks:
       - fieldma_saas_net
       - shared
@@ -104,14 +95,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     volumes:
-      - ./app:/var/www/app:delegated
-      - ./bootstrap:/var/www/bootstrap:delegated
-      - ./config:/var/www/config
-      - ./database:/var/www/database
-      - ./routes:/var/www/routes
-      - ./storage:/var/www/storage:delegated
-      - .env:/var/www/.env
-      - ./vendor:/var/www/vendor:delegated
+      - .:/var/www:delegated
     networks:
       - fieldma_saas_net
     environment:

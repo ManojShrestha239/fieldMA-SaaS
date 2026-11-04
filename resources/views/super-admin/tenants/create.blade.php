@@ -3,6 +3,10 @@
 @section('title', 'Provision New Company')
 
 @section('content')
+    @php
+        $todayDate = date('Y-m-d');
+        $tomorrowDate = \Carbon\Carbon::tomorrow()->format('Y-m-d');
+    @endphp
     <div class="mb-4">
         <a href="{{ route('super-admin.tenants.index') }}" class="btn btn-sm btn-outline-secondary mb-2">
             <i class="fa-solid fa-arrow-left me-1"></i> Back to Companies
@@ -145,16 +149,17 @@
                                         Suspended</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            {{-- <div class="col-md-6">
                                 <label class="form-label small fw-semibold">Trial Expiration Date (Optional)</label>
                                 <input type="date" name="trial_ends_at" class="form-control"
                                     value="{{ old('trial_ends_at') }}">
                                 <small class="text-muted">Defaults to +14 days if Workspace Status is set to Trial.</small>
-                            </div>
+                            </div> --}}
                             <div class="col-md-6">
                                 <label class="form-label small fw-semibold">Plan Expiration Date (Optional)</label>
-                                <input type="date" name="plan_ends_at" class="form-control"
-                                    value="{{ old('plan_ends_at') }}">
+                                <input type="text" name="plan_ends_at" class="form-control" id="plan_ends_at"
+                                    min="{{ $tomorrowDate }}" value="{{ old('plan_ends_at') }}"
+                                    placeholder="YYYY-MM-DD">
                                 <small class="text-muted">Defaults to billing cycle duration (monthly / yearly) when plan
                                     is chosen.</small>
                             </div>
@@ -231,5 +236,20 @@
 
         setupPreview('tenant_logo_input', 'logo_preview', 'logo_preview_container');
         setupPreview('tenant_favicon_input', 'favicon_preview', 'favicon_preview_container');
+    </script>
+
+    <!-- FOR Date -->
+    <!-- Make sure Flatpickr CSS & JS are loaded in your layout header/footer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nepali-date-picker@2.0.2/dist/nepaliDatePicker.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nepali-date-picker@2.0.2/dist/jquery.nepaliDatePicker.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#plan_ends_at').nepaliDatePicker({
+                dateFormat: 'YYYY-MM-DD',
+                closeOnDateSelect: true
+            });
+        });
     </script>
 @endsection

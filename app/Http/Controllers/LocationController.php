@@ -28,6 +28,8 @@ class LocationController extends Controller
      */
     public function index()
     {
+        // $tenant = tenant();
+        // dd($tenant);
         $ldate = date('Y-m-d');
         $dates = $this->custom_AD_to_BS($ldate);
         $rol = DB::table('roles')->get();

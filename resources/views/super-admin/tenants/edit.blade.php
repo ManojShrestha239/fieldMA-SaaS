@@ -210,4 +210,19 @@
         setupPreview('tenant_logo_input', 'logo_preview', 'logo_preview_container');
         setupPreview('tenant_favicon_input', 'favicon_preview', 'favicon_preview_container');
     </script>
+
+    <!-- FOR Date -->
+    <!-- Make sure Flatpickr CSS & JS are loaded in your layout header/footer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            flatpickr("#plan_ends_at", {
+                dateFormat: "Y-m-d",
+                minDate: "{{ $tomorrowDate }}",
+                allowInput: false // Prevents typing random text; clicking anywhere still opens the calendar
+            });
+        });
+    </script>
 @endsection
