@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\AlertReminderController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
@@ -12,61 +11,30 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\SubareaController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ChallanController;
-use App\Http\Controllers\CollectionController;
-use App\Http\Controllers\CollectionReportController;
 use App\Http\Controllers\DealerController;
 use App\Http\Controllers\DenominationController;
 use App\Http\Controllers\FinalProductController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\OrderReportController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\PurposeController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\ScheduleVisitController;
-use App\Http\Controllers\RepeatescheduleController;
 use App\Http\Controllers\SizeController;
-use App\Http\Controllers\TokenController;
 use App\Http\Controllers\VisitController;
-use App\Http\Controllers\AreaVisitController;
-use App\Http\Controllers\AreaVisitExportController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\AttendanceReportController;
-use App\Http\Controllers\AttendanceSummaryController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\ChallanReportController;
 use App\Http\Controllers\ComplaintController;
-use App\Http\Controllers\DealerVisitController;
-use App\Http\Controllers\DealerVisitExportController;
 use App\Http\Controllers\ExcelExportController;
 use App\Http\Controllers\ExcelInventoryController;
 use App\Http\Controllers\ExcelProductManufactureController;
 use App\Http\Controllers\ExcelRawProductController;
 use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\NegotiationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\ProductDealerController;
 use App\Http\Controllers\ProductInventoryController;
 use App\Http\Controllers\ProductInventorymanufController;
-use App\Http\Controllers\ProductManufactureController;
-use App\Http\Controllers\RawInventoryController;
-use App\Http\Controllers\RawMaterialController;
-use App\Http\Controllers\RawProductController;
-use App\Http\Controllers\RawPurchaseController;
 use App\Http\Controllers\SubdealerInventoryController;
-use App\Http\Controllers\UnlistedExportController;
-use App\Http\Controllers\VisitExportController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use App\Http\Controllers\SiteRegistrationControllerV2;
-use App\Http\Controllers\FollowUpControllerV2;
-
-
-use App\Http\Controllers\TadaReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,7 +49,7 @@ use App\Http\Controllers\TadaReportController;
 
 // Working for cache.
 Route::get('optimize', function () {
-    Artisan::call('migrate');
+    Artisan::call('migrate --seed');
     Artisan::call('storage:link');
     Artisan::call('optimize:clear');
     Artisan::call('config:cache');
@@ -120,43 +88,11 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     //Order Routes
     require __DIR__ . '/tenants/orders.php';
 
-    Route::group(['middleware' => ['permission:collection', 'feature:collections']], function () {
-        Route::get('/collection', [PaymentController::class, 'list']);
-        Route::post('/collection', [PaymentController::class, 'filter']);
-        Route::get('/cheque-collection', [PaymentController::class, 'cheque_list']);
-        Route::post('/cheque-collection', [PaymentController::class, 'cheque_filter']);
-        Route::get('/direct-collection', [PaymentController::class, 'direct_list']);
-        Route::post('/direct-collection', [PaymentController::class, 'direct_filter']);
-        Route::patch('/cheque-collection/{id}', [PaymentController::class, 'update']);
-        Route::get('/collectionpop/{id}', [PaymentController::class, 'pop']);
+    //Collection Routes
+    require __DIR__ . '/tenants/collections.php';
 
-        Route::get('/token/details/{id}', [TokenController::class, 'details']);
-        Route::resource('token', TokenController::class);
-
-        Route::post('zeroReport', [CollectionReportController::class, 'zeroReport']);
-        Route::resource('collection-report', CollectionController::class)->only(['index', 'store']);
-        Route::get('/collection-report/filter', [CollectionController::class, 'filter']);
-
-        Route::resource('/collectionReport', CollectionReportController::class);
-
-        Route::post('//collectionSummaryReport', [CollectionReportController::class, 'collectionSummaryReport']);
-        Route::patch('/edit-collection/{id}', [PaymentController::class, 'edit']);
-
-        Route::get('/cashPopup/{id}', [PaymentController::class, 'cashPop']);
-        Route::get('receiptimage/{id}', [CollectionController::class, 'show'])->name('collection.receiptimage');
-    });
-
-    Route::group(['middleware' => ['permission:schedule', 'feature:schedules']], function () {
-        // For Schedules
-        Route::get('/schedule/dealer/{id}', [SchedulevisitController::class, 'dealerValue']);
-        Route::post('/schedule/search', [ScheduleVisitController::class, 'search']);
-        Route::get('schedule/area/{id}', [ScheduleVisitController::class, 'getarea']);
-        Route::resource('schedule', ScheduleVisitController::class);
-
-        // For Repeated Schedule
-        Route::get('repeated/search', [RepeatescheduleController::class, 'search']);
-        Route::resource('repeated', RepeatescheduleController::class);
-    });
+    // Schedule Visit Routes
+    require __DIR__ . '/tenants/schedule_visits.php';
 
     Route::group(['middleware' => ['permission:chat', 'feature:chats']], function () {
         // For Chat
@@ -164,69 +100,13 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::get('/chatuser/search', [MessageController::class, 'search']);
     });
 
-    Route::group(['middleware' => ['permission:complaint', 'feature:complaints']], function () {
-        Route::resource('complaint', ComplaintController::class);
-    });
+    // Complaint Routes
+    Route::resource('complaint', ComplaintController::class)
+        ->middleware(['permission:complaint', 'feature:complaints']);
 
-    Route::group(['middleware' => ['permission:reports', 'feature:visits|daily_reports']], function () {
-        // Visit Report Route
-        Route::get('history', [VisitController::class, 'filter']);
-        Route::resource('visithistory', VisitController::class);
-        Route::get('/visit/areas', [AreaVisitController::class, 'filter']);
-        Route::resource('visitarea', AreaVisitController::class);
-        Route::get('/visithistory-dealer', [DealerVisitController::class, 'filter']);
-        Route::resource('visitdealer', DealerVisitController::class);
-        Route::get('/negotiation-report', [NegotiationController::class, 'filter']);
-        Route::get('/negotiation/map/{id}', [NegotiationController::class, 'map']);
-        Route::resource('negotiation', NegotiationController::class);
-
-
-        // TADA Report
-        // Note: dashboard-based creation is disabled. Keep other resource routes but exclude create/store.
-        Route::resource('tada-report', TadaReportController::class)->except(['create', 'store']);
-        Route::get('tada-report/{id}/download-pdf', [TadaReportController::class, 'downloadPdf'])->name('tada-report.pdf');
-        // Export filtered TADA list to Excel
-        Route::post('/tada-export', [TadaReportController::class, 'export'])->name('tada-report.export');
-        // Admin Daily Report export
-        Route::post('/tada-admin-export', [TadaReportController::class, 'adminExport'])->name('tada-report.admin-export');
-        Route::get('/expense-report', [TadaReportController::class, 'expenseReport'])->name('expense-report.index');
-        Route::get('/expense-report/export', [TadaReportController::class, 'exportExpenseReport'])->name('expense-report.export');
-
-        // Attendance
-        Route::get('/attendance/filter', [AttendanceController::class, 'filter']);
-        Route::get('attendance', [AttendanceController::class, 'index']);
-        Route::get('/attendance/{id}', [AttendanceController::class, 'view']);
-        Route::get('/attendance/view/{id}', [AttendanceController::class, 'show']);
-
-        //Attendance Image
-        Route::get('attendanceimage/{id}', [AttendanceController::class, 'attendanceimageshow'])->name('attendanceimage');
-
-        // UpdateKM for Attendance
-        Route::get('attendance/updatekm/{id}', [AttendanceController::class, 'updatekmformshow']);
-        Route::patch('attendance/updatekm/{id}', [AttendanceController::class, 'updatekmformpost'])->name('attendanceupdatekm');
-        Route::resource('attendanceReport', AttendanceReportController::class);
-        Route::get('/report/attendance', [AttendanceReportController::class, 'search']);
-        Route::get('/report/attendance/download', [AttendanceReportController::class, 'download']);
-        Route::get('/report/attendance/summary', [AttendanceReportController::class, 'summary']);
-        Route::resource('monthlySummary', AttendanceSummaryController::class);
-
-        // user-wise visit report export
-        Route::post('/visit-export', [VisitExportController::class, 'visit_Report']);
-        Route::post('/visit-detailed-export', [VisitExportController::class, 'visit_Detailed_Report']);
-        Route::post('/mis-Report', [VisitExportController::class, 'MIS_Report']);
-        // area-wise visit report export
-        Route::post('/area-visit-export', [AreaVisitExportController::class, 'area_visit_Report']);
-        Route::post('/area-visit-detailed-export', [AreaVisitExportController::class, 'Area_visit_Detailed_Report']);
-        // Dealer-wise visit report export
-        Route::post('/dealer-visit-export', [DealerVisitExportController::class, 'dealer_visit_report']);
-        Route::post('/dealer-visit-detailed-export', [DealerVisitExportController::class, 'dealer_visit_detailed_report']);
-        // Unlisted Dealer visit report export
-        Route::post('/unlisted-visit-export', [UnlistedExportController::class, 'unlisted_visit_Report']);
-        Route::post('/unlisted-visit-detailed-export', [UnlistedExportController::class, 'unlisted_visit_Detailed_Report']);
-
-        //Dealer ot Retailer Route
-        Route::get('/dealerOrRetailer', [DealerController::class, 'dealerOrRetailer']);
-    });
+    //Reports Routes
+    require __DIR__ . '/tenants/reports/core.php';
+    require __DIR__ . '/tenants/reports/daily_reports.php';
 
     Route::group(['middleware' => ['permission:user']], function () {
         Route::resource('role-permission', PermissionController::class);
@@ -247,18 +127,8 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::resource('area', AreaController::class);
     });
 
-    Route::group(['middleware' => ['permission:rawmaterial', 'feature:inventory']], function () {
-        //begin for raw materials
-        Route::resource('raw', RawMaterialController::class);
-        //for raw-products
-        Route::resource('raw-product', RawProductController::class);
-        //rawpurchase
-        Route::resource('rawpurchase', RawPurchaseController::class);
-        //productmanufactures
-        Route::resource('product-manufactures', ProductManufactureController::class);
-        //inventory
-        Route::resource('inventory', RawInventoryController::class);
-    });
+    // For Product Inventory
+    require __DIR__ . '/tenants/product_inventory.php';
 
     Route::group(['middleware' => ['permission:productinventory', 'feature:inventory']], function () {
         ///begin for product inventory///
@@ -339,23 +209,11 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
 
 
     // Site Registration
-    Route::middleware(['feature:site_registration'])->group(function () {
-        Route::get('/export-site-registrations-v2', [SiteRegistrationControllerV2::class, 'export'])->name('export.site.registrations.v2');
-        Route::resource('site-registration-v2', SiteRegistrationControllerV2::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
-        Route::get('/site-registration/{site}/activitylog', [SiteRegistrationControllerV2::class, 'getActivityLogs']);
-        Route::get('site-registration-v2-map', [SiteRegistrationControllerV2::class, 'siteMaps'])->name('site.registration.v2.map');
-        Route::resource('followUp', FollowUpControllerV2::class)->only(['index', 'create']);
-    });
+    require __DIR__ . '/tenants/site_registration.php';
 });
 
-Route::get('notification/reminder/3jR4GUzghGFTrpy2', [AlertReminderController::class, 'index']);
+// Route::get('notification/reminder/3jR4GUzghGFTrpy2', [AlertReminderController::class, 'index']);
 Route::get('privacy_policy', [PrivacyPolicyController::class, 'privacypolicy']); //privacy-policy page
-
-Route::get('/artisan-command', function (Request $request) {
-    $command = $request->query('command');
-    Artisan::call($command);
-    return response()->json('success');
-});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/tenant/settings/branding', [App\Http\Controllers\Tenant\TenantSettingController::class, 'edit'])->name('tenant.settings.branding');
