@@ -15,6 +15,19 @@ if (!function_exists('tenant_has_feature')) {
     }
 }
 
+if (!function_exists('tenant_enabled_features')) {
+    /**
+     * Get all enabled features for a given module (or all enabled modules).
+     *
+     * @param string|null $module
+     * @return array
+     */
+    function tenant_enabled_features(?string $module = null): array
+    {
+        return Helpers::getEnabledFeatures($module);
+    }
+}
+
 if (!function_exists('tenant_setting')) {
     /**
      * Retrieve a tenant setting or fallback to default.

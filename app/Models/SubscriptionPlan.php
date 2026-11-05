@@ -118,4 +118,51 @@ class SubscriptionPlan extends Model
 
         return [];
     }
+
+    /**
+     * Get all enabled features for a given module, or a map of all enabled modules
+     * and their features if no module is specified.
+     *
+     * @param string|null $module Canonical module key (e.g. 'dealer_orders', 'visits')
+     * @return array
+     */
+    public function getEnabledFeatures(?string $module = null): array
+    {
+        if ($module !== null) {
+            return $this->getEnabledFeaturesForModule($module);
+        }
+
+        if (empty($this->features) || !is_array($this->features)) {
+            return [];
+        }
+
+        $result = [];
+        foreach (array_keys($this->features) as $key) {
+            $result[$key] = $this->getEnabledSubFeatures($key);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get all enabled features for a given module.
+     *
+     * @param string $module
+     * @return array<int, string>
+     */
+    public function getEnabledFeaturesForModule(string $module): array
+    {
+        return $this->getEnabledSubFeatures($module);
+    }
+
+    /**
+     * Alias for getEnabledFeatures().
+     *
+     * @param string|null $module
+     * @return array
+     */
+    public function getAllEnabledFeatures(?string $module = null): array
+    {
+        return $this->getEnabledFeatures($module);
+    }
 }

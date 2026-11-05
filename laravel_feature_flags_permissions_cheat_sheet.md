@@ -83,6 +83,16 @@ if (tenant()->hasFeature('dealer_orders', 'new_order')) {
 if (Helpers::hasFeature('notices')) {
     // ...
 }
+
+// 4. Getting enabled features for a given module (e.g. dealer_orders)
+$orderFeatures = tenant()->getEnabledFeatures('dealer_orders');
+// Returns: ['new_order', 'order_history', 'saved_orders'] (or active subset)
+
+// Or get all enabled modules and features as a map:
+$allFeatures = tenant()->getEnabledFeatures();
+
+// Global helper alias:
+$enabled = tenant_enabled_features('dealer_orders');
 ```
 
 ### B. Checking User Permissions (Spatie)

@@ -38,4 +38,12 @@ class Helpers {
         }
         return true;
     }
+
+    public static function getEnabledFeatures(?string $module = null): array
+    {
+        if (function_exists('tenant') && tenant() && method_exists(tenant(), 'getEnabledFeatures')) {
+            return tenant()->getEnabledFeatures($module);
+        }
+        return [];
+    }
 }

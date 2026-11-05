@@ -218,28 +218,142 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
-     * Get all enabled sub-features for a given module.
+     * Get all enabled features for a given module, or a map of all enabled modules
+     * and their features if no module is specified.
      *
+     * @param string|null $module Canonical module key (e.g. 'dealer_orders', 'visits')
+     * @return array
+     */
+    public function getEnabledFeatures(?string $module = null): array
+    {
+        if ($module !== null) {
+            return $this->getEnabledFeaturesForModule($module);
+        }
+
+        // Collect all potential module keys
+        $availableModules = array_keys(config('features.map', []));
+        $overrides = $this->feature_overrides ?? ($this->data['feature_overrides'] ?? []);
+        if (is_array($overrides)) {
+            foreach (array_keys($overrides) as $key) {
+                $baseKey = str_contains($key, '.') ? explode('.', $key, 2)[0] : $key;
+                if (!in_array($baseKey, $availableModules, true)) {
+                    $availableModules[] = $baseKey;
+                }
+            }
+        }
+        if ($this->plan && is_array($this->plan->features)) {
+            foreach (array_keys($this->plan->features) as $key) {
+                if (!in_array($key, $availableModules, true)) {
+                    $availableModules[] = $key;
+                }
+            }
+        }
+
+        $result = [];
+        foreach ($availableModules as $modKey) {
+            if ($this->hasFeature($modKey)) {
+                $result[$modKey] = $this->getEnabledFeaturesForModule($modKey);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get all enabled features / sub-features for a given module.
+     *
+     * @param string $module Canonical module key (e.g. 'dealer_orders', 'visits')
+     * @return array<int, string>
+     */
+    public function getEnabledFeaturesForModule(string $module): array
+    {
+        // Support dot notation: e.g. "dealer_orders.new_order"
+        if (str_contains($module, '.')) {
+            [$modKey, $subKey] = explode('.', $module, 2);
+            return $this->hasFeature($modKey, $subKey) ? [$subKey] : [];
+        }
+
+        if (!$this->hasFeature($module)) {
+            return [];
+        }
+
+        $candidates = [];
+
+        // 1. Sub-features defined in config/features.php
+        $configSubs = config("features.map.{$module}.sub_features", []);
+        if (is_array($configSubs)) {
+            foreach ($configSubs as $sub) {
+                if (is_string($sub)) {
+                    $candidates[] = $sub;
+                }
+            }
+        }
+
+        // 2. Sub-features from subscription plan
+        if ($this->plan) {
+            foreach ($this->plan->getEnabledSubFeatures($module) as $sub) {
+                $candidates[] = $sub;
+            }
+        }
+
+        // 3. Sub-features from tenant overrides
+        $overrides = $this->feature_overrides ?? ($this->data['feature_overrides'] ?? []);
+        if (isset($overrides[$module]) && is_array($overrides[$module]) && isset($overrides[$module]['sub_features'])) {
+            $subs = $overrides[$module]['sub_features'];
+            if (is_array($subs)) {
+                foreach ($subs as $k => $v) {
+                    $candidateKey = is_int($k) ? $v : $k;
+                    if (is_string($candidateKey)) {
+                        $candidates[] = $candidateKey;
+                    }
+                }
+            }
+        }
+
+        // 4. Dot-notation overrides: "{$module}.{$sub}"
+        $prefix = "{$module}.";
+        foreach ($overrides as $k => $v) {
+            if (str_starts_with($k, $prefix)) {
+                $subKey = substr($k, strlen($prefix));
+                if (!empty($subKey)) {
+                    $candidates[] = $subKey;
+                }
+            }
+        }
+
+        $candidates = array_values(array_unique($candidates));
+
+        // Filter candidates by hasFeature($module, $sub)
+        $enabled = [];
+        foreach ($candidates as $sub) {
+            if ($this->hasFeature($module, $sub)) {
+                $enabled[] = $sub;
+            }
+        }
+
+        return array_values(array_unique($enabled));
+    }
+
+    /**
+     * Alias for getEnabledFeatures().
+     *
+     * @param string|null $module
+     * @return array
+     */
+    public function getAllEnabledFeatures(?string $module = null): array
+    {
+        return $this->getEnabledFeatures($module);
+    }
+
+    /**
+     * Get all enabled sub-features for a given module (alias for getEnabledFeaturesForModule).
+     *
+     * @param string $featureKey
      * @return array<int, string>
      */
     public function getEnabledSubFeatures(string $featureKey): array
     {
-        $overrides = $this->feature_overrides ?? ($this->data['feature_overrides'] ?? []);
-
-        if (isset($overrides[$featureKey]) && is_array($overrides[$featureKey]) && isset($overrides[$featureKey]['sub_features'])) {
-            $subs = $overrides[$featureKey]['sub_features'];
-            if (is_array($subs)) {
-                return array_values(array_filter($subs, function ($val, $key) {
-                    return is_int($key) ? true : (bool) $val;
-                }, ARRAY_FILTER_USE_BOTH));
-            }
-        }
-
-        if ($this->plan) {
-            return $this->plan->getEnabledSubFeatures($featureKey);
-        }
-
-        return [];
+        return $this->getEnabledFeaturesForModule($featureKey);
     }
 
     /**
