@@ -96,6 +96,7 @@ class OrderController extends Controller
 
     public function index()
     {
+        // dd(tenant()->getEnabledFeatures());
         $list = [];
         $total = 0;
         $pending = 0;

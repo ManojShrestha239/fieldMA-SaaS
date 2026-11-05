@@ -37,34 +37,8 @@ class SubscriptionPlan extends Model
     }
 
     /**
-     * Map of legacy or alternate feature aliases to canonical feature keys.
-     *
-     * @var array<string, string>
-     */
-    protected static array $featureAliases = [
-        'orders' => 'dealer_orders',
-        'order_booking' => 'dealer_orders',
-        'dealer_order' => 'dealer_orders',
-        'retailer_order' => 'retailer_orders',
-        'payments' => 'collections',
-        'tada' => 'daily_reports',
-        'expenses' => 'daily_reports',
-        'live_tracking' => 'tracking_toggle',
-        'stock_management' => 'inventory',
-        'raw_inventory' => 'inventory',
-        'sites' => 'site_registration',
-    ];
-
-    /**
-     * Normalize feature key against known aliases.
-     */
-    public function normalizeFeatureKey(string $key): string
-    {
-        return static::$featureAliases[$key] ?? $key;
-    }
-
-    /**
      * Check if a feature (or specific sub-feature) is enabled in this plan.
+     * Uses canonical feature keys defined in config/features.php.
      */
     public function hasFeature(string $featureKey, ?string $subFeature = null): bool
     {
@@ -77,21 +51,11 @@ class SubscriptionPlan extends Model
             [$featureKey, $subFeature] = explode('.', $featureKey, 2);
         }
 
-        $canonicalKey = $this->normalizeFeatureKey($featureKey);
-
-        // Check if canonical key or original key exists
-        $resolvedKey = null;
-        if (array_key_exists($canonicalKey, $this->features)) {
-            $resolvedKey = $canonicalKey;
-        } elseif (array_key_exists($featureKey, $this->features)) {
-            $resolvedKey = $featureKey;
-        }
-
-        if ($resolvedKey === null) {
+        if (!array_key_exists($featureKey, $this->features)) {
             return false;
         }
 
-        $featureData = $this->features[$resolvedKey];
+        $featureData = $this->features[$featureKey];
 
         // If only checking parent module
         if ($subFeature === null) {
@@ -137,16 +101,11 @@ class SubscriptionPlan extends Model
      */
     public function getEnabledSubFeatures(string $featureKey): array
     {
-        $canonicalKey = $this->normalizeFeatureKey($featureKey);
-        $resolvedKey = array_key_exists($canonicalKey, $this->features ?? [])
-            ? $canonicalKey
-            : (array_key_exists($featureKey, $this->features ?? []) ? $featureKey : null);
-
-        if (!$resolvedKey || empty($this->features[$resolvedKey])) {
+        if (empty($this->features[$featureKey])) {
             return [];
         }
 
-        $featureData = $this->features[$resolvedKey];
+        $featureData = $this->features[$featureKey];
         if (is_array($featureData) && isset($featureData['sub_features']) && is_array($featureData['sub_features'])) {
             $subs = $featureData['sub_features'];
             // If indexed array of strings

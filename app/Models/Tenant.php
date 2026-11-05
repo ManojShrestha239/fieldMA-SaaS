@@ -166,6 +166,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     /**
      * Check if a feature is enabled for this tenant (checks tenant override, then subscription plan).
+     * Uses canonical feature keys defined in config/features.php.
      */
     public function hasFeature(string $featureKey, ?string $subFeature = null): bool
     {
@@ -174,46 +175,38 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             [$featureKey, $subFeature] = explode('.', $featureKey, 2);
         }
 
-        $canonicalKey = (new SubscriptionPlan())->normalizeFeatureKey($featureKey);
         $overrides = $this->feature_overrides ?? ($this->data['feature_overrides'] ?? []);
 
         // Check specific sub-feature override if requested: e.g. "dealer_orders.new_order"
         if ($subFeature !== null) {
-            $subOverrideKey = "{$canonicalKey}.{$subFeature}";
+            $subOverrideKey = "{$featureKey}.{$subFeature}";
             if (array_key_exists($subOverrideKey, $overrides)) {
                 return (bool) $overrides[$subOverrideKey];
             }
-            if (array_key_exists("{$featureKey}.{$subFeature}", $overrides)) {
-                return (bool) $overrides["{$featureKey}.{$subFeature}"];
-            }
 
             // Check structured overrides: e.g. $overrides['dealer_orders']['sub_features']
-            foreach ([$canonicalKey, $featureKey] as $k) {
-                if (isset($overrides[$k]) && is_array($overrides[$k]) && isset($overrides[$k]['sub_features'])) {
-                    $subs = (array) $overrides[$k]['sub_features'];
-                    return in_array($subFeature, $subs, true) || !empty($subs[$subFeature]);
-                }
+            if (isset($overrides[$featureKey]) && is_array($overrides[$featureKey]) && isset($overrides[$featureKey]['sub_features'])) {
+                $subs = (array) $overrides[$featureKey]['sub_features'];
+                return in_array($subFeature, $subs, true) || !empty($subs[$subFeature]);
             }
         }
 
         // Check module-level override
-        foreach ([$canonicalKey, $featureKey] as $k) {
-            if (array_key_exists($k, $overrides)) {
-                $val = $overrides[$k];
-                if (is_bool($val)) {
-                    return $val;
-                }
-                if (is_array($val) || is_object($val)) {
-                    return $subFeature === null ? true : false;
-                }
+        if (array_key_exists($featureKey, $overrides)) {
+            $val = $overrides[$featureKey];
+            if (is_bool($val)) {
+                return $val;
+            }
+            if (is_array($val) || is_object($val)) {
+                return $subFeature === null ? true : false;
             }
         }
 
         if ($this->plan) {
-            return $this->plan->hasFeature($canonicalKey, $subFeature);
+            return $this->plan->hasFeature($featureKey, $subFeature);
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -231,22 +224,19 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function getEnabledSubFeatures(string $featureKey): array
     {
-        $canonicalKey = (new SubscriptionPlan())->normalizeFeatureKey($featureKey);
         $overrides = $this->feature_overrides ?? ($this->data['feature_overrides'] ?? []);
 
-        foreach ([$canonicalKey, $featureKey] as $k) {
-            if (isset($overrides[$k]) && is_array($overrides[$k]) && isset($overrides[$k]['sub_features'])) {
-                $subs = $overrides[$k]['sub_features'];
-                if (is_array($subs)) {
-                    return array_values(array_filter($subs, function ($val, $key) {
-                        return is_int($key) ? true : (bool) $val;
-                    }, ARRAY_FILTER_USE_BOTH));
-                }
+        if (isset($overrides[$featureKey]) && is_array($overrides[$featureKey]) && isset($overrides[$featureKey]['sub_features'])) {
+            $subs = $overrides[$featureKey]['sub_features'];
+            if (is_array($subs)) {
+                return array_values(array_filter($subs, function ($val, $key) {
+                    return is_int($key) ? true : (bool) $val;
+                }, ARRAY_FILTER_USE_BOTH));
             }
         }
 
         if ($this->plan) {
-            return $this->plan->getEnabledSubFeatures($canonicalKey);
+            return $this->plan->getEnabledSubFeatures($featureKey);
         }
 
         return [];
