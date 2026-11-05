@@ -24,7 +24,9 @@ class PermissionSeeder extends Seeder
             "chat",
             "complaint",
             "reports",
+            "daily_reports",
             "setup",
+            "productinventory",
             "user",
             "dealer",
             "area",
@@ -38,6 +40,9 @@ class PermissionSeeder extends Seeder
             "purpose",
             "role",
             "auto-checkout",
+            "site_registration",
+            "tracking_toggle",
+            "team_hierarchy",
         ];
 
         foreach ($permissions as $permission) {

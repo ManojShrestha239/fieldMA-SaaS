@@ -79,68 +79,68 @@ return [
         ],
     ],
 
-    'permissions_map' => [
-        'notices' => ['notice'],
-        'dealer_orders' => ['order'],
-        'retailer_orders' => ['order'],
-        'collections' => ['collection'],
-        'schedules' => ['schedule'],
-        'chats' => ['chat'],
-        'complaints' => ['complaint'],
-        'visits' => ['reports'],
-        'reminder_alert' => [],
-        'position' => ['dealer'],
-        'inventory' => ['product', 'productinventory', 'rawmaterial'],
-        'daily_reports' => ['reports'],
-        'tracking_toggle' => [],
-        'team_hierarchy' => [],
-        'site_registration' => ['site_registration'],
-    ],
+    // 'permissions_map' => [
+    //     'notices' => ['notice'],
+    //     'dealer_orders' => ['order'],
+    //     'retailer_orders' => ['order'],
+    //     'collections' => ['collection'],
+    //     'schedules' => ['schedule'],
+    //     'chats' => ['chat'],
+    //     'complaints' => ['complaint'],
+    //     'visits' => ['reports'],
+    //     'reminder_alert' => [],
+    //     'position' => ['dealer'],
+    //     'inventory' => ['product', 'productinventory', 'rawmaterial'],
+    //     'daily_reports' => ['reports'],
+    //     'tracking_toggle' => [],
+    //     'team_hierarchy' => [],
+    //     'site_registration' => ['site_registration'],
+    // ],
 
-    'core_permissions' => [
-        'user' => [
-            'label' => 'User Management',
-            'details' => 'Admins, Managers & Field Staff',
-        ],
-        'dealer' => [
-            'label' => 'Dealer Setup',
-            'details' => 'Dealer & Subdealer Master Data',
-        ],
-        'area' => [
-            'label' => 'Area Setup',
-            'details' => 'Territories, Areas & Subareas',
-        ],
-        'bank' => [
-            'label' => 'Bank Accounts',
-            'details' => 'Company Bank Accounts',
-        ],
-        'upload-due' => [
-            'label' => 'Upload Dues',
-            'details' => 'Upload Outstanding Customer Dues',
-        ],
-        'distance' => [
-            'label' => 'Distance Limit',
-            'details' => 'Location & Distance Geofencing Limits',
-        ],
-        'auto-checkout' => [
-            'label' => 'Auto-Checkout Time',
-            'details' => 'Configure Daily Auto-Checkout Times',
-        ],
-        'denomination' => [
-            'label' => 'Denominations',
-            'details' => 'Currency Denominations Configuration',
-        ],
-        'purpose' => [
-            'label' => 'Visit Purposes',
-            'details' => 'Field Agent Visit Purpose Types',
-        ],
-        'role' => [
-            'label' => 'Role Management',
-            'details' => 'Configure Staff Roles & Permissions',
-        ],
-        'privacy-policy' => [
-            'label' => 'Privacy Policy',
-            'details' => 'Company & App Privacy Policies',
-        ],
-    ],
+    // 'core_permissions' => [
+    //     'user' => [
+    //         'label' => 'User Management',
+    //         'details' => 'Admins, Managers & Field Staff',
+    //     ],
+    //     'dealer' => [
+    //         'label' => 'Dealer Setup',
+    //         'details' => 'Dealer & Subdealer Master Data',
+    //     ],
+    //     'area' => [
+    //         'label' => 'Area Setup',
+    //         'details' => 'Territories, Areas & Subareas',
+    //     ],
+    //     'bank' => [
+    //         'label' => 'Bank Accounts',
+    //         'details' => 'Company Bank Accounts',
+    //     ],
+    //     'upload-due' => [
+    //         'label' => 'Upload Dues',
+    //         'details' => 'Upload Outstanding Customer Dues',
+    //     ],
+    //     'distance' => [
+    //         'label' => 'Distance Limit',
+    //         'details' => 'Location & Distance Geofencing Limits',
+    //     ],
+    //     'auto-checkout' => [
+    //         'label' => 'Auto-Checkout Time',
+    //         'details' => 'Configure Daily Auto-Checkout Times',
+    //     ],
+    //     'denomination' => [
+    //         'label' => 'Denominations',
+    //         'details' => 'Currency Denominations Configuration',
+    //     ],
+    //     'purpose' => [
+    //         'label' => 'Visit Purposes',
+    //         'details' => 'Field Agent Visit Purpose Types',
+    //     ],
+    //     'role' => [
+    //         'label' => 'Role Management',
+    //         'details' => 'Configure Staff Roles & Permissions',
+    //     ],
+    //     'privacy-policy' => [
+    //         'label' => 'Privacy Policy',
+    //         'details' => 'Company & App Privacy Policies',
+    //     ],
+    // ],
 ];
