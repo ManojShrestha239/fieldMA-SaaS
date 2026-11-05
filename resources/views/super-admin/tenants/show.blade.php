@@ -256,27 +256,27 @@
                         </div>
                         <p class="small text-muted mb-3">{{ $tenant->plan->description }}</p>
                         <div class="small">
-                            <strong>Active Plan Modules:</strong>
+                            <strong>Active Workspace Modules & Feature Flags:</strong>
                             <div class="mt-2 d-flex flex-wrap gap-1">
-                                @if (!empty($tenant->plan->features))
-                                    @foreach ($tenant->plan->features as $key => $featureData)
+                                @php
+                                    $allMap = config('features.map', []);
+                                @endphp
+                                @foreach ($allMap as $key => $fConfig)
+                                    @if ($tenant->hasFeature($key))
                                         @php
-                                            $fConfig = config("features.map.{$key}");
                                             $label = is_array($fConfig) ? ($fConfig['label'] ?? ucwords(str_replace('_', ' ', $key))) : ucwords(str_replace('_', ' ', $key));
-                                            $subs = is_array($featureData) && isset($featureData['sub_features'])
-                                                ? (array) $featureData['sub_features']
-                                                : [];
+                                            $subs = $tenant->getEnabledSubFeatures($key);
                                             $subCount = count($subs);
                                         @endphp
-                                        <span class="badge bg-light text-dark border"><i
-                                                class="fa fa-check text-success me-1"></i>
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="fa fa-check text-success me-1"></i>
                                             {{ $label }}
                                             @if ($subCount > 0)
                                                 <span class="text-primary ms-1" title="{{ implode(', ', $subs) }}">({{ $subCount }})</span>
                                             @endif
                                         </span>
-                                    @endforeach
-                                @endif
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                     @else

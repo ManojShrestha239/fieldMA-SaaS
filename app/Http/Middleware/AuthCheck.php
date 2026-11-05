@@ -14,12 +14,13 @@ class AuthCheck
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle($request, Closure$next, $guard = null)
+    public function handle($request, Closure $next, $guard = null)
     {
+        dd($request->all());
         if (Auth::guard($guard)->check()) {
-            if (Auth::user()->status == 'Inactive') {
+            if (strtolower((string) Auth::user()->status) !== 'active') {
                 Auth::logout();
-                return redirect('/login')->withErrors(['email' => 'These credentials do not match our records.']);
+                return redirect('/login')->withErrors(['email' => 'Your account is inactive. Please contact the administrator.']);
             }
         }
         return $next($request);

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
 
@@ -66,6 +65,23 @@ class LoginController extends Controller
 
         // Fallback: redirect to a default route
         return '/dashboard';
+    }
+
+    /**
+     * The user has been authenticated.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $user
+     * @return mixed
+     */
+    protected function authenticated(\Illuminate\Http\Request $request, $user)
+    {
+        if (strtolower((string) $user->status) !== 'active') {
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account is inactive. Please contact the administrator.',
+            ]);
+        }
     }
 
     /**

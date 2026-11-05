@@ -66,61 +66,75 @@
         <a href="/dashboard" style="color: var(--nav-text-color);">Home</a>
         </li> --}}
 
-        @can('notice')
-            <li class="{{ $isActive(['notice*']) }} classic-menu-dropdown">
-                <a href="/notice" style="color: var(--nav-text-color);">Notice</a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('notices'))
+            @can('notice')
+                <li class="{{ $isActive(['notice*']) }} classic-menu-dropdown">
+                    <a href="/notice" style="color: var(--nav-text-color);">Notice</a>
+                </li>
+            @endcan
+        @endif
 
-        @can('order')
-            <li class="{{ $isActive(['order*']) }} classic-menu-dropdown" style="position:relative;">
-                <a href="/order" style="color: var(--nav-text-color);">
-                    Orders
-                    @if (Helper::todayorders() > 0)
-                        <span class="today-count">{{ Helper::todayorders() }}</span>
-                    @endif
-                </a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('dealer_orders') || \App\Utilities\Helpers::hasFeature('retailer_orders'))
+            @can('order')
+                <li class="{{ $isActive(['order*']) }} classic-menu-dropdown" style="position:relative;">
+                    <a href="/order" style="color: var(--nav-text-color);">
+                        Orders
+                        @if (Helper::todayorders() > 0)
+                            <span class="today-count">{{ Helper::todayorders() }}</span>
+                        @endif
+                    </a>
+                </li>
+            @endcan
+        @endif
 
-        @can('collection')
-            <li class="{{ $isActive(['collection*', 'cheque*', 'token*', '*-collection']) }} classic-menu-dropdown"
-                style="position:relative;">
-                <a href="/collection-report" style="color: var(--nav-text-color);">
-                    Collection
-                    @if (Helper::todaycollections() > 0)
-                        <span class="today-count">{{ Helper::todaycollections() }}</span>
-                    @endif
-                </a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('collections'))
+            @can('collection')
+                <li class="{{ $isActive(['collection*', 'cheque*', 'token*', '*-collection']) }} classic-menu-dropdown"
+                    style="position:relative;">
+                    <a href="/collection-report" style="color: var(--nav-text-color);">
+                        Collection
+                        @if (Helper::todaycollections() > 0)
+                            <span class="today-count">{{ Helper::todaycollections() }}</span>
+                        @endif
+                    </a>
+                </li>
+            @endcan
+        @endif
 
-        @can('schedule')
-            <li class="{{ $isActive(['schedule*', 'repeated-schedule', 'repeated*']) }} classic-menu-dropdown">
-                <a href="/schedule" style="color: var(--nav-text-color);">Schedule</a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('schedules'))
+            @can('schedule')
+                <li class="{{ $isActive(['schedule*', 'repeated-schedule', 'repeated*']) }} classic-menu-dropdown">
+                    <a href="/schedule" style="color: var(--nav-text-color);">Schedule</a>
+                </li>
+            @endcan
+        @endif
 
-        @can('chat')
-            <li class="{{ $isActive(['chat*']) }} classic-menu-dropdown" style="position:relative;">
-                <a href="/chat" style="color: var(--nav-text-color);">
-                    Chat
-                </a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('chats'))
+            @can('chat')
+                <li class="{{ $isActive(['chat*']) }} classic-menu-dropdown" style="position:relative;">
+                    <a href="/chat" style="color: var(--nav-text-color);">
+                        Chat
+                    </a>
+                </li>
+            @endcan
+        @endif
 
-        @can('complaint')
-            <li class="{{ $isActive(['complaint*']) }} classic-menu-dropdown">
-                <a href="/complaint" style="color: var(--nav-text-color);">Complaint</a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('complaints'))
+            @can('complaint')
+                <li class="{{ $isActive(['complaint*']) }} classic-menu-dropdown">
+                    <a href="/complaint" style="color: var(--nav-text-color);">Complaint</a>
+                </li>
+            @endcan
+        @endif
 
-        @can('reports')
-            <li
-                class="{{ $isActive(['visit*', 'visitdealer*', 'attendance*', 'negotiation*', 'monthlySummary*', 'tada-report*']) }} classic-menu-dropdown">
-                <a href="/visithistory" style="color: var(--nav-text-color);">Reports</a>
-            </li>
-        @endcan
+        @if (\App\Utilities\Helpers::hasFeature('visits') || \App\Utilities\Helpers::hasFeature('daily_reports'))
+            @can('reports')
+                <li
+                    class="{{ $isActive(['visit*', 'visitdealer*', 'attendance*', 'negotiation*', 'monthlySummary*', 'tada-report*']) }} classic-menu-dropdown">
+                    <a href="/visithistory" style="color: var(--nav-text-color);">Reports</a>
+                </li>
+            @endcan
+        @endif
 
         @canany(['user', 'dealer', 'area', 'product', 'miscellaneous', 'privacy-policy', 'bank', 'upload-due',
             'distance', 'denomination', 'purpose', 'role', 'productinventory', 'rawmaterial'])
@@ -165,17 +179,19 @@
                             <a href="/final-product" style="color: var(--nav-text-color);">Products</a>
                         </li>
                     @endcan
-                    @can('productinventory')
-                        <li class="{{ $isActive(['productinventory*', 'producinventory*']) }} classic-menu-dropdown">
-                            <a href="/producinventory" style="color: var(--nav-text-color);">Product Inventory</a>
-                        </li>
-                    @endcan
-                    @can('rawmaterial')
-                        <li
-                            class="{{ $isActive(['raw-material*', 'raw*', 'raw-product*', 'rawpurchase*', 'inventory*']) }} classic-menu-dropdown">
-                            <a href="/raw" style="color: var(--nav-text-color);">Raw Materials</a>
-                        </li>
-                    @endcan
+                    @if (\App\Utilities\Helpers::hasFeature('inventory'))
+                        @can('productinventory')
+                            <li class="{{ $isActive(['productinventory*', 'producinventory*']) }} classic-menu-dropdown">
+                                <a href="/producinventory" style="color: var(--nav-text-color);">Product Inventory</a>
+                            </li>
+                        @endcan
+                        @can('rawmaterial')
+                            <li
+                                class="{{ $isActive(['raw-material*', 'raw*', 'raw-product*', 'rawpurchase*', 'inventory*']) }} classic-menu-dropdown">
+                                <a href="/raw" style="color: var(--nav-text-color);">Raw Materials</a>
+                            </li>
+                        @endcan
+                    @endif
                     @canany(['bank', 'upload-due', 'distance', 'denomination', 'purpose', 'role'])
                         <li
                             class="{{ $isActive(['bank*', 'upload*', 'distance*', 'bank/create*', 'denomination*', 'purpose*', 'role*']) }} classic-menu-dropdown">

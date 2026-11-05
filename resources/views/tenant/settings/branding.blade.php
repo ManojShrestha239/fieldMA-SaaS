@@ -152,6 +152,33 @@
                                 </p>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">Active Modules & Features</label>
+                            <div class="col-md-9">
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px;">
+                                    @php
+                                        $allMap = config('features.map', []);
+                                    @endphp
+                                    @foreach ($allMap as $fKey => $fConfig)
+                                        @if ($tenant->hasFeature($fKey))
+                                            @php
+                                                $label = is_array($fConfig) ? ($fConfig['label'] ?? ucwords(str_replace('_', ' ', $fKey))) : ucwords(str_replace('_', ' ', $fKey));
+                                                $subs = $tenant->getEnabledSubFeatures($fKey);
+                                                $subCount = count($subs);
+                                            @endphp
+                                            <span class="label label-primary" style="font-size: 11px; padding: 5px 8px; font-weight: normal; border-radius: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fa fa-check"></i> {{ $label }}
+                                                @if ($subCount > 0)
+                                                    <span style="opacity: 0.85;">({{ $subCount }})</span>
+                                                @endif
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                <span class="help-block">Modules enabled for your organization based on your current plan and custom feature flags.</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-actions">

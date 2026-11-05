@@ -160,7 +160,7 @@ class NoticeController extends Controller
         $notice->save();
 
         if ($notice->user_id == '') {
-            Cache::flush();
+            // Cache::flush();
             $title = $notice->title;
             $body  = $notice->notice;
             $topic = strtolower(config('app.env')) === 'production' ? config('app.prod-topic') : config('app.dev-topic');
@@ -170,7 +170,7 @@ class NoticeController extends Controller
             ];
             $this->runFirebaseNotification($fcmid = null, $topic, $title, $body, $data);
         } else {
-            Cache::forget("notices_user_{$notice->user_id}");
+            // Cache::forget("notices_user_{$notice->user_id}");
 
             $user = Mobileuser::find($notice->user_id);
 

@@ -12,7 +12,10 @@
     <!-- BEGIN LOGO -->
     <div class="logo">
         <a href="#">
-            <img height="100px" src="{{ (function_exists('tenant') && tenant()) ? tenant()->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png') }}" alt="{{ (function_exists('tenant') && tenant()) ? tenant()->company_name : 'Logo' }}" style="max-height: 100px; max-width: 250px; object-fit: contain;" /> </a>
+            <img height="100px"
+                src="{{ function_exists('tenant') && tenant() ? tenant()->getLogoUrl() : asset('assets/pages/img/logo-fieldma.png') }}"
+                alt="{{ function_exists('tenant') && tenant() ? tenant()->company_name : 'Logo' }}"
+                style="max-height: 100px; max-width: 250px; object-fit: contain;" /> </a>
     </div>
 
     <!-- END LOGO -->
@@ -90,8 +93,10 @@
     @include('dashboards.partials.js')
     <!-- END THEME GLOBAL SCRIPTS -->
     <!-- BEGIN PAGE LEVEL SCRIPTS -->
-    <script src="{{ asset('assets/global/plugins/jquery-validation/js/jquery.validate.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('assets/global/plugins/jquery-validation/js/additional-methods.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/global/plugins/jquery-validation/js/jquery.validate.min.js') }}" type="text/javascript">
+    </script>
+    <script src="{{ asset('assets/global/plugins/jquery-validation/js/additional-methods.min.js') }}"
+        type="text/javascript"></script>
     <script src="{{ asset('assets/global/plugins/select2/js/select2.full.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('assets/pages/scripts/login.min.js') }}" type="text/javascript"></script>
     <!-- END PAGE LEVEL SCRIPTS -->

@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationController;
-use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\MobileUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AreaController;
@@ -48,7 +47,6 @@ use App\Http\Controllers\ExcelProductManufactureController;
 use App\Http\Controllers\ExcelRawProductController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\NegotiationController;
-use App\Http\Controllers\NoticeImageController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\ProductDealerController;
@@ -116,14 +114,10 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     Route::get('/userPassword/{id}/edit', [MobileUserController::class, 'passwordView']);
     Route::patch('/user/changePassword/{id}', [MobileUserController::class, 'changePassword']);
 
-    Route::group(['middleware' => ['permission:notice']], function () {
-        Route::post('/notice/search', [NoticeController::class, 'search']);
-        Route::patch('/noticePush/{id}', [NoticeController::class, 'noticePush']);
-        Route::resource('notice', NoticeController::class);
-        Route::resource('noticefile', NoticeImageController::class)->only('destroy');
-    });
+    //Notice Routes
+    require __DIR__ . '/tenants/notices.php';
 
-    Route::middleware(['permission:order'])->group(function () {
+    Route::middleware(['permission:order', 'feature:dealer_orders|retailer_orders'])->group(function () {
         Route::resource('order', OrderController::class);
         Route::post('addstoreOrder', [OrderController::class, 'addOrderstore']);
 
@@ -167,7 +161,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::get('viewcomplaint/{id}', [OrderController::class, 'viewcomplaint']);
     });
 
-    Route::group(['middleware' => ['permission:collection']], function () {
+    Route::group(['middleware' => ['permission:collection', 'feature:collections']], function () {
         Route::get('/collection', [PaymentController::class, 'list']);
         Route::post('/collection', [PaymentController::class, 'filter']);
         Route::get('/cheque-collection', [PaymentController::class, 'cheque_list']);
@@ -193,7 +187,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::get('receiptimage/{id}', [CollectionController::class, 'show'])->name('collection.receiptimage');
     });
 
-    Route::group(['middleware' => ['permission:schedule']], function () {
+    Route::group(['middleware' => ['permission:schedule', 'feature:schedules']], function () {
         // For Schedules
         Route::get('/schedule/dealer/{id}', [SchedulevisitController::class, 'dealerValue']);
         Route::post('/schedule/search', [ScheduleVisitController::class, 'search']);
@@ -205,17 +199,17 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::resource('repeated', RepeatescheduleController::class);
     });
 
-    Route::group(['middleware' => ['permission:chat']], function () {
+    Route::group(['middleware' => ['permission:chat', 'feature:chats']], function () {
         // For Chat
         Route::resource('chat', MessageController::class);
         Route::get('/chatuser/search', [MessageController::class, 'search']);
     });
 
-    Route::group(['middleware' => ['permission:complaint']], function () {
+    Route::group(['middleware' => ['permission:complaint', 'feature:complaints']], function () {
         Route::resource('complaint', ComplaintController::class);
     });
 
-    Route::group(['middleware' => ['permission:reports']], function () {
+    Route::group(['middleware' => ['permission:reports', 'feature:visits|daily_reports']], function () {
         // Visit Report Route
         Route::get('history', [VisitController::class, 'filter']);
         Route::resource('visithistory', VisitController::class);
@@ -294,7 +288,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::resource('area', AreaController::class);
     });
 
-    Route::group(['middleware' => ['permission:rawmaterial']], function () {
+    Route::group(['middleware' => ['permission:rawmaterial', 'feature:inventory']], function () {
         //begin for raw materials
         Route::resource('raw', RawMaterialController::class);
         //for raw-products
@@ -307,7 +301,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         Route::resource('inventory', RawInventoryController::class);
     });
 
-    Route::group(['middleware' => ['permission:productinventory']], function () {
+    Route::group(['middleware' => ['permission:productinventory', 'feature:inventory']], function () {
         ///begin for product inventory///
         Route::resource('productmanufac', ProductInventorymanufController::class);
         Route::get('/get-size/{product_id}', [ProductInventorymanufController::class, 'getSize']);
@@ -386,14 +380,13 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
 
 
     // Site Registration
-
-    Route::get('/export-site-registrations-v2', [SiteRegistrationControllerV2::class, 'export'])->name('export.site.registrations.v2');
-
-    //V2 Site Registration
-    Route::resource('site-registration-v2', SiteRegistrationControllerV2::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
-    Route::get('/site-registration/{site}/activitylog', [SiteRegistrationControllerV2::class, 'getActivityLogs']);
-    Route::get('site-registration-v2-map', [SiteRegistrationControllerV2::class, 'siteMaps'])->name('site.registration.v2.map');
-    Route::resource('followUp', FollowUpControllerV2::class)->only(['index', 'create']);
+    Route::middleware(['feature:site_registration'])->group(function () {
+        Route::get('/export-site-registrations-v2', [SiteRegistrationControllerV2::class, 'export'])->name('export.site.registrations.v2');
+        Route::resource('site-registration-v2', SiteRegistrationControllerV2::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+        Route::get('/site-registration/{site}/activitylog', [SiteRegistrationControllerV2::class, 'getActivityLogs']);
+        Route::get('site-registration-v2-map', [SiteRegistrationControllerV2::class, 'siteMaps'])->name('site.registration.v2.map');
+        Route::resource('followUp', FollowUpControllerV2::class)->only(['index', 'create']);
+    });
 });
 
 Route::get('notification/reminder/3jR4GUzghGFTrpy2', [AlertReminderController::class, 'index']);
@@ -409,4 +402,3 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tenant/settings/branding', [App\Http\Controllers\Tenant\TenantSettingController::class, 'edit'])->name('tenant.settings.branding');
     Route::put('/tenant/settings/branding', [App\Http\Controllers\Tenant\TenantSettingController::class, 'update'])->name('tenant.settings.branding.update');
 });
-

@@ -118,7 +118,7 @@
                                 <label class="form-label small fw-semibold">Initial Password <span
                                         class="text-danger">*</span></label>
                                 <input type="password" name="password" class="form-control" required
-                                    placeholder="Minimum 8 characters">
+                                    placeholder="Minimum 8 characters" autocomplete="new-password">
                             </div>
                         </div>
 
@@ -157,7 +157,7 @@
                             </div> --}}
                             <div class="col-md-6">
                                 <label class="form-label small fw-semibold">Plan Expiration Date (Optional)</label>
-                                <input type="text" name="plan_ends_at" class="form-control" id="plan_ends_at"
+                                <input type="date" name="plan_ends_at" class="form-control" id="plan_ends_at"
                                     min="{{ $tomorrowDate }}" value="{{ old('plan_ends_at') }}"
                                     placeholder="YYYY-MM-DD">
                                 <small class="text-muted">Defaults to billing cycle duration (monthly / yearly) when plan
@@ -236,20 +236,5 @@
 
         setupPreview('tenant_logo_input', 'logo_preview', 'logo_preview_container');
         setupPreview('tenant_favicon_input', 'favicon_preview', 'favicon_preview_container');
-    </script>
-
-    <!-- FOR Date -->
-    <!-- Make sure Flatpickr CSS & JS are loaded in your layout header/footer -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nepali-date-picker@2.0.2/dist/nepaliDatePicker.min.css" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nepali-date-picker@2.0.2/dist/jquery.nepaliDatePicker.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('#plan_ends_at').nepaliDatePicker({
-                dateFormat: 'YYYY-MM-DD',
-                closeOnDateSelect: true
-            });
-        });
     </script>
 @endsection
