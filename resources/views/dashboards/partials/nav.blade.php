@@ -120,7 +120,7 @@
         @endif
 
         @if (\App\Utilities\Helpers::hasFeature('complaints'))
-            @can('complaint')
+            @can('complaints')
                 <li class="{{ $isActive(['complaint*']) }} classic-menu-dropdown">
                     <a href="/complaint" style="color: var(--nav-text-color);">Complaint</a>
                 </li>
