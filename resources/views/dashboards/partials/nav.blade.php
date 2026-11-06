@@ -67,7 +67,7 @@
         </li> --}}
 
         @if (\App\Utilities\Helpers::hasFeature('notices'))
-            @can('notice')
+            @can('notices')
                 <li class="{{ $isActive(['notice*']) }} classic-menu-dropdown">
                     <a href="/notice" style="color: var(--nav-text-color);">Notice</a>
                 </li>

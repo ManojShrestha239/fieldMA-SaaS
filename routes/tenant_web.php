@@ -83,16 +83,16 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     Route::patch('/user/changePassword/{id}', [MobileUserController::class, 'changePassword']);
 
     //Notice Routes
-    require __DIR__ . '/tenants/notices.php';
+    require __DIR__ . '/tenants/web/notices.php';
 
     //Order Routes
-    require __DIR__ . '/tenants/orders.php';
+    require __DIR__ . '/tenants/web/orders.php';
 
     //Collection Routes
-    require __DIR__ . '/tenants/collections.php';
+    require __DIR__ . '/tenants/web/collections.php';
 
     // Schedule Visit Routes
-    require __DIR__ . '/tenants/schedule_visits.php';
+    require __DIR__ . '/tenants/web/schedule_visits.php';
 
     Route::group(['middleware' => ['permission:chat', 'feature:chats']], function () {
         // For Chat
@@ -105,8 +105,8 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         ->middleware(['permission:complaint', 'feature:complaints']);
 
     //Reports Routes
-    require __DIR__ . '/tenants/reports/core.php';
-    require __DIR__ . '/tenants/reports/daily_reports.php';
+    require __DIR__ . '/tenants/web/reports/core.php';
+    require __DIR__ . '/tenants/web/reports/daily_reports.php';
 
     Route::group(['middleware' => ['permission:user']], function () {
         Route::resource('role-permission', PermissionController::class);
@@ -128,7 +128,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     });
 
     // For Product Inventory
-    require __DIR__ . '/tenants/product_inventory.php';
+    require __DIR__ . '/tenants/web/product_inventory.php';
 
     Route::group(['middleware' => ['permission:productinventory', 'feature:inventory']], function () {
         ///begin for product inventory///
@@ -209,7 +209,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
 
 
     // Site Registration
-    require __DIR__ . '/tenants/site_registration.php';
+    require __DIR__ . '/tenants/web/site_registration.php';
 });
 
 // Route::get('notification/reminder/3jR4GUzghGFTrpy2', [AlertReminderController::class, 'index']);
