@@ -18,7 +18,7 @@ class PermissionSeeder extends Seeder
             "home",
             "map",
             "notices",
-            "order",
+            "dealer_orders",
             "collection",
             "schedule",
             "chat",

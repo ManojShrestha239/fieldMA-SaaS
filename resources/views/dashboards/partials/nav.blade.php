@@ -75,7 +75,7 @@
         @endif
 
         @if (\App\Utilities\Helpers::hasFeature('dealer_orders') || \App\Utilities\Helpers::hasFeature('retailer_orders'))
-            @can('order')
+            @can('dealer_orders')
                 <li class="{{ $isActive(['order*']) }} classic-menu-dropdown" style="position:relative;">
                     <a href="/order" style="color: var(--nav-text-color);">
                         Orders

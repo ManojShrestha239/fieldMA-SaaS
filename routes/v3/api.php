@@ -24,10 +24,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [MobileuserController::class, 'authenticate']);
 
 Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], function () {
-    // [ACTIVE] Order Booking & History (Ref: Api_Audit.md #38, #39, #40)
-    Route::post('/order', [OrderController::class, 'store']);
-    Route::get('/orderHistory', [OrderController::class, 'index']);
-    Route::get('/orderDetails/{id}', [OrderController::class, 'show']);
+    // // [ACTIVE] Order Booking & History (Ref: Api_Audit.md #38, #39, #40)
+    // Route::post('/order', [OrderController::class, 'store']);
+    // Route::get('/orderHistory', [OrderController::class, 'index']);
+    // Route::get('/orderDetails/{id}', [OrderController::class, 'show']);
+    require __DIR__ . '/../tenants/api/dealer_orders.php';
 
     // [INACTIVE] Not used in Flutter (Ref: Api_Audit.md #36)
     // Route::get('/order/filter', [OrderController::class, 'filter']);

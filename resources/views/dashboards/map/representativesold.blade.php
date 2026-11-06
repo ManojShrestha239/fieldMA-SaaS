@@ -261,7 +261,7 @@
                                                                 </div>
                                                             </div>
                                                         @endcan
-                                                        @can('order')
+                                                        @can('dealer_orders')
                                                             <div class="box">
                                                                 <div class="right-side">
                                                                     <div class="box-topic">TOTAL ORDER</div>
@@ -363,13 +363,13 @@
                                                                                 class="price">{{ $today_onlinevisit }}</span>
                                                                         </li>
                                                                         <!-- <li>
-                                                                                <a href="#">
-                                                                                    <span class="product">OFFLINE VISIT</span>
-                                                                                </a>
-                                                                            </li>
-                                                                            <li>
-                                                                                <span class="price">1107</span>
-                                                                            </li> -->
+                                                                                                                                        <a href="#">
+                                                                                                                                            <span class="product">OFFLINE VISIT</span>
+                                                                                                                                        </a>
+                                                                                                                                    </li>
+                                                                                                                                    <li>
+                                                                                                                                        <span class="price">1107</span>
+                                                                                                                                    </li> -->
 
 
                                                                         <li>
@@ -394,7 +394,7 @@
                                                                     @endcan
 
 
-                                                                    @can('order')
+                                                                    @can('dealer_orders')
                                                                         <li>
                                                                             <a href="#">
                                                                                 <span class="product">ORDER</span>

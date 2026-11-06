@@ -39,7 +39,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::get('/visit/{date}', [MobileuserController::class, 'visitHistory']);
 
     // [ACTIVE] Product Catalog (Ref: Api_Audit.md #29)
-    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products', [ProductController::class, 'index'])->middleware(['feature:dealer_orders']);
 
     // [INACTIVE] Flutter uses /api/v3/payment (Ref: Api_Audit.md #30)
     // Route::post('/payment', [PaymentController::class, 'index']);

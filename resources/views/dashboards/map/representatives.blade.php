@@ -285,7 +285,7 @@
                                                                 </div>
                                                             </div>
                                                         @endcan
-                                                        @can('order')
+                                                        @can('dealer_orders')
                                                             <div class="box">
                                                                 <div class="right-side">
                                                                     <div class="box-topic">TOTAL ORDER</div>
@@ -413,7 +413,7 @@
                                                                     @endcan
 
 
-                                                                    @can('order')
+                                                                    @can('dealer_orders')
                                                                         <li>
                                                                             <a href="/order" target="_blank">
                                                                                 <span class="product">ORDER</span>
