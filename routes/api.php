@@ -71,7 +71,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::get('/orderDetails/{id}', [NoticeController::class, 'orderDetails']);
 
     // [ACTIVE] Payment Collections (Ref: Api_Audit.md #4)
-    Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetails']);
+    Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetails'])->middleware(['feature:collections']);
 
     // [ACTIVE] Dealer Directory (Ref: Api_Audit.md #2)
     Route::get('/dealers', [DealerController::class, 'index']);

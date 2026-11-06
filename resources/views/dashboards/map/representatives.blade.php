@@ -295,7 +295,7 @@
                                                                 </div>
                                                             </div>
                                                         @endcan
-                                                        @can('collection')
+                                                        @can('collections')
                                                             <div class="box">
                                                                 <div class="right-side">
                                                                     <div class="box-topic">TOTAL COLLECTION</div>
@@ -425,7 +425,7 @@
                                                                         </li>
                                                                     @endcan
 
-                                                                    @can('collection')
+                                                                    @can('collections')
                                                                         <li>
                                                                             <a href="/collection" target="_blank">
                                                                                 <span class="product">COLLECTION</span>

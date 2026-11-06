@@ -43,8 +43,9 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::get('/userlist', [MessageController::class, 'userlist']);
     Route::apiResource('message', MessageController::class)->only(['index', 'store']);
 
-    // [ACTIVE] Payment Submission & Details (Ref: Api_Audit.md #41)
-    Route::apiResource('payment', PaymentController::class)->only(['store', 'show']);
+    // // [ACTIVE] Payment Submission & Details (Ref: Api_Audit.md #41)
+    // Route::apiResource('payment', PaymentController::class)->only(['store', 'show']);
+    require __DIR__.'/../tenants/api/collections.php';
 
     // [INACTIVE] Not used in Flutter (Ref: Api_Audit.md #38)
     // Route::post('/offline', [AttendanceController::class, 'offline']);

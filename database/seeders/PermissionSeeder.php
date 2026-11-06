@@ -19,7 +19,7 @@ class PermissionSeeder extends Seeder
             'map',
             'notices',
             'dealer_orders',
-            'collection',
+            'collections',
             'schedule',
             'chat',
             'complaint',

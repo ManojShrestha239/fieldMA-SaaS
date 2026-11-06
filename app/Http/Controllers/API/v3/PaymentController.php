@@ -17,7 +17,6 @@ use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Geocodable;
 use App\Traits\Nepali_Calendar;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -288,23 +287,23 @@ class PaymentController extends Controller
         return response()->json(['message' => 'Success']);
     }
 
-    public function show($id)
-    {
-        $user = Auth::user();
+    // public function show($id)
+    // {
+    //     $user = Auth::user();
 
-        $payment = Payment::leftJoin('banks', 'banks.id', 'payments.bank_id')
-            ->where(['payments.id' => $id, 'payments.user_id' => $user->id])
-            ->select('payments.*', 'banks.name')
-            ->first();
+    //     $payment = Payment::leftJoin('banks', 'banks.id', 'payments.bank_id')
+    //         ->where(['payments.id' => $id, 'payments.user_id' => $user->id])
+    //         ->select('payments.*', 'banks.name')
+    //         ->first();
 
-        if (! $payment) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid Receipt number'], 422);
-        }
+    //     if (! $payment) {
+    //         return response()->json(['status' => 'error', 'message' => 'Invalid Receipt number'], 422);
+    //     }
 
-        $payment->collection_date = $this->custom_AD_to_BS($payment->collection_date);
-        $payment->payment_date = $payment->payment_date ? $this->custom_AD_to_BS($payment->payment_date) : '';
-        $payment->bank_name = $payment->name;
+    //     $payment->collection_date = $this->custom_AD_to_BS($payment->collection_date);
+    //     $payment->payment_date = $payment->payment_date ? $this->custom_AD_to_BS($payment->payment_date) : '';
+    //     $payment->bank_name = $payment->name;
 
-        return response()->json($payment);
-    }
+    //     return response()->json($payment);
+    // }
 }

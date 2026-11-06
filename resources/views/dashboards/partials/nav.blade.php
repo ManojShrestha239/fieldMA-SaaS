@@ -88,7 +88,7 @@
         @endif
 
         @if (\App\Utilities\Helpers::hasFeature('collections'))
-            @can('collection')
+            @can('collections')
                 <li class="{{ $isActive(['collection*', 'cheque*', 'token*', '*-collection']) }} classic-menu-dropdown"
                     style="position:relative;">
                     <a href="/collection-report" style="color: var(--nav-text-color);">

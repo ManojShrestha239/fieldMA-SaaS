@@ -270,7 +270,7 @@
                                                                 </div>
                                                             </div>
                                                         @endcan
-                                                        @can('collection')
+                                                        @can('collections')
                                                             <div class="box">
                                                                 <div class="right-side">
                                                                     <div class="box-topic">TOTAL COLLECTION</div>
@@ -363,13 +363,13 @@
                                                                                 class="price">{{ $today_onlinevisit }}</span>
                                                                         </li>
                                                                         <!-- <li>
-                                                                                                                                        <a href="#">
-                                                                                                                                            <span class="product">OFFLINE VISIT</span>
-                                                                                                                                        </a>
-                                                                                                                                    </li>
-                                                                                                                                    <li>
-                                                                                                                                        <span class="price">1107</span>
-                                                                                                                                    </li> -->
+                                                                                                                                                <a href="#">
+                                                                                                                                                    <span class="product">OFFLINE VISIT</span>
+                                                                                                                                                </a>
+                                                                                                                                            </li>
+                                                                                                                                            <li>
+                                                                                                                                                <span class="price">1107</span>
+                                                                                                                                            </li> -->
 
 
                                                                         <li>
@@ -406,7 +406,7 @@
                                                                         </li>
                                                                     @endcan
 
-                                                                    @can('collection')
+                                                                    @can('collections')
                                                                         <li>
                                                                             <a href="#">
                                                                                 <span class="product">COLLECTION</span>

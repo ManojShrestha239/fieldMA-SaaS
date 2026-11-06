@@ -27,7 +27,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::get('/countAmountandVisit', [PaymentController::class, 'countAmountandVisit']);
 
     // [ACTIVE] Payment History (Ref: Api_Audit.md #30)
-    Route::get('/collectionHistory', [PaymentController::class, 'collectionHistory']);
+    Route::get('/collectionHistory', [PaymentController::class, 'collectionHistory'])->middleware(['feature:collections']);
 
     // [ACTIVE] Assigned Visit Plan (Ref: Api_Audit.md #32)
     Route::get('/visitSchedule', [MobileuserController::class, 'visitSchedule']);
