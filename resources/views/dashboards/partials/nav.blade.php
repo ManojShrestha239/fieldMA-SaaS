@@ -110,7 +110,7 @@
         @endif
 
         @if (\App\Utilities\Helpers::hasFeature('chats'))
-            @can('chat')
+            @can('chats')
                 <li class="{{ $isActive(['chat*']) }} classic-menu-dropdown" style="position:relative;">
                     <a href="/chat" style="color: var(--nav-text-color);">
                         Chat

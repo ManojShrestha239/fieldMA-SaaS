@@ -1,12 +1,7 @@
 <?php
 
-use App\Http\Controllers\API\v3\AttendanceController;
 use App\Http\Controllers\API\v3\LocationController;
-use App\Http\Controllers\API\v3\MessageController;
 use App\Http\Controllers\API\v3\MobileuserController;
-use App\Http\Controllers\API\v3\OrderController;
-use App\Http\Controllers\API\v3\PaymentController;
-use App\Http\Controllers\API\v3\SessionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,9 +34,10 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // [INACTIVE] Flutter uses /api/v4/negotiation & /api/v5/negotiation (Ref: Api_Audit.md #37)
     // Route::post('/negotiation', [SessionController::class, 'store']);
 
-    // [ACTIVE] Chat User Directory & In-app Messaging (Ref: Api_Audit.md #42, #43)
-    Route::get('/userlist', [MessageController::class, 'userlist']);
-    Route::apiResource('message', MessageController::class)->only(['index', 'store']);
+    // // [ACTIVE] Chat User Directory & In-app Messaging (Ref: Api_Audit.md #42, #43)
+    // Route::get('/userlist', [MessageController::class, 'userlist']);
+    // Route::apiResource('message', MessageController::class)->only(['index', 'store']);
+    require __DIR__.'/../tenants/api/chats.php';
 
     // // [ACTIVE] Payment Submission & Details (Ref: Api_Audit.md #41)
     // Route::apiResource('payment', PaymentController::class)->only(['store', 'show']);
