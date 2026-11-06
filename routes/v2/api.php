@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\API\v2\AttendanceController;
-use App\Http\Controllers\API\v2\MobileuserController;
 use App\Http\Controllers\API\v2\PaymentController;
 use App\Http\Controllers\API\v2\ProductController;
 use App\Http\Controllers\API\v2\SiteRegistrationController;
@@ -28,8 +27,9 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // [ACTIVE] Payment History (Ref: Api_Audit.md #30)
     Route::get('/collectionHistory', [PaymentController::class, 'collectionHistory'])->middleware(['feature:collections', 'feature:collections.collection_history']);
 
-    // [ACTIVE] Assigned Visit Plan (Ref: Api_Audit.md #32)
-    Route::get('/visitSchedule', [MobileuserController::class, 'visitSchedule']);
+    // // [ACTIVE] Assigned Visit Plan (Ref: Api_Audit.md #32)
+    // Route::get('/visitSchedule', [MobileuserController::class, 'visitSchedule']);
+    require __DIR__.'/../tenants/api/schedules.php';
 
     // [INACTIVE] Flutter uses /api/visit & /api/rangehistory (v1) (Ref: Api_Audit.md #29)
     // Route::get('/today', [MobileuserController::class, 'visitScheduleToday']);

@@ -102,7 +102,7 @@
         @endif
 
         @if (\App\Utilities\Helpers::hasFeature('schedules'))
-            @can('schedule')
+            @can('schedules')
                 <li class="{{ $isActive(['schedule*', 'repeated-schedule', 'repeated*']) }} classic-menu-dropdown">
                     <a href="/schedule" style="color: var(--nav-text-color);">Schedule</a>
                 </li>
