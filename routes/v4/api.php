@@ -29,7 +29,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // // [ACTIVE] Field Complaints & Issue Types (Ref: Api_Audit.md #47, #48)
     // Route::apiResource('complaint', ComplaintController::class, ['as' => 'api']);
     // Route::get('issue_type', [ComplaintController::class, 'issue_type'], ['as' => 'api']);
-    require __DIR__ . '/tenants/api/complaints.php';
+    require __DIR__ . '/../tenants/api/complaints.php';
 
     // [INACTIVE] Flutter uses /api/v3/locations (Ref: Api_Audit.md #41)
     // Route::post('/location', [SessionController::class, 'loctaion'], ["as" => "api"]);
