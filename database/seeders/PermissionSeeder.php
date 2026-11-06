@@ -23,7 +23,7 @@ class PermissionSeeder extends Seeder
             'schedules',
             'chats',
             'complaint',
-            'reports',
+            'visits',
             'daily_reports',
             'setup',
             'productinventory',

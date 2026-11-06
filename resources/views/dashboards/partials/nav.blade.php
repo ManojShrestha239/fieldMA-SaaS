@@ -128,7 +128,7 @@
         @endif
 
         @if (\App\Utilities\Helpers::hasFeature('visits') || \App\Utilities\Helpers::hasFeature('daily_reports'))
-            @can('reports')
+            @can('visits')
                 <li
                     class="{{ $isActive(['visit*', 'visitdealer*', 'attendance*', 'negotiation*', 'monthlySummary*', 'tada-report*']) }} classic-menu-dropdown">
                     <a href="/visithistory" style="color: var(--nav-text-color);">Reports</a>

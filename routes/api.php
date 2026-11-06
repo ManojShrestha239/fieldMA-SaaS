@@ -1,9 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\AttendanceController;
 use App\Http\Controllers\API\DealerController;
-use App\Http\Controllers\API\DeviceLogController;
-use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\MobileuserController;
 use App\Http\Controllers\API\MyTeamController;
 use App\Http\Controllers\API\NoticeController;
@@ -11,7 +8,6 @@ use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\SessionController;
 use App\Http\Controllers\API\TadaReportController;
 use App\Http\Controllers\API\v2\SiteRegistrationController;
-use App\Http\Controllers\API\v3\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,7 +29,8 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::get('/home', [MobileuserController::class, 'home']);
 
     // [ACTIVE] Geofenced Dealers (Ref: Api_Audit.md #7)
-    Route::get('/dealerWithboundry', [DealerController::class, 'dealerWithboundry']);
+    Route::get('/dealerWithboundry', [DealerController::class, 'dealerWithboundry'])
+        ->middleware(['feature:visits', 'feature:visits.online_visit']);
 
     // [ACTIVE] Daily Metrics (Ref: Api_Audit.md #3)
     Route::get('/countAmountandVisit', [PaymentController::class, 'index']);
@@ -53,8 +50,8 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // [ACTIVE] Visit Schedules (Ref: Api_Audit.md #9)
     Route::get('/visit', [MobileuserController::class, 'schedule']);
 
-    // [INACTIVE] Flutter uses /api/visit & /api/rangehistory (Ref: Api_Audit.md #6)
-    // Route::get('/visit/{date}', [MobileuserController::class, 'visitHistory']);
+    // [ACTIVE] Flutter uses /api/visit & /api/rangehistory (Ref: Api_Audit.md #6)
+    Route::get('/visit/{date}', [MobileuserController::class, 'visitHistory'])->middleware(['feature:visits']);
 
     // [ACTIVE] Historical Visits Range (Ref: Api_Audit.md #10)
     Route::get('/rangehistory', [MobileuserController::class, 'rangehistory']);
@@ -71,7 +68,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::get('/orderDetails/{id}', [NoticeController::class, 'orderDetails']);
 
     // [ACTIVE] Payment Collections (Ref: Api_Audit.md #4)
-Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetails'])->middleware(['feature:collections', 'feature:collections.collection_history']);
+    Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetails'])->middleware(['feature:collections', 'feature:collections.collection_history']);
     // [ACTIVE] Dealer Directory (Ref: Api_Audit.md #2)
     Route::get('/dealers', [DealerController::class, 'index']);
 
@@ -94,13 +91,13 @@ Route::get('/collectionDetails/{id}', [NoticeController::class, 'collectionDetai
     // Route::get('/{id}/history/{date}', [SessionController::class, 'index']);
 
     // [ACTIVE] Visit Sessions (Ref: Api_Audit.md #8)
-    Route::post('/session', [SessionController::class, 'store']);
+    Route::post('/session', [SessionController::class, 'store'])->middleware(['feature:visits', 'feature:visits.online_visit|visits.offline_visit']);
 
     // [INACTIVE] Superseded by /api/v4/negotiation & /api/v5/negotiation (Ref: Api_Audit.md #13)
     // Route::post('/negotiation', [SessionController::class, 'new']);
 
     // [ACTIVE] Unlisted Dealer Visit (Ref: Api_Audit.md #17)
-    Route::post('v5/negotiation', [SessionController::class, 'v5negotiation']);
+    Route::post('v5/negotiation', [SessionController::class, 'v5negotiation'])->middleware(['feature:visits', 'feature:visits.unlisted_visit']);
 
     // [INACTIVE] Superseded by /api/v3/locations (Ref: Api_Audit.md #14)
     // Route::post('/locations', [SessionController::class, 'insert']);

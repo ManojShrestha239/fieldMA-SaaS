@@ -305,7 +305,7 @@
                                                                 </div>
                                                             </div>
                                                         @endcan
-                                                        @can('reports')
+                                                        @can('visits')
                                                             <div class="box">
                                                                 <div class="right-side">
                                                                     <div class="box-topic">TOTAL VISIT</div>
@@ -380,7 +380,7 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="top-sales-details">
-                                                                    @can('reports')
+                                                                    @can('visits')
                                                                         <li>
                                                                             <a href="/visithistory" target="_blank">
                                                                                 <span class="product">ONLINE VISIT</span>

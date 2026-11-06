@@ -53,7 +53,6 @@ class SessionController extends Controller
                     foreach ($ids as $id) {
                         if (! ctype_digit($id)) {
                             $fail("The purpose_id field must contain numeric IDs separated by ' :: '.");
-
                             return;
                         }
                     }
@@ -71,11 +70,37 @@ class SessionController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
+
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()], 422);
         }
 
+        // 4. Feature flag checks (Run AFTER successful validation)
         $inputs = $request->all();
+
+        $hasOnline = collect($inputs)->contains(function ($item) {
+            return is_array($item) && ($item['status'] ?? null) === 'online';
+        });
+
+        $hasOffline = collect($inputs)->contains(function ($item) {
+            return is_array($item) && ($item['status'] ?? null) === 'offline';
+        });
+
+        if ($hasOnline && ! tenant()->hasFeature('visits.online_visit')) {
+            return response()->json([
+                'status' => false,
+                'code' => 'FEATURE_DISABLED',
+                'message' => "The module 'online_visit' is not included in your company's subscription plan.",
+            ], 403);
+        }
+
+        if ($hasOffline && ! tenant()->hasFeature('visits.offline_visit')) {
+            return response()->json([
+                'status' => false,
+                'code' => 'FEATURE_DISABLED',
+                'message' => "The module 'offline_visit' is not included in your company's subscription plan.",
+            ], 403);
+        }
 
         // 4. Fetch dealers in bulk
         $dealerCodes = collect($inputs)->pluck('dealer_code')->unique();
@@ -92,13 +117,13 @@ class SessionController extends Controller
 
         $validPurposeIds = Purpose::whereIn('id', array_unique($allPurposeIds))
             ->pluck('id')
-            ->map(fn ($id) => (string) $id) // Ensure string keys for array access
+            ->map(fn($id) => (string) $id) // Ensure string keys for array access
             ->flip();
 
         // 6. Group inputs by (user_id, dealer_code, date) for efficient schedule fetching
         $combinations = [];
         $groupedInputs = collect($inputs)->groupBy(function ($item) {
-            return $item['user_id'].'|'.$item['dealer_code'].'|'.$item['date'];
+            return $item['user_id'] . '|' . $item['dealer_code'] . '|' . $item['date'];
         });
 
         // Prepare for schedule queries
@@ -121,7 +146,7 @@ class SessionController extends Controller
 
             // Map schedules by composite key for quick lookup
             foreach ($schedules as $schedule) {
-                $key = $schedule->user_id.'|'.$schedule->dealer_code.'|'.$schedule->date;
+                $key = $schedule->user_id . '|' . $schedule->dealer_code . '|' . $schedule->date;
                 $scheduleMap[$key][] = $schedule;
             }
         }
@@ -154,7 +179,7 @@ class SessionController extends Controller
                 }
 
                 // Get schedules for this combination
-                $compositeKey = $req['user_id'].'|'.$req['dealer_code'].'|'.$req['date'];
+                $compositeKey = $req['user_id'] . '|' . $req['dealer_code'] . '|' . $req['date'];
                 $schedules = $scheduleMap[$compositeKey] ?? [];
 
                 // Update schedule purposes and track which schedules become fully visited
@@ -204,7 +229,7 @@ class SessionController extends Controller
                     'remarks' => $req['remarks'],
                     'is_physical_visit' => $req['is_physical_visit'] ?? null,
                     'lat_lng' => ! empty($req['latitude']) && ! empty($req['longitude'])
-                        ? $req['latitude'].','.$req['longitude']
+                        ? $req['latitude'] . ',' . $req['longitude']
                         : null,
                     'location' => $location,
                 ]);
@@ -242,7 +267,7 @@ class SessionController extends Controller
 
                     // Unique dealer names for this user's batch
                     $dealerNames = $userSessions
-                        ->map(fn ($s) => $dealers->get($s->dealer_code)?->name)
+                        ->map(fn($s) => $dealers->get($s->dealer_code)?->name)
                         ->filter()
                         ->unique()
                         ->values()
@@ -339,7 +364,7 @@ class SessionController extends Controller
         if (! empty($invalidPurposes)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid purpose_id(s): '.implode(', ', $invalidPurposes),
+                'message' => 'Invalid purpose_id(s): ' . implode(', ', $invalidPurposes),
             ], 422);
         }
 
@@ -484,11 +509,11 @@ class SessionController extends Controller
         } elseif ($count === 1) {
             $dealerList = $dealerNames[0];
         } elseif ($count === 2) {
-            $dealerList = $dealerNames[0].' and '.$dealerNames[1];
+            $dealerList = $dealerNames[0] . ' and ' . $dealerNames[1];
         } else {
             $others = $count - 2;
-            $dealerList = $dealerNames[0].', '.$dealerNames[1]
-                .', and '.$others.' other'.($others > 1 ? 's' : '');
+            $dealerList = $dealerNames[0] . ', ' . $dealerNames[1]
+                . ', and ' . $others . ' other' . ($others > 1 ? 's' : '');
         }
 
         $isOnline = strtolower($status) === 'online';

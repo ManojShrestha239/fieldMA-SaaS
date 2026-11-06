@@ -279,7 +279,7 @@
                                                                 </div>
                                                             </div>
                                                         @endcan
-                                                        @can('reports')
+                                                        @can('visits')
                                                             <div class="box">
                                                                 <div class="right-side">
                                                                     <div class="box-topic">TOTAL VISIT</div>
@@ -351,7 +351,7 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="top-sales-details">
-                                                                    @can('reports')
+                                                                    @can('visits')
                                                                         <li>
                                                                             <a href="#">
                                                                                 <span class="product">ONLINE VISIT</span>
@@ -363,13 +363,13 @@
                                                                                 class="price">{{ $today_onlinevisit }}</span>
                                                                         </li>
                                                                         <!-- <li>
-                                                                                                                                                <a href="#">
-                                                                                                                                                    <span class="product">OFFLINE VISIT</span>
-                                                                                                                                                </a>
-                                                                                                                                            </li>
-                                                                                                                                            <li>
-                                                                                                                                                <span class="price">1107</span>
-                                                                                                                                            </li> -->
+                                                                                                                                                        <a href="#">
+                                                                                                                                                            <span class="product">OFFLINE VISIT</span>
+                                                                                                                                                        </a>
+                                                                                                                                                    </li>
+                                                                                                                                                    <li>
+                                                                                                                                                        <span class="price">1107</span>
+                                                                                                                                                    </li> -->
 
 
                                                                         <li>
