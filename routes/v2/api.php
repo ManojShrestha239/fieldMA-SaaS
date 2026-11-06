@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\API\v2\AttendanceController;
 use App\Http\Controllers\API\v2\MobileuserController;
-use App\Http\Controllers\API\v2\NoticeController;
 use App\Http\Controllers\API\v2\PaymentController;
 use App\Http\Controllers\API\v2\ProductController;
 use App\Http\Controllers\API\v2\SiteRegistrationController;
@@ -27,7 +26,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::get('/countAmountandVisit', [PaymentController::class, 'countAmountandVisit']);
 
     // [ACTIVE] Payment History (Ref: Api_Audit.md #30)
-    Route::get('/collectionHistory', [PaymentController::class, 'collectionHistory'])->middleware(['feature:collections']);
+    Route::get('/collectionHistory', [PaymentController::class, 'collectionHistory'])->middleware(['feature:collections', 'feature:collections.collection_history']);
 
     // [ACTIVE] Assigned Visit Plan (Ref: Api_Audit.md #32)
     Route::get('/visitSchedule', [MobileuserController::class, 'visitSchedule']);

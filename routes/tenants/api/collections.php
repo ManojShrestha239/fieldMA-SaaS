@@ -7,4 +7,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::apiResource('payment', PaymentController::class)
 ->only(['store'])
-->middleware(['feature:collections']);
+->middleware(['feature:collections', 'feature:collections.new_collection']);
