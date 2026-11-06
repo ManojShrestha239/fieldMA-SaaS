@@ -17,7 +17,7 @@ class PermissionSeeder extends Seeder
         $permissions = [
             "home",
             "map",
-            "notice",
+            "notices",
             "order",
             "collection",
             "schedule",
