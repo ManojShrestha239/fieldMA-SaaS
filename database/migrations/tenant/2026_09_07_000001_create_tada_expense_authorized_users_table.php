@@ -37,16 +37,16 @@ return new class extends Migration
         });
 
         DB::statement(
-            "UPDATE tada_dealer_expenses AS expenses
+            'UPDATE tada_dealer_expenses AS expenses
              INNER JOIN tada_authorized_users AS old_users ON old_users.id = expenses.expenses_authorized_by
              INNER JOIN tada_expense_authorized_users AS expense_users ON expense_users.email = old_users.email
-             SET expenses.expenses_authorized_by = expense_users.id"
+             SET expenses.expenses_authorized_by = expense_users.id'
         );
         DB::statement(
-            "UPDATE tada_other_expenses AS expenses
+            'UPDATE tada_other_expenses AS expenses
              INNER JOIN tada_authorized_users AS old_users ON old_users.id = expenses.expenses_authorized_by
              INNER JOIN tada_expense_authorized_users AS expense_users ON expense_users.email = old_users.email
-             SET expenses.expenses_authorized_by = expense_users.id"
+             SET expenses.expenses_authorized_by = expense_users.id'
         );
         DB::statement(
             "UPDATE tada_dealer_expenses AS expenses
@@ -87,16 +87,16 @@ return new class extends Migration
         });
 
         DB::statement(
-            "UPDATE tada_dealer_expenses AS expenses
+            'UPDATE tada_dealer_expenses AS expenses
              INNER JOIN tada_expense_authorized_users AS expense_users ON expense_users.id = expenses.expenses_authorized_by
              INNER JOIN tada_authorized_users AS old_users ON old_users.email = expense_users.email
-             SET expenses.expenses_authorized_by = old_users.id"
+             SET expenses.expenses_authorized_by = old_users.id'
         );
         DB::statement(
-            "UPDATE tada_other_expenses AS expenses
+            'UPDATE tada_other_expenses AS expenses
              INNER JOIN tada_expense_authorized_users AS expense_users ON expense_users.id = expenses.expenses_authorized_by
              INNER JOIN tada_authorized_users AS old_users ON old_users.email = expense_users.email
-             SET expenses.expenses_authorized_by = old_users.id"
+             SET expenses.expenses_authorized_by = old_users.id'
         );
 
         Schema::table('tada_dealer_expenses', function (Blueprint $table) {

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\API\v3;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Bank;
-use App\Models\Purpose;
-use App\Models\Mobileuser;
 use App\Models\Area;
+use App\Models\Bank;
 use App\Models\Dealer;
-use App\Models\Subarea;
 use App\Models\Denomination;
+use App\Models\Mobileuser;
+use App\Models\Purpose;
+use App\Models\Subarea;
 use App\Models\UnlistedDealer;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class MobileuserController extends Controller
 {
@@ -23,14 +26,14 @@ class MobileuserController extends Controller
             'email' => 'required|email|max:255',
             'password' => 'required',
             'device' => 'required',
-            'fcm_id' => 'required'
+            'fcm_id' => 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                "status" => "error",
-                "message" => $validator->errors(),
-                'token' => null
+                'status' => 'error',
+                'message' => $validator->errors(),
+                'token' => null,
             ], 422);
         }
 
@@ -47,12 +50,12 @@ class MobileuserController extends Controller
             ])->where(['email' => $request->email])->first();
             $credentials = $request->only('email', 'password');
             $token = auth('api')->attempt($credentials);
-            if (!$token || !$mo) {
+            if (! $token || ! $mo) {
                 return response()->json([
                     'status' => 'error',
                     'error_code' => '401',
                     'message' => 'Credentials do not match',
-                    'token' => null
+                    'token' => null,
                 ], 401);
             }
 
@@ -61,7 +64,7 @@ class MobileuserController extends Controller
                     'status' => 'account_locked',
                     'error_code' => '423',
                     'message' => 'User account is locked or inactive.',
-                    'token' => null
+                    'token' => null,
                 ], 423);
             }
 
@@ -92,14 +95,13 @@ class MobileuserController extends Controller
                 }
             }
             foreach ($dealer as $d) {
-                if (!isset($d->areastatus)) {
+                if (! isset($d->areastatus)) {
                     $d->areastatus = 0;
                 }
             }
 
             $topicFCM = $this->topicFCM();
             $packagePermissions = $this->packagePermissions($request);
-
 
             $makeResponse = function (
                 $status,
@@ -136,7 +138,7 @@ class MobileuserController extends Controller
                     'unlisted_dealer' => $unlistedDealer,
                     'topic_fcm' => $topicFCM,
                     'package_permissions' => $packagePermissions,
-                ], (int)$code);
+                ], (int) $code);
             };
 
             DB::beginTransaction();
@@ -147,6 +149,7 @@ class MobileuserController extends Controller
                     $mo->remember_token = $token;
                     $mo->save();
                     DB::commit();
+
                     return $makeResponse(
                         'success',
                         200,
@@ -172,6 +175,7 @@ class MobileuserController extends Controller
                     $mo->remember_token = $token;
                     $mo->save();
                     DB::commit();
+
                     return $makeResponse(
                         'success',
                         200,
@@ -196,6 +200,7 @@ class MobileuserController extends Controller
                     $mo->remember_token = $token;
                     $mo->save();
                     DB::commit();
+
                     return $makeResponse(
                         'success',
                         200,
@@ -217,6 +222,7 @@ class MobileuserController extends Controller
                 }
 
                 DB::rollBack();
+
                 return $makeResponse(
                     'error',
                     403,
@@ -237,6 +243,7 @@ class MobileuserController extends Controller
                 );
             } catch (\Exception $e) {
                 DB::rollBack();
+
                 return $makeResponse(
                     'error',
                     500,
@@ -256,11 +263,11 @@ class MobileuserController extends Controller
                     null
                 );
             }
-        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (TokenExpiredException $e) {
             return response()->json(['token_expired' => true], 500);
-        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (TokenInvalidException $e) {
             return response()->json(['token_invalid' => true], 500);
-        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+        } catch (JWTException $e) {
             return response()->json(['token_absent' => $e->getMessage()], 500);
         }
     }
@@ -272,7 +279,7 @@ class MobileuserController extends Controller
 
         return [
             $allProdTopic,
-            $allDevTopic
+            $allDevTopic,
         ];
     }
 

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('tada_dealer_expenses', 'is_physical_visit')) {
+        if (! Schema::hasColumn('tada_dealer_expenses', 'is_physical_visit')) {
             Schema::table('tada_dealer_expenses', function (Blueprint $table) {
                 $table->boolean('is_physical_visit')->nullable()->after('amount');
             });

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('stock_transactions')) {
+        if (! Schema::hasTable('stock_transactions')) {
             Schema::create('stock_transactions', function (Blueprint $table) {
                 $table->id();
 
@@ -56,7 +56,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasTable('stock_transactions')) {
+        if (! Schema::hasTable('stock_transactions')) {
             Schema::dropIfExists('stock_transactions');
         }
     }

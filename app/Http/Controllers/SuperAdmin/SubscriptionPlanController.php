@@ -14,6 +14,7 @@ use Illuminate\Validation\Rule;
 class SubscriptionPlanController extends Controller
 {
     use HandlesFeaturePayload;
+
     public function index()
     {
         $plans = SubscriptionPlan::withCount('tenants')->get();
@@ -49,7 +50,7 @@ class SubscriptionPlanController extends Controller
 
         $plan = SubscriptionPlan::create([
             'name' => $validated['name'],
-            'slug' => !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']),
+            'slug' => ! empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'billing_interval' => $validated['billing_interval'],
@@ -89,7 +90,7 @@ class SubscriptionPlanController extends Controller
 
         $plan->update([
             'name' => $validated['name'],
-            'slug' => !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']),
+            'slug' => ! empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'billing_interval' => $validated['billing_interval'],

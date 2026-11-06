@@ -12,28 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('orders', 'lat_lng')) {
+            if (! Schema::hasColumn('orders', 'lat_lng')) {
                 $table->string('lat_lng')->nullable();
             }
-            if (!Schema::hasColumn('orders', 'location')) {
+            if (! Schema::hasColumn('orders', 'location')) {
                 $table->string('location')->nullable()->after('lat_lng');
             }
         });
 
         Schema::table('payments', function (Blueprint $table) {
-            if (!Schema::hasColumn('payments', 'lat_lng')) {
+            if (! Schema::hasColumn('payments', 'lat_lng')) {
                 $table->string('lat_lng')->nullable();
             }
-            if (!Schema::hasColumn('payments', 'location')) {
+            if (! Schema::hasColumn('payments', 'location')) {
                 $table->string('location')->nullable()->after('lat_lng');
             }
         });
 
         Schema::table('visits', function (Blueprint $table) {
-            if (!Schema::hasColumn('visits', 'lat_lng')) {
+            if (! Schema::hasColumn('visits', 'lat_lng')) {
                 $table->string('lat_lng')->nullable();
             }
-            if (!Schema::hasColumn('visits', 'location')) {
+            if (! Schema::hasColumn('visits', 'location')) {
                 $table->string('location')->nullable();
             }
         });

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\DTO\v2\siteRegistration;
@@ -9,9 +10,7 @@ readonly class StakeholderDTO
         public string $name,
         public string $role,
         public string $contactNumber
-    )
-    {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {
@@ -31,4 +30,3 @@ readonly class StakeholderDTO
         ];
     }
 }
-

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Attendance;
 
 class TadaEntry extends Model
 {
@@ -78,15 +77,15 @@ class TadaEntry extends Model
 
         $checkinStatus = $attendance
             ? AttendanceStatus::where('attendance_id', $attendance->id)
-            ->where('status', 'checkin')
-            ->orderBy('id')
-            ->first()
+                ->where('status', 'checkin')
+                ->orderBy('id')
+                ->first()
             : null;
         $checkoutStatus = $attendance
             ? AttendanceStatus::where('attendance_id', $attendance->id)
-            ->where('status', 'checkout')
-            ->orderByDesc('id')
-            ->first()
+                ->where('status', 'checkout')
+                ->orderByDesc('id')
+                ->first()
             : null;
 
         return [

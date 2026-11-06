@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class SiteProduct extends Model
 {
-
     protected $table = 'v2_site_products';
 
     protected $fillable = [

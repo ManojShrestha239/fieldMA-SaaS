@@ -8,16 +8,16 @@ use App\Models\Location;
 use App\Models\Mobileuser;
 use App\Models\Payment;
 use App\Models\Session;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
 use App\Models\VisitPurpose;
+use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class VisitController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index()
     {
@@ -116,7 +116,7 @@ class VisitController extends Controller
         $validated = $request->validate([
             'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
             'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'user' => 'nullable|exists:mobileusers,id'
+            'user' => 'nullable|exists:mobileusers,id',
         ]);
 
         if ($validated['start-date'] > $validated['end-date']) {
@@ -276,7 +276,7 @@ class VisitController extends Controller
 
         if ($isDealer) {
             $dealersQuery = Dealer::whereNull('main_dealer_code');
-        } else if ($isRetailer) {
+        } elseif ($isRetailer) {
             $dealersQuery = Dealer::whereNotNull('main_dealer_code');
         } else {
             $dealersQuery = Dealer::query();
@@ -356,7 +356,6 @@ class VisitController extends Controller
             ]);
         }
 
-
         return view('dashboards.visit-reports.show', [
             'mouser' => $mouser,
             'users' => Mobileuser::pluck('name', 'id'),
@@ -377,7 +376,7 @@ class VisitController extends Controller
 
     private function calculateDistanceFromLocation($location)
     {
-        if (!$location || empty($location->coordinates)) {
+        if (! $location || empty($location->coordinates)) {
             return 0;
         }
 
@@ -390,7 +389,7 @@ class VisitController extends Controller
             $lat2 = $coordinates[$i]['latitude'];
             $lon2 = $coordinates[$i]['longitude'];
 
-            $c_d = $this->calculate_distance($lat1, $lon1, $lat2, $lon2, "K");
+            $c_d = $this->calculate_distance($lat1, $lon1, $lat2, $lon2, 'K');
             $distance += is_nan($c_d) ? 0 : $c_d;
         }
 
@@ -406,19 +405,19 @@ class VisitController extends Controller
     {
 
         $theta = $lon1 - $lon2;
-        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
         $dist = acos($dist);
         $dist = rad2deg($dist);
         $miles = $dist * 60 * 1.1515;
         $unit = strtoupper($unit);
 
-        if ($unit == "K") { //Kilometers
-            return ($miles * 1.609344);
-        } else if ($unit == "N") { //Nautical Miles
-            return ($miles * 0.8684);
-        } else if ($unit == "MT") { //Meter
-            return ($miles * 1.609344 * 1000);
-        } else { //Miles
+        if ($unit == 'K') { // Kilometers
+            return $miles * 1.609344;
+        } elseif ($unit == 'N') { // Nautical Miles
+            return $miles * 0.8684;
+        } elseif ($unit == 'MT') { // Meter
+            return $miles * 1.609344 * 1000;
+        } else { // Miles
             return $miles;
         }
     }
@@ -442,8 +441,9 @@ class VisitController extends Controller
         $data['model'] = $model;
 
         if ($array[0] == '' || $array[1] == '') {
-            return back()->with('error', 'Location data not available for this ' . $request->type);
+            return back()->with('error', 'Location data not available for this '.$request->type);
         }
+
         return view('dashboards.visit-reports.map', $data);
     }
 }

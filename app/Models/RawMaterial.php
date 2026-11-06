@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RawMaterial extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
-    use HasFactory;
     protected $fillable = [
         'name',
         'total_qty',
@@ -21,7 +21,6 @@ class RawMaterial extends Model
 
     protected $table = 'raw_materials';
 
-
     public function size()
     {
         return $this->belongsTo(Size::class);
@@ -31,10 +30,12 @@ class RawMaterial extends Model
     {
         return $this->hasMany(RawProduct::class);
     }
+
     public function rawInventories()
     {
         return $this->hasMany(RawInventory::class, 'r_id');
     }
+
     public function rawSize()
     {
         return $this->belongsTo(RawSize::class, 'rawsize_id');

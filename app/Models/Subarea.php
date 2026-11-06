@@ -10,8 +10,9 @@ class Subarea extends Model
     use HasFactory;
 
     protected $fillable = [
-        'area_id','subarea','status'
+        'area_id', 'subarea', 'status',
     ];
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

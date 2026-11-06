@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateVisitPurposesTable extends Migration
 {
@@ -19,7 +19,7 @@ class CreateVisitPurposesTable extends Migration
             $table->string('dealer_code')->nullable();
             $table->bigInteger('visit_id')->unsigned();
             $table->string('areacode')->nullable();
-            $table->bigInteger("purpose_id")->unsigned();
+            $table->bigInteger('purpose_id')->unsigned();
             $table->string('date');
             $table->string('status');
             $table->foreign('user_id')->references('id')->on('mobileusers');

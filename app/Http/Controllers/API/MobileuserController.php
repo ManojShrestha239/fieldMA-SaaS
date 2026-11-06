@@ -8,18 +8,19 @@ use App\Models\Bank;
 use App\Models\Dealer;
 use App\Models\Denomination;
 use App\Models\Purpose;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Session;
 use App\Models\Subarea;
 use App\Models\UnlistedDealer;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class MobileuserController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
+
     public function visitHistory(Request $request, $date)
     {
         $mouser = Auth::user();
@@ -30,7 +31,6 @@ class MobileuserController extends Controller
         foreach ($visithistory as $visited) {
             $purpose = $visited->purpose_id;
 
-
             $visited->dealer_code = ($visited->dealer_code) ? $visited->dealer_code : 'Unlisted Dealer';
             $visited->dealer_name = ($visited->dealer) ? $visited->dealer['name'] : $visited->dealer_name;
             $visited->dealer_address = ($visited->dealer) ? $visited->dealer['address'] : $visited->dealer_address;
@@ -38,6 +38,7 @@ class MobileuserController extends Controller
             $visited->purpose_id = $purpose;
             $visited->is_physical_visit = (int) ($visited->is_physical_visit ?? 1);
         }
+
         return response()->json($visithistory);
     }
 
@@ -45,7 +46,7 @@ class MobileuserController extends Controller
     {
         $valid = Validator::make($request->all(), [
             'from' => 'required|date_format:Y-m-d',
-            'to' => 'required|date_format:Y-m-d|after_or_equal:from'
+            'to' => 'required|date_format:Y-m-d|after_or_equal:from',
         ]);
         if ($valid->fails()) {
             return response()->json(['status' => 'success', 'message' => $valid->errors()], 422);
@@ -65,6 +66,7 @@ class MobileuserController extends Controller
             $visited->date = $this->custom_AD_to_BS($visited->date);
             $visited->is_physical_visit = (int) ($visited->is_physical_visit ?? 1);
         }
+
         return response()->json($visithistory);
     }
 
@@ -104,7 +106,7 @@ class MobileuserController extends Controller
         return response()->json([
             'status' => 'success',
             'error_code' => '200',
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
@@ -115,7 +117,7 @@ class MobileuserController extends Controller
 
         return [
             $allProdTopic,
-            $allDevTopic
+            $allDevTopic,
         ];
     }
 

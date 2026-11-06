@@ -14,17 +14,18 @@ use App\Models\ProductSize;
 use App\Models\Size;
 use App\Models\Subproduct;
 use Exception;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class CartController extends Controller
 {
     use ValidatesRequests;
+
     /**
      * Store the product details to cart
      * and response back the product details
@@ -44,12 +45,12 @@ class CartController extends Controller
             return response()->json(['status' => 'error', 'message' => $error->errors()], 422);
         }
         // return response()->json($request);
-        Db::beginTransaction();
+        DB::beginTransaction();
         try {
             $allData = [];
             foreach ($request->cartData as $cart) {
-                $size = explode('x', strtoLower($cart['size']));
-                $cartD = new Cart();
+                $size = explode('x', strtolower($cart['size']));
+                $cartD = new Cart;
                 $cartD->finalproduct_id = $cart['product'];
                 $cartD->user_id = $cart['mobUser'];
                 $cartD->dealer_code = $cart['dealer'];
@@ -59,23 +60,25 @@ class CartController extends Controller
                 $cartD->created_by = Auth::user()->id;
                 $cartD->save();
                 $cart['id'] = $cartD->id;
-                $cart['length'] =  $size[0];
+                $cart['length'] = $size[0];
                 $cart['width'] = $size[1];
                 array_push($allData, $cart);
             }
             // $data['carts'] = Cart::where(['user_id' => $cart['mobUser'], 'dealer_code' => $cart['dealer']])->get();
-            Db::commit();
+            DB::commit();
+
             return response()->json([
                 'message' => 'success',
-                'data' => $allData
+                'data' => $allData,
             ], 200);
 
             return view('dashboards.carts.orderlist');
         } catch (Exception $e) {
-            Db::rollBack();
+            DB::rollBack();
+
             return response()->json([
                 'message' => $e->getMessage(),
-                'data' => []
+                'data' => [],
             ], 500);
         }
     }
@@ -93,13 +96,13 @@ class CartController extends Controller
             DB::beginTransaction();
             $oi = OrderImage::where('id', $request->orderreq)->first();
 
-            if ($oi->status != "pending") {
+            if ($oi->status != 'pending') {
                 return back()->with('status', 'This order request has been expired');
             }
 
             $carts = Cart::with('productSize', 'dealer')->where(['user_id' => $request->user_id, 'dealer_code' => $request->dealer_code])->get();
             $dealer = Dealer::where('code', $request->dealer_code)->first();
-            $order = new Order();
+            $order = new Order;
             $order->user_id = $request->user_id;
             $order->areacode = $dealer->area_code;
             $order->dealer_code = $request->dealer_code;
@@ -107,18 +110,17 @@ class CartController extends Controller
             $order->status = 'Draft';
             $order->save();
 
-
             $totalorder = 0;
 
             foreach ($carts as $item) {
                 $product = ProductSize::where('id', $item->finalproduct_id)->first();
 
-                if ($product->size->size == "CUSTOM") {
+                if ($product->size->size == 'CUSTOM') {
                     $price = (($item->height * $item->width) / 144) * $product->price * $item->quantity;
                     $totalorder = $totalorder + $price;
                     $area = (($item->height * $item->width)) * $item->quantity / 144;
                     $weight = ($item->height * $item->width * $item->quantity * $product->weight_per_sq_ft) / 144;
-                    $size = $item->height . "x" . $item->width;
+                    $size = $item->height.'x'.$item->width;
                 } else {
                     $price = $product->price * $item->quantity;
                     $totalorder = $totalorder + $price;
@@ -127,9 +129,8 @@ class CartController extends Controller
                     $size = $product->size->size;
                 }
 
-
                 $discount = $price * $dealer->discount / 100;
-                $array[] = array(
+                $array[] = [
                     'order_id' => $order->id,
                     'items_id' => $item->finalproduct_id,
                     'quantity' => $item->quantity,
@@ -145,7 +146,7 @@ class CartController extends Controller
                     'weight' => $weight,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
-                );
+                ];
             }
 
             Orderitem::insert($array);
@@ -156,15 +157,13 @@ class CartController extends Controller
 
             $order->save();
 
-            $oi->status = "Done";
+            $oi->status = 'Done';
 
             $oi->save();
 
             Cart::with('productSize', 'dealer')->where(['user_id' => $request->user_id, 'dealer_code' => $request->dealer_code])->delete();
 
             // $carts = Cart::with('productSize', 'dealer')->where('created_by', Auth::user()->id)->get();
-
-
 
             // $dealerMobileCombo = [];
 
@@ -217,14 +216,15 @@ class CartController extends Controller
             //     ]);
             // }
 
-
             // // Delete the records from cart table
             // Cart::where('created_by', Auth::user()->id)->delete();
 
             DB::commit();
+
             return back()->with('Status', 'Order has been created.');
         } catch (Exception $e) {
             DB::rollBack();
+
             return back()->with('Status', 'Something went wrong. Please try again later.');
         }
     }
@@ -234,9 +234,9 @@ class CartController extends Controller
         $data['mobileOrders'] = OrderImage::with('mobileuser')->where('status', 'pending')->get();
         $data['dealers'] = Dealer::all();
         $data['users'] = Mobileuser::all();
+
         return view('dashboards.carts.orderrequestlist', $data);
     }
-
 
     public function addOrder($id)
     {
@@ -255,6 +255,7 @@ class CartController extends Controller
         $data['order'] = $order;
         // dd($data['orderItem']);
         $data['carts'] = Cart::with('productSize.product.category', 'productSize.subproduct', 'mobileuser', 'dealer')->where('user_id', $mobileOrder->mobileuser_id)->get();
+
         return view('dashboards.carts.neworder', $data);
     }
 
@@ -266,6 +267,7 @@ class CartController extends Controller
         } else {
             $products = Product::get();
         }
+
         return response()->json(['status' => 'success', 'dealers' => $products]);
     }
 
@@ -279,6 +281,7 @@ class CartController extends Controller
         } else {
             $subproducts = Subproduct::all();
         }
+
         return response()->json(['status' => 'success', 'dealers' => $subproducts]);
     }
 
@@ -294,6 +297,7 @@ class CartController extends Controller
         } else {
             // $sizes = Size::all();
         }
+
         return response()->json(['status' => 'success', 'dealers' => $sizes]);
     }
 
@@ -304,20 +308,20 @@ class CartController extends Controller
             Cart::where('id', $id)->update([
                 'quantity' => $request->quantity,
                 'custom_length' => $request->length,
-                'custom_width' => $request->width
+                'custom_width' => $request->width,
             ]);
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Quantity updated Sucessfully'
+                'message' => 'Quantity updated Sucessfully',
             ], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unable to update quantity.',
             ], 500);
         }
     }
-
 
     // Delete the  records from order list
     public function destroy($id)
@@ -327,27 +331,27 @@ class CartController extends Controller
             $user = $cart->user_id;
             $dealer = $cart->dealer_code;
             $cart->delete();
-            $carts = Cart::with('productSize.product.category', 'productSize.subproduct', 'productSize.size', 'mobileuser', 'dealer',)
+            $carts = Cart::with('productSize.product.category', 'productSize.subproduct', 'productSize.size', 'mobileuser', 'dealer')
                 ->where(['user_id' => $user, 'dealer_code' => $dealer])
                 ->orderBy('id', 'asc')
                 ->get();
             $data = [];
 
             foreach ($carts as $cart) {
-                $total =  number_format(($cart->quantity) * ($cart->productSize->price), 2);
+                $total = number_format(($cart->quantity) * ($cart->productSize->price), 2);
                 $cart->productSize->size->size == 'CUSTOM' ? $isCustom = true : $isCustom = false;
-                $productName = $cart->productSize->product->category->name . '-' . $cart->productSize->product->name . '-' . $cart->productSize->subproduct->subproduct;
+                $productName = $cart->productSize->product->category->name.'-'.$cart->productSize->product->name.'-'.$cart->productSize->subproduct->subproduct;
                 $arr = [
                     'dealer' => $cart->dealer_code,
                     'mobUserInfo' => $cart->mobileuser->name,
-                    'productInfo' => $productName . ($isCustom ? ' CUSTOM' : ''),
+                    'productInfo' => $productName.($isCustom ? ' CUSTOM' : ''),
                     'id' => $cart->id,
                     'length' => $cart->custom_length,
                     'width' => $cart->custom_width,
                     'price' => $cart->productSize->price,
                     'isCustom' => ($isCustom ? 'true' : 'false'),
                     'qty' => $cart->quantity,
-                    'totalPrice' => $total
+                    'totalPrice' => $total,
                 ];
                 array_push($data, $arr);
             }
@@ -355,7 +359,7 @@ class CartController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Order delete successfully.',
-                'data' => $data
+                'data' => $data,
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -374,7 +378,7 @@ class CartController extends Controller
             'user' => 'required|exists:mobileusers,id',
             'dealer' => 'required|exists:dealers,code',
             'images' => 'nullable|array',
-            'images.*' => 'required|mimes:png,jpg,jpeg'
+            'images.*' => 'required|mimes:png,jpg,jpeg',
         ]);
 
         $filename = '';
@@ -385,15 +389,15 @@ class CartController extends Controller
             foreach ($request->images as $image) {
                 $content = File::get($image);
 
-                $filename = time() . "_" . $image->getClientOriginalName();
+                $filename = time().'_'.$image->getClientOriginalName();
 
-                $f_filename = $f_filename . $filename . " :: ";
+                $f_filename = $f_filename.$filename.' :: ';
 
                 Storage::disk('public')->put("/orderimage/$filename", $content);
             }
         }
 
-        $orderimg = new OrderImage();
+        $orderimg = new OrderImage;
 
         $orderimg->mobileuser_id = $request->user;
         $orderimg->dealer_code = $request->dealer;
@@ -401,7 +405,6 @@ class CartController extends Controller
         $orderimg->image = $f_filename;
 
         $orderimg->save();
-
 
         return back()->with('Status', 'Order Request has been added');
     }

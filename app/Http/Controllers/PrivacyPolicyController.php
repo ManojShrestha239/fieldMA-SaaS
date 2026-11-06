@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PrivacyPolicy;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Session;
 
 class PrivacyPolicyController extends Controller
@@ -11,7 +12,7 @@ class PrivacyPolicyController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -23,7 +24,7 @@ class PrivacyPolicyController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -33,17 +34,16 @@ class PrivacyPolicyController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
         $this->validate($request, [
             'title' => 'required|max:255',
             'description' => 'required',
-            'status' => 'required|in:Active,Inactive'
+            'status' => 'required|in:Active,Inactive',
         ]);
-        if ($request->status == "Active") {
+        if ($request->status == 'Active') {
             $p = PrivacyPolicy::where('status', 'Active')->first();
 
             if ($p) {
@@ -52,7 +52,7 @@ class PrivacyPolicyController extends Controller
                 $p->save();
             }
         }
-        $privacy = new PrivacyPolicy();
+        $privacy = new PrivacyPolicy;
 
         $privacy->title = $request->title;
         $privacy->description = $request->description;
@@ -69,7 +69,7 @@ class PrivacyPolicyController extends Controller
      * Display the specified resource.
      *
      * @param  \App\PrivacyPolicy  $privacyPolicy
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show(PrivacyPolicy $privacyPolicy)
     {
@@ -80,7 +80,7 @@ class PrivacyPolicyController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  \App\PrivacyPolicy  $privacyPolicy
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -92,9 +92,8 @@ class PrivacyPolicyController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \App\PrivacyPolicy  $privacyPolicy
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -106,6 +105,7 @@ class PrivacyPolicyController extends Controller
         $privacyPolicy->save();
 
         Session::flash('Status', 'Privacy and Policies Update successfully');
+
         return redirect('/privacy-policy');
     }
 
@@ -113,7 +113,7 @@ class PrivacyPolicyController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\PrivacyPolicy  $privacyPolicy
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy(PrivacyPolicy $privacyPolicy)
     {
@@ -125,20 +125,23 @@ class PrivacyPolicyController extends Controller
     public function status($id)
     {
         $privacyPolicy = PrivacyPolicy::findorFail($id);
-        if ($privacyPolicy->status == "Active") {
-            $privacyPolicy->status = "Inactive";
+        if ($privacyPolicy->status == 'Active') {
+            $privacyPolicy->status = 'Inactive';
 
             Session::flash('Status', 'Privacy and Policies Deactivate successfully');
         } else {
-            $privacyPolicy->status = "Active";
+            $privacyPolicy->status = 'Active';
             Session::flash('Status', 'Privacy and Policies Activate successfully');
         }
         $privacyPolicy->save();
+
         return redirect('/privacy-policy');
     }
-    public function privacypolicy(){
+
+    public function privacypolicy()
+    {
         $data['privacy'] = PrivacyPolicy::where('status', 'Active')->first();
 
-        return view('dashboards.privacy-policies.privacy-policy',$data);
+        return view('dashboards.privacy-policies.privacy-policy', $data);
     }
 }

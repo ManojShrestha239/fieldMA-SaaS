@@ -13,9 +13,11 @@ class Ageing extends Model
         'upload_date', 'area_code', 'report',
     ];
 
-    public function area(){
+    public function area()
+    {
         return $this->belongsTo(Area::class, 'area_code');
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

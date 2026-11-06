@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests\API\v2\siteRegistration;
@@ -63,17 +64,17 @@ class UpdateFollowUpRequest extends FormRequest
     /**
      * Helper to get the next follow‑up date as a Carbon instance or null.
      */
-//    public function getNextFollowUpAt(): ?Carbon
-//    {
-//        $raw = $this->input('next_followup_at');
-//        return $raw ? Carbon::parse($raw) : null;
-//    }
+    //    public function getNextFollowUpAt(): ?Carbon
+    //    {
+    //        $raw = $this->input('next_followup_at');
+    //        return $raw ? Carbon::parse($raw) : null;
+    //    }
 
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
             $next = $this->input('next_followup_at');
-            if ($next && !$this->isFutureNepaliDate($next)) {
+            if ($next && ! $this->isFutureNepaliDate($next)) {
                 $validator->errors()->add('next_followup_at', 'The next follow‑up date must be in the future.');
             }
         });

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class RawInventory extends Model
 {
     use HasFactory;
+
     protected $table = 'raw_inventory';
 
     protected $fillable = [

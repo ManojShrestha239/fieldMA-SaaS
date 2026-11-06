@@ -2,31 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Product;
 use App\Models\ProductSize;
 use App\Models\Size;
-use App\Models\Product;
-use Illuminate\Support\Facades\Session;
 use App\Traits\FCM;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Session;
 
 class FinalProductController extends Controller
 {
     use FCM;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
         $data['products'] = ProductSize::with(['size', 'product.category'])->orderBy('id', 'DESC')->get();
+
         return view('dashboards.final-products.final', $data);
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -44,8 +47,7 @@ class FinalProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -58,15 +60,15 @@ class FinalProductController extends Controller
         if (count($products) > 0) {
             return redirect('/final-product')->with('Status', 'This product already has this variant');
         } else {
-            $product = new  ProductSize();
-            $product->product_id =  $request['product_name'];
+            $product = new ProductSize;
+            $product->product_id = $request['product_name'];
             $product->size_id = $request['product_size'];
             $product->price = $request['product_price'];
             $product->status = 1;
             $product->save();
 
             $title = "{$product->load('product')->product->name} has been Added";
-            $body  = "{$product->load('product')->product->name} have been added to the company.";
+            $body = "{$product->load('product')->product->name} have been added to the company.";
             $topic = strtolower(config('app.env')) === 'production' ? config('app.prod-topic') : config('app.dev-topic');
 
             $data = [
@@ -74,7 +76,6 @@ class FinalProductController extends Controller
             ];
 
             $this->runFirebaseNotification($fcmid = null, $topic, $title, $body, $data);
-
 
             return redirect('/final-product')->with('Status', 'Complete Product Details Added');
         }
@@ -84,7 +85,7 @@ class FinalProductController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -95,7 +96,7 @@ class FinalProductController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -107,6 +108,7 @@ class FinalProductController extends Controller
         // return view('dashboards.final-products.final_edit', ['product' => $productinfo, 'size' => $size, 'productinfo' => $productinfo]);
 
     }
+
     public function update(Request $request, $id)
     {
         $this->validate($request, [
@@ -131,9 +133,8 @@ class FinalProductController extends Controller
         $productinfo->price = $request->input('price');
         $productinfo->save();
 
-
         $title = "{$productinfo->product->name} Product has been Edited";
-        $body  = "{$productinfo->product->name} have been updated.";
+        $body = "{$productinfo->product->name} have been updated.";
         $topic = strtolower(config('app.env')) === 'production' ? config('app.prod-topic') : config('app.dev-topic');
 
         $data = [
@@ -149,7 +150,7 @@ class FinalProductController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -167,6 +168,7 @@ class FinalProductController extends Controller
             return back();
         } else {
             Session::flash('Status', "Product Cannot be update cause it's category is Disabled.");
+
             return back();
         }
     }

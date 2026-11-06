@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductStock extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'product_id',
         'total_qty',
@@ -16,6 +17,7 @@ class ProductStock extends Model
         'size_id',
 
     ];
+
     protected $table = 'product_stock';
 
     public function product()

@@ -3,19 +3,26 @@
 namespace App\Exports;
 
 use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromView;
 
 class UnlistedDetailedReport implements FromView
 {
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function collection()
     {
         //
     }
-    protected $data, $from, $to, $user;
+
+    protected $data;
+
+    protected $from;
+
+    protected $to;
+
+    protected $user;
 
     public function __construct($data, $from, $to, $user)
     {
@@ -24,6 +31,7 @@ class UnlistedDetailedReport implements FromView
         $this->to = $to;
         $this->user = $user;
     }
+
     public function view(): View
     {
         // dd($this->from);
@@ -31,7 +39,7 @@ class UnlistedDetailedReport implements FromView
             'list' => $this->data,
             'from' => $this->from,
             'to' => $this->to,
-            'user' => $this->user
+            'user' => $this->user,
         ]);
     }
 }

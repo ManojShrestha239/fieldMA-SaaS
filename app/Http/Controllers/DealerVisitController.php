@@ -6,15 +6,15 @@ use App\Models\Dealer;
 use App\Models\Payment;
 use App\Models\Session;
 use App\Models\VisitPurpose;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DealerVisitController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index()
     {
@@ -101,7 +101,7 @@ class DealerVisitController extends Controller
             'type' => 'nullable|in:dealer,retailer',
             'dealer' => 'nullable|exists:dealers,code',
             'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
 
         $startDate = $validated['start-date'];
@@ -269,7 +269,6 @@ class DealerVisitController extends Controller
     //             $chequeamt = Payment::whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)'])->whereBetween('collection_date', [$from, $to])->where('dealer_code', $id)->sum('amount');
     //             $tokenamt = Payment::where('payment_type', 'token')->whereBetween('collection_date', [$from, $to])->where('dealer_code', $id)->sum('amount');
 
-
     //             $discount = Payment::whereBetween('collection_date', [$from, $to])->where('dealer_code', $id)->sum('discount');
     //             $cashdiscount = Payment::whereIn('payment_type', ['cash (regular)', 'cash (against)'])->whereBetween('collection_date', [$from, $to])->where('dealer_code', $id)->sum('discount');
     //             $chequediscount = Payment::whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)'])->whereBetween('collection_date', [$from, $to])->where('dealer_code', $id)->sum('discount');
@@ -322,25 +321,25 @@ class DealerVisitController extends Controller
     {
         $validated = $this->validate($request, [
             'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
 
-        if (!empty($validated['from']) && !empty($validated['to']) && $validated['from'] > $validated['to']) {
+        if (! empty($validated['from']) && ! empty($validated['to']) && $validated['from'] > $validated['to']) {
             return back()->withInput()->withErrors(['to' => 'End date must be after or equal to start date']);
         }
 
-        $isUnlisted = $id === "Unlisted_dealer_visit";
+        $isUnlisted = $id === 'Unlisted_dealer_visit';
         if ($isUnlisted) {
-            $dealer = new \stdClass();
-            $dealer->code = "Unlisted_dealer_visit";
-            $dealer->name = "Unlisted_dealer_visit";
+            $dealer = new \stdClass;
+            $dealer->code = 'Unlisted_dealer_visit';
+            $dealer->name = 'Unlisted_dealer_visit';
             $dealerCode = null;
         } else {
             $dealer = Dealer::findOrFail($id);
             $dealerCode = $dealer->code;
         }
 
-        $hasDateRange = !empty($validated['from']) && !empty($validated['to']);
+        $hasDateRange = ! empty($validated['from']) && ! empty($validated['to']);
 
         if ($hasDateRange) {
             $fromAD = $this->custom_BS_to_AD($validated['from']);
@@ -405,7 +404,7 @@ class DealerVisitController extends Controller
             $purposes = collect();
         }
 
-        if (!$isUnlisted && $dealerCodes->isNotEmpty()) {
+        if (! $isUnlisted && $dealerCodes->isNotEmpty()) {
             $collectionQuery = Payment::whereIn('dealer_code', $dealerCodes);
             if ($hasDateRange) {
                 $collectionQuery->whereBetween('collection_date', [$fromAD, $toAD]);
@@ -428,7 +427,7 @@ class DealerVisitController extends Controller
 
         $data = [
             'dealer' => $dealer,
-            'de' => "",
+            'de' => '',
             'list' => $sessions,
             'from' => $validated['from'] ?? '',
             'to' => $validated['to'] ?? '',

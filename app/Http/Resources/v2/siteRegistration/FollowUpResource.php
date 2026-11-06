@@ -22,7 +22,7 @@ class FollowUpResource extends JsonResource
             'lng' => $this->lng,
             'completed_at' => $this->completed_at,
             // Embedded site summary (already eager‑loaded by the service)
-            'site' => $this->whenLoaded('site', fn() => [
+            'site' => $this->whenLoaded('site', fn () => [
                 'id' => $this->site->id,
                 'name' => $this->site->name,
                 'current_stage_id' => $this->site->current_stage_id,

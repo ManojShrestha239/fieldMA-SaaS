@@ -22,13 +22,13 @@ class UnlistedDealer extends Model
     ];
 
     protected $casts = [
-        'name'      => 'string',
-        'address'   => 'string',
-        'contact'   => 'string',
+        'name' => 'string',
+        'address' => 'string',
+        'contact' => 'string',
         'area_code' => 'string',
-        'subarea'   => 'string',
-        'lat'       => 'decimal:8',
-        'lng'       => 'decimal:8',
+        'subarea' => 'string',
+        'lat' => 'decimal:8',
+        'lng' => 'decimal:8',
         'is_active' => 'boolean',
     ];
 

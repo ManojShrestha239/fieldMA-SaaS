@@ -11,7 +11,7 @@ class RawProduct extends Model
 
     protected $fillable = [
         'product_id',
-        'rawmaterial_id'
+        'rawmaterial_id',
     ];
 
     protected $table = 'raw_products';

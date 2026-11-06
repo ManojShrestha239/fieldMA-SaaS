@@ -8,15 +8,21 @@ use App\Models\Mobileuser;
 use App\Models\Payment;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
-use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Concerns\FromView;
 
 class ZeroReport implements FromView
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
-    protected $from, $to, $month, $user;
+    protected $from;
+
+    protected $to;
+
+    protected $month;
+
+    protected $user;
 
     public function __construct($from, $to, $month, $user)
     {
@@ -32,7 +38,7 @@ class ZeroReport implements FromView
         // dd($user);
         $dateElements = explode('-', $this->to);
         if ($this->from == $this->to) {
-            $this->from = $dateElements[0] . '-' . $dateElements[1] . '-01';
+            $this->from = $dateElements[0].'-'.$dateElements[1].'-01';
         }
 
         $diff = strtotime($this->from) - strtotime($this->to);
@@ -40,7 +46,6 @@ class ZeroReport implements FromView
         // 1 day = 24 hours
         // 24 * 60 * 60 = 86400 seconds
         $totaldays = abs(round($diff / 86400));
-
 
         if ($this->from) {
             $from = $this->custom_BS_to_AD($this->from);
@@ -75,7 +80,6 @@ class ZeroReport implements FromView
 
             $userName = Mobileuser::findorfail($user)->name;
 
-
             return view('dashboards.report.zeroReport', [
                 'from' => $this->from,
                 'to' => $this->to,
@@ -90,7 +94,7 @@ class ZeroReport implements FromView
                 'totaldays' => $totaldays,
                 'month' => $this->month,
                 'oldCollection' => $oldCollection,
-                'userName' => $userName
+                'userName' => $userName,
             ]);
         } else {
             foreach ($banks as $bank) {

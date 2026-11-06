@@ -4,43 +4,43 @@ namespace App\Http\Controllers\API\v2;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NoticeImageResource;
-use App\Models\Notice;
+use App\Models\Bank;
 use App\Models\LogDetail;
+use App\Models\Notice;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\Bank;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class NoticeController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     private function baseLog($log): array
     {
         return [
-            "check" => $log->nepali_created_at,
-            "flag" => $log->flag,
-            "expiry_date" => null,
-            "file" => null,
-            "noticeimage" => [],
-            "created_at" => $log->nepali_created_at,
-            "id" => $log->id,
-            "cheque_no" => $log->cheque_no,
-            "date" => $log->date ? $this->custom_AD_to_BS($log->date) : null,
-            "status" => $log->status,
-            "remarks" => $log->remarks,
-            "main_dealer_name" => null,
-            "main_dealer_code" => null,
-            "main_dealer_address" => null,
-            "bank_name" => null,
-            "payment_date" => null,
+            'check' => $log->nepali_created_at,
+            'flag' => $log->flag,
+            'expiry_date' => null,
+            'file' => null,
+            'noticeimage' => [],
+            'created_at' => $log->nepali_created_at,
+            'id' => $log->id,
+            'cheque_no' => $log->cheque_no,
+            'date' => $log->date ? $this->custom_AD_to_BS($log->date) : null,
+            'status' => $log->status,
+            'remarks' => $log->remarks,
+            'main_dealer_name' => null,
+            'main_dealer_code' => null,
+            'main_dealer_address' => null,
+            'bank_name' => null,
+            'payment_date' => null,
         ];
     }
 
@@ -67,7 +67,7 @@ class NoticeController extends Controller
                 'cheque_no',
                 'date',
                 'created_at',
-                'user_id'
+                'user_id',
             ])
             ->orderByDesc('created_at')
             ->get();
@@ -78,14 +78,14 @@ class NoticeController extends Controller
                 $logsDetailsArr[] = array_merge(
                     $this->baseLog($log),
                     [
-                        "title" => 'Collection Updated',
-                        "notice" => "Collection status updated from {$log->previous_status} to {$log->status}",
-                        "payment_id" => $log->ordercoll_id,
-                        "dealer_name" => $log->collection?->dealer?->name,
-                        "dealer_code" => $log->collection?->dealer?->code,
-                        "dealer_address" => $log->collection?->dealer?->address,
-                        "bank_name" => $log->collection?->bank?->name,
-                        "payment_date" => $log->collection?->payment_date
+                        'title' => 'Collection Updated',
+                        'notice' => "Collection status updated from {$log->previous_status} to {$log->status}",
+                        'payment_id' => $log->ordercoll_id,
+                        'dealer_name' => $log->collection?->dealer?->name,
+                        'dealer_code' => $log->collection?->dealer?->code,
+                        'dealer_address' => $log->collection?->dealer?->address,
+                        'bank_name' => $log->collection?->bank?->name,
+                        'payment_date' => $log->collection?->payment_date
                             ? $this->custom_AD_to_BS($log->collection->payment_date)
                             : null,
                     ]
@@ -97,14 +97,14 @@ class NoticeController extends Controller
                 $logsDetailsArr[] = array_merge(
                     $this->baseLog($log),
                     [
-                        "title" => 'Payment Date',
-                        "notice" => 'Payment Date',
-                        "payment_id" => $log->ordercoll_id,
-                        "dealer_name" => $log->collection?->dealer?->name,
-                        "dealer_code" => $log->collection?->dealer?->code,
-                        "dealer_address" => $log->collection?->dealer?->address,
-                        "bank_name" => $log->collection?->bank?->name,
-                        "payment_date" => $log->collection?->payment_date
+                        'title' => 'Payment Date',
+                        'notice' => 'Payment Date',
+                        'payment_id' => $log->ordercoll_id,
+                        'dealer_name' => $log->collection?->dealer?->name,
+                        'dealer_code' => $log->collection?->dealer?->code,
+                        'dealer_address' => $log->collection?->dealer?->address,
+                        'bank_name' => $log->collection?->bank?->name,
+                        'payment_date' => $log->collection?->payment_date
                             ? $this->custom_AD_to_BS($log->collection->payment_date)
                             : null,
                     ]
@@ -116,12 +116,12 @@ class NoticeController extends Controller
                 $logsDetailsArr[] = array_merge(
                     $this->baseLog($log),
                     [
-                        "title" => 'Dealer Order Updated',
-                        "notice" => "Dealer Order Status updated from {$log->previous_status} to {$log->status}",
-                        "order_id" => $log->ordercoll_id,
-                        "dealer_name" => $log->order?->dealer?->name,
-                        "dealer_code" => $log->order?->dealer?->code,
-                        "dealer_address" => $log->order?->dealer?->address,
+                        'title' => 'Dealer Order Updated',
+                        'notice' => "Dealer Order Status updated from {$log->previous_status} to {$log->status}",
+                        'order_id' => $log->ordercoll_id,
+                        'dealer_name' => $log->order?->dealer?->name,
+                        'dealer_code' => $log->order?->dealer?->code,
+                        'dealer_address' => $log->order?->dealer?->address,
                     ]
                 );
             }
@@ -131,12 +131,12 @@ class NoticeController extends Controller
                 $logsDetailsArr[] = array_merge(
                     $this->baseLog($log),
                     [
-                        "title" => 'Retailer Order Updated',
-                        "notice" => "Retailer Order Status updated from {$log->previous_status} to {$log->status}",
-                        "order_id" => $log->ordercoll_id,
-                        "dealer_name" => $log->order?->dealer?->name,
-                        "dealer_code" => $log->order?->dealer?->code,
-                        "dealer_address" => $log->order?->dealer?->address,
+                        'title' => 'Retailer Order Updated',
+                        'notice' => "Retailer Order Status updated from {$log->previous_status} to {$log->status}",
+                        'order_id' => $log->ordercoll_id,
+                        'dealer_name' => $log->order?->dealer?->name,
+                        'dealer_code' => $log->order?->dealer?->code,
+                        'dealer_address' => $log->order?->dealer?->address,
                     ]
                 );
             }
@@ -154,31 +154,32 @@ class NoticeController extends Controller
         });
 
         foreach ($notices as $notice) {
-            $created_at = explode(' ', (string)$notice->created_at);
+            $created_at = explode(' ', (string) $notice->created_at);
             $logsDetailsArr[] = [
-                "check" => $this->custom_AD_to_BS($created_at[0]) . ' ' . $created_at[1],
-                "flag" => 'notice',
-                "title" => $notice->title,
-                "notice" => $notice->notice,
-                "expiry_date" => $this->custom_AD_to_BS($notice->expiry_date),
-                "created_at" => $this->custom_AD_to_BS($created_at[0]) . ' ' . $created_at[1],
-                "noticeimage" => NoticeImageResource::collection($notice->noticeimage),
-                "id" => '',
-                "payment_id" => '',
-                "cheque_no" => null,
-                "date" => null,
-                "status" => null,
-                "remarks" => null,
+                'check' => $this->custom_AD_to_BS($created_at[0]).' '.$created_at[1],
+                'flag' => 'notice',
+                'title' => $notice->title,
+                'notice' => $notice->notice,
+                'expiry_date' => $this->custom_AD_to_BS($notice->expiry_date),
+                'created_at' => $this->custom_AD_to_BS($created_at[0]).' '.$created_at[1],
+                'noticeimage' => NoticeImageResource::collection($notice->noticeimage),
+                'id' => '',
+                'payment_id' => '',
+                'cheque_no' => null,
+                'date' => null,
+                'status' => null,
+                'remarks' => null,
                 'dealer_name' => null,
                 'dealer_code' => null,
                 'dealer_address' => null,
                 'bank_name' => null,
-                'payment_date' => null
+                'payment_date' => null,
             ];
         }
 
-        if (!empty($logsDetailsArr)) {
+        if (! empty($logsDetailsArr)) {
             $sortedData = collect($logsDetailsArr)->sortByDesc('created_at')->values()->all();
+
             return response()->json($this->paginate($sortedData, $perPage));
         }
 
@@ -189,15 +190,19 @@ class NoticeController extends Controller
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
+
         return new LengthAwarePaginator($items->forPage($page, $perPage)->values(), $items->count(), $perPage, $page, $options);
     }
+
     public function all()
     {
         $all = DB::table('notices')
             ->join('logdetails', 'notices.user_id', 'logdetails.user_id')
             ->simplePaginate(10);
+
         return response()->json($all);
     }
+
     public function orderDetails(Request $request, $id)
     {
         $order = Order::findorFail($id);
@@ -208,8 +213,10 @@ class NoticeController extends Controller
             ->select('orderitems.id', 'orderitems.order_id', 'orderitems.items_id', 'products.name', 'orderitems.quantity', DB::raw('CAST(product_size.price AS int) AS price'), 'product_size.size_id', 'product_size.product_id', 'sizes.size')
             ->where('orderitems.order_id', $order->id)
             ->get();
+
         return response()->json($test);
     }
+
     public function collectionDetails(Request $request, $id)
     {
         $data = Payment::findorFail($id);
@@ -218,7 +225,7 @@ class NoticeController extends Controller
         $bank = Bank::where('id', $bank_id)->first();
         $bank_name = explode('::', $bank->name);
         $name = implode('', $bank_name);
-        $collection = array(
+        $collection = [
             'id' => $data->id,
             'payment_type' => $data->payment_type,
             'dealer_code' => $data->dealer_code,
@@ -231,9 +238,10 @@ class NoticeController extends Controller
             'TDS' => $data->TDS,
             'discount' => $data->discount,
             'status' => $data->status,
-            "remarks" => $data->remarks,
-            'mRemaks' => $data->mRemarks
-        );
+            'remarks' => $data->remarks,
+            'mRemaks' => $data->mRemarks,
+        ];
+
         return response()->json($collection);
     }
 }

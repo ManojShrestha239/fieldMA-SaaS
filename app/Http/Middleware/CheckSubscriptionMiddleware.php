@@ -2,12 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use Carbon\Carbon;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class CheckSubscriptionMiddleware
 {
@@ -15,8 +16,11 @@ class CheckSubscriptionMiddleware
      * Configuration constants
      */
     private const CACHE_ACTIVE_TTL = 8; // hours
+
     private const CACHE_EXPIRED_TTL = 15; // minutes
+
     private const API_TIMEOUT = 3; // seconds
+
     private const CACHE_KEY_PREFIX = 'subscription_status_';
 
     /**
@@ -51,8 +55,6 @@ class CheckSubscriptionMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -74,11 +76,11 @@ class CheckSubscriptionMiddleware
             $this->isValidDomain($config['domain']);
 
             // --- Read current version from pointer cache ---
-            $pointerKey     = $this->generateVersionPointerKey($config['domain']);
+            $pointerKey = $this->generateVersionPointerKey($config['domain']);
             $currentVersion = Cache::get($pointerKey);
 
             // --- Versioned status lookup ---
-            $cacheKey   = $this->generateCacheKey($config['domain'], $currentVersion);
+            $cacheKey = $this->generateCacheKey($config['domain'], $currentVersion);
             $cachedData = $currentVersion ? Cache::get($cacheKey) : null;
             if ($this->isCacheValid($cachedData)) {
                 // dd($this->isCacheValid($cachedData), $cachedData, $cacheKey, $pointerKey, $currentVersion);
@@ -105,9 +107,6 @@ class CheckSubscriptionMiddleware
 
     /**
      * Determine if subscription check should be bypassed
-     *
-     * @param Request $request
-     * @return bool
      */
     private function shouldBypassSubscriptionCheck(Request $request): bool
     {
@@ -131,9 +130,6 @@ class CheckSubscriptionMiddleware
 
     /**
      * Check if request is from local environment
-     *
-     * @param Request $request
-     * @return bool
      */
     private function isLocalEnvironment(Request $request): bool
     {
@@ -144,9 +140,6 @@ class CheckSubscriptionMiddleware
 
     /**
      * Check if current route should bypass subscription check
-     *
-     * @param Request $request
-     * @return bool
      */
     private function isBypassRoute(Request $request): bool
     {
@@ -158,7 +151,7 @@ class CheckSubscriptionMiddleware
         $currentPath = parse_url($request->url(), PHP_URL_PATH);
 
         foreach ($bypassRoutes as $route) {
-            if (!empty($currentPath) && str_ends_with($currentPath, $route)) {
+            if (! empty($currentPath) && str_ends_with($currentPath, $route)) {
                 return true;
             }
         }
@@ -171,7 +164,7 @@ class CheckSubscriptionMiddleware
      */
     private function validateSecureConnection(Request $request): void
     {
-        if (!$request->secure() && Config::get('app.env') === 'production') {
+        if (! $request->secure() && Config::get('app.env') === 'production') {
             abort(403, 'Secure connection required');
         }
     }
@@ -225,9 +218,10 @@ class CheckSubscriptionMiddleware
      */
     private function generateCacheKey(string $domain, ?string $version = null): string
     {
-        $base = self::CACHE_KEY_PREFIX . md5($domain);
+        $base = self::CACHE_KEY_PREFIX.md5($domain);
+
         return ($version !== null && $version !== '')
-            ? $base . '_v_' . md5($version)
+            ? $base.'_v_'.md5($version)
             : $base;
     }
 
@@ -262,20 +256,19 @@ class CheckSubscriptionMiddleware
     /**
      * Fetch subscription status from API
      */
-
     private function fetchSubscriptionStatus(array $config): array
     {
         $timestamp = Carbon::now()->timestamp;
         $nonce = $this->generateUuid();
         $signature = $this->generateSignature($timestamp, $config['domain'], $nonce, $config['api_secret']);
 
-        $endpoint = rtrim($config['subscription_url'], '/') . '/api/check-subscription';
+        $endpoint = rtrim($config['subscription_url'], '/').'/api/check-subscription';
 
         $headers = [
-            'X-API-Signature: ' . $signature,
-            'X-API-Timestamp: ' . $timestamp,
-            'X-API-Nonce: ' . $nonce,
-            'X-API-Domain: ' . $config['domain'],
+            'X-API-Signature: '.$signature,
+            'X-API-Timestamp: '.$timestamp,
+            'X-API-Nonce: '.$nonce,
+            'X-API-Domain: '.$config['domain'],
         ];
 
         $postData = http_build_query([
@@ -291,7 +284,7 @@ class CheckSubscriptionMiddleware
      */
     private function generateSignature(int $timestamp, string $domain, string $nonce, string $apiSecret): string
     {
-        return hash_hmac('sha256', $timestamp . $domain . $nonce, $apiSecret);
+        return hash_hmac('sha256', $timestamp.$domain.$nonce, $apiSecret);
     }
 
     /**
@@ -336,20 +329,20 @@ class CheckSubscriptionMiddleware
         ?array $cachedData,
         ?string $pointerKey = null
     ) {
-        if (!empty($apiResponse['error']) || $apiResponse['status'] !== 200) {
+        if (! empty($apiResponse['error']) || $apiResponse['status'] !== 200) {
             return $this->handleFallback($request, $next, $cachedData, $config);
         }
 
         $responseData = json_decode($apiResponse['body'] ?? '{}', true);
 
-        if (!is_array($responseData)) {
+        if (! is_array($responseData)) {
             return $this->handleFallback($request, $next, $cachedData, $config);
         }
 
         $this->shareViewData($responseData);
 
         $subscriptionStatus = $responseData['status'] ?? 'unknown';
-        $newVersion         = $responseData['version'] ?? null;
+        $newVersion = $responseData['version'] ?? null;
 
         // ---- Version changed? Store under a fresh key + refresh pointer ----
         if ($newVersion && $pointerKey) {
@@ -364,10 +357,12 @@ class CheckSubscriptionMiddleware
         switch ($subscriptionStatus) {
             case 'active':
                 $this->cacheActiveSubscription($cacheKey, $responseData);
+
                 return $this->allowRequest($request, $next);
 
             case 'expired':
                 $this->cacheExpiredSubscription($cacheKey);
+
                 return $this->handleExpiredSubscription($request, $config);
 
             default:
@@ -396,7 +391,8 @@ class CheckSubscriptionMiddleware
      */
     private function isApiRequest(Request $request, array $config): bool
     {
-        $apiPath = rtrim($config['domain'], '/') . '/api';
+        $apiPath = rtrim($config['domain'], '/').'/api';
+
         return strpos($request->url(), $apiPath) !== false;
     }
 
@@ -441,16 +437,16 @@ class CheckSubscriptionMiddleware
         $expiresAt = Carbon::now()->addHours(self::CACHE_ACTIVE_TTL);
 
         $cacheData = [
-            'version'          => $responseData['version'] ?? null,   // ← new
-            'GTMID'            => $responseData['gtmid'] ?? null,
-            'enableGTM'        => $responseData['enableGTM'] ?? false,
-            'expireDate'       => $responseData['expiry_date'] ?? null,
-            'url'              => $responseData['redirect_url'] ?? null,
-            'web_features'     => $responseData['web_features'] ?? [],
-            'mobile_features'  => $responseData['mobile_features'] ?? [],
+            'version' => $responseData['version'] ?? null,   // ← new
+            'GTMID' => $responseData['gtmid'] ?? null,
+            'enableGTM' => $responseData['enableGTM'] ?? false,
+            'expireDate' => $responseData['expiry_date'] ?? null,
+            'url' => $responseData['redirect_url'] ?? null,
+            'web_features' => $responseData['web_features'] ?? [],
+            'mobile_features' => $responseData['mobile_features'] ?? [],
             'max_mobile_users' => $responseData['max_mobile_users'] ?? 0,
-            'status'           => 'active',
-            'expires_at'       => $expiresAt->toDateTimeString(),
+            'status' => 'active',
+            'expires_at' => $expiresAt->toDateTimeString(),
         ];
 
         Cache::put($cacheKey, $cacheData, $expiresAt);
@@ -490,19 +486,19 @@ class CheckSubscriptionMiddleware
         $maxMobileUsers = $data['max_mobile_users'] ?? 0;
 
         // Extract common fields with fallbacks for API vs Cache key names
-        $gtmId      = $data['GTMID'] ?? $data['gtmid'] ?? null;
-        $enableGTM  = $data['enableGTM'] ?? false;
+        $gtmId = $data['GTMID'] ?? $data['gtmid'] ?? null;
+        $enableGTM = $data['enableGTM'] ?? false;
         $expireDate = $data['expireDate'] ?? $data['expiry_date'] ?? null;
-        $url        = $data['url'] ?? $data['redirect_url'] ?? null;
+        $url = $data['url'] ?? $data['redirect_url'] ?? null;
 
         $sharedData = [
-            'GTMID'            => $gtmId,
-            'enableGTM'        => $enableGTM,
-            'expireDate'       => $expireDate,
-            'web_features'     => $webFeatures,
-            'mobile_features'  => $mobileFeatures,
+            'GTMID' => $gtmId,
+            'enableGTM' => $enableGTM,
+            'expireDate' => $expireDate,
+            'web_features' => $webFeatures,
+            'mobile_features' => $mobileFeatures,
             'max_mobile_users' => $maxMobileUsers,
-            'url'              => $url,
+            'url' => $url,
         ];
 
         // 1. Share with Blade views (.blade.php)
@@ -521,14 +517,14 @@ class CheckSubscriptionMiddleware
     {
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0x0fff) | 0x4000,
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff)
+            mt_rand(0, 0xFFFF),
+            mt_rand(0, 0xFFFF),
+            mt_rand(0, 0xFFFF),
+            mt_rand(0, 0x0FFF) | 0x4000,
+            mt_rand(0, 0x3FFF) | 0x8000,
+            mt_rand(0, 0xFFFF),
+            mt_rand(0, 0xFFFF),
+            mt_rand(0, 0xFFFF)
         );
     }
 
@@ -547,7 +543,7 @@ class CheckSubscriptionMiddleware
     {
         return response()->json([
             'status' => 'error',
-            'message' => $message
+            'message' => $message,
         ], $statusCode)->withHeaders(self::SECURITY_HEADERS);
     }
 
@@ -559,7 +555,7 @@ class CheckSubscriptionMiddleware
         return response()->json([
             'success' => false,
             'message' => $message,
-            'error_code' => $errorCode
+            'error_code' => $errorCode,
         ], $statusCode)->withHeaders(self::SECURITY_HEADERS);
     }
 
@@ -578,7 +574,7 @@ class CheckSubscriptionMiddleware
 
         // ---- 1. Normalize ONCE — lowercase, trim, drop empties, dedupe ----
         $permissionNames = array_values(array_unique(array_filter(array_map(
-            fn($name) => is_string($name) ? strtolower(trim($name)) : null,
+            fn ($name) => is_string($name) ? strtolower(trim($name)) : null,
             $permissionNames
         ))));
 
@@ -592,7 +588,7 @@ class CheckSubscriptionMiddleware
         // Note: names are already lowercase here, so no strtolower needed.
         foreach ($permissionNames as $name) {
             Permission::firstOrCreate([
-                'name'       => $name,
+                'name' => $name,
                 'guard_name' => $guard,
             ]);
         }
@@ -610,7 +606,7 @@ class CheckSubscriptionMiddleware
         }
 
         // ---- 5. Clear Spatie cache so @can() / hasPermissionTo() see the change ----
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     /**
@@ -618,6 +614,6 @@ class CheckSubscriptionMiddleware
      */
     private function generateVersionPointerKey(string $domain): string
     {
-        return self::CACHE_KEY_PREFIX . 'version_' . md5($domain);
+        return self::CACHE_KEY_PREFIX.'version_'.md5($domain);
     }
 }

@@ -13,15 +13,18 @@ class Notice extends Model
         'user_id', 'title', 'notice', 'expiry_date',
     ];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(Mobileuser::class);
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
     }
 
-    public function noticeimage(){
-        return $this->hasMany(NoticeImage::class,'notice_id');
+    public function noticeimage()
+    {
+        return $this->hasMany(NoticeImage::class, 'notice_id');
     }
 }

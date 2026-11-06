@@ -4,40 +4,40 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\AlertReminder;
-use Illuminate\Http\Request;
-use App\Models\Session;
-use App\Models\Schedulevisit;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use App\Models\SchedulePurpose;
 use App\Models\Dealer;
 use App\Models\Mobileuser;
 use App\Models\Purpose;
 use App\Models\ReminderPurpose;
+use App\Models\SchedulePurpose;
+use App\Models\Schedulevisit;
+use App\Models\Session;
 use App\Models\UnlistedDealer;
 use App\Models\VisitPurpose;
 use App\Traits\FCM;
 use App\Traits\Geocodable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class SessionController extends Controller
 {
-    use Geocodable, FCM;
+    use FCM, Geocodable;
 
     public function store(Request $request)
     {
         // 1. Authenticated user check
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
         }
 
         // 2. Attendance status validation
         $attendanceStatus = $user->latestAttendance?->status ?? null;
         $allowedStatuses = ['checkin', 'breakend'];
-        if (!in_array(strtolower($attendanceStatus), $allowedStatuses)) {
+        if (! in_array(strtolower($attendanceStatus), $allowedStatuses)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'You must check-in/break-end before placing an order.'
+                'message' => 'You must check-in/break-end before placing an order.',
             ], 403);
         }
 
@@ -51,8 +51,9 @@ class SessionController extends Controller
                 function ($attribute, $value, $fail) {
                     $ids = explode(' :: ', $value);
                     foreach ($ids as $id) {
-                        if (!ctype_digit($id)) {
+                        if (! ctype_digit($id)) {
                             $fail("The purpose_id field must contain numeric IDs separated by ' :: '.");
+
                             return;
                         }
                     }
@@ -65,7 +66,7 @@ class SessionController extends Controller
             '*.remarks' => 'required|string|max:500',
             '*.latitude' => 'nullable|numeric|between:-90,90',
             '*.longitude' => 'nullable|numeric|between:-180,180',
-             '*.is_physical_visit' => 'nullable|boolean',
+            '*.is_physical_visit' => 'nullable|boolean',
             '*.physical_visit' => 'nullable|boolean',
         ];
 
@@ -91,13 +92,13 @@ class SessionController extends Controller
 
         $validPurposeIds = Purpose::whereIn('id', array_unique($allPurposeIds))
             ->pluck('id')
-            ->map(fn($id) => (string) $id) // Ensure string keys for array access
+            ->map(fn ($id) => (string) $id) // Ensure string keys for array access
             ->flip();
 
         // 6. Group inputs by (user_id, dealer_code, date) for efficient schedule fetching
         $combinations = [];
         $groupedInputs = collect($inputs)->groupBy(function ($item) {
-            return $item['user_id'] . '|' . $item['dealer_code'] . '|' . $item['date'];
+            return $item['user_id'].'|'.$item['dealer_code'].'|'.$item['date'];
         });
 
         // Prepare for schedule queries
@@ -120,7 +121,7 @@ class SessionController extends Controller
 
             // Map schedules by composite key for quick lookup
             foreach ($schedules as $schedule) {
-                $key = $schedule->user_id . '|' . $schedule->dealer_code . '|' . $schedule->date;
+                $key = $schedule->user_id.'|'.$schedule->dealer_code.'|'.$schedule->date;
                 $scheduleMap[$key][] = $schedule;
             }
         }
@@ -143,22 +144,22 @@ class SessionController extends Controller
                         break;
                     }
                 }
-                if (!$hasValidPurpose) {
+                if (! $hasValidPurpose) {
                     continue;
                 }
 
                 $dealer = $dealers->get($req['dealer_code']);
-                if (!$dealer) {
+                if (! $dealer) {
                     continue; // Skip if dealer not found (shouldn't happen due to validation)
                 }
 
                 // Get schedules for this combination
-                $compositeKey = $req['user_id'] . '|' . $req['dealer_code'] . '|' . $req['date'];
+                $compositeKey = $req['user_id'].'|'.$req['dealer_code'].'|'.$req['date'];
                 $schedules = $scheduleMap[$compositeKey] ?? [];
 
                 // Update schedule purposes and track which schedules become fully visited
                 $scheduleIdsToUpdate = [];
-                if (!empty($schedules)) {
+                if (! empty($schedules)) {
                     $scheduleIds = collect($schedules)->pluck('id')->all();
 
                     // Batch update SchedulePurpose for all related schedules
@@ -183,7 +184,7 @@ class SessionController extends Controller
                     }
 
                     // Batch update schedules
-                    if (!empty($scheduleIdsToUpdate)) {
+                    if (! empty($scheduleIdsToUpdate)) {
                         Schedulevisit::whereIn('id', $scheduleIdsToUpdate)->update(['is_visit' => 1]);
                     }
                 }
@@ -201,9 +202,9 @@ class SessionController extends Controller
                     'date' => $req['date'],
                     'status' => $req['status'],
                     'remarks' => $req['remarks'],
-                    'is_physical_visit'  => $req['is_physical_visit'] ?? null,
-                    'lat_lng' => !empty($req['latitude']) && !empty($req['longitude'])
-                        ? $req['latitude'] . ',' . $req['longitude']
+                    'is_physical_visit' => $req['is_physical_visit'] ?? null,
+                    'lat_lng' => ! empty($req['latitude']) && ! empty($req['longitude'])
+                        ? $req['latitude'].','.$req['longitude']
                         : null,
                     'location' => $location,
                 ]);
@@ -225,10 +226,9 @@ class SessionController extends Controller
             }
 
             // Batch insert all VisitPurpose records
-            if (!empty($visitPurposesBatch)) {
+            if (! empty($visitPurposesBatch)) {
                 VisitPurpose::insert($visitPurposesBatch);
             }
-
 
             // Send one FCM per user after commit — aggregated across all their sessions
             try {
@@ -242,14 +242,14 @@ class SessionController extends Controller
 
                     // Unique dealer names for this user's batch
                     $dealerNames = $userSessions
-                        ->map(fn($s) => $dealers->get($s->dealer_code)?->name)
+                        ->map(fn ($s) => $dealers->get($s->dealer_code)?->name)
                         ->filter()
                         ->unique()
                         ->values()
                         ->all();
 
                     $status = $userSessions->first()->status;
-                    $time   = $userSessions->first()->start_time;
+                    $time = $userSessions->first()->start_time;
 
                     $this->sendFCMSenior($user, $status, $time, $dealerNames, count($dealerNames));
                 }
@@ -269,7 +269,7 @@ class SessionController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'An error occurred while processing your request. Please try again later.'
+                'message' => 'An error occurred while processing your request. Please try again later.',
             ], 500);
         }
     }
@@ -278,50 +278,51 @@ class SessionController extends Controller
     {
         // 1. Authentication
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
         }
 
         // 2. Attendance check
         $attendanceStatus = $user->latestAttendance?->status ?? null;
         $allowedStatuses = ['checkin', 'breakend'];
-        if (!in_array(strtolower($attendanceStatus), $allowedStatuses)) {
+        if (! in_array(strtolower($attendanceStatus), $allowedStatuses)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'You must check-in/break-end before placing an order.'
+                'message' => 'You must check-in/break-end before placing an order.',
             ], 403);
         }
 
         // 3. Enhanced validation
         $rules = [
             'unlisted_dealer_id' => 'nullable|required_without:dealer_name|exists:unlisted_dealers,id',
-            'dealer_name'        => 'nullable|required_without:unlisted_dealer_id|string|max:191',
-            'address'            => 'nullable|required_without:unlisted_dealer_id|string|max:191',
-            'contact'            => 'nullable|required_without:unlisted_dealer_id|string|max:20',     // Added max length
-            'area_code'          => 'nullable|required_without:unlisted_dealer_id|string|max:20',     // Added max length
-            'subarea'            => 'nullable|required_without:unlisted_dealer_id',     // Added max length
-            'user_id'            => 'required|exists:mobileusers,id',
-            'purpose_id'         => [
+            'dealer_name' => 'nullable|required_without:unlisted_dealer_id|string|max:191',
+            'address' => 'nullable|required_without:unlisted_dealer_id|string|max:191',
+            'contact' => 'nullable|required_without:unlisted_dealer_id|string|max:20',     // Added max length
+            'area_code' => 'nullable|required_without:unlisted_dealer_id|string|max:20',     // Added max length
+            'subarea' => 'nullable|required_without:unlisted_dealer_id',     // Added max length
+            'user_id' => 'required|exists:mobileusers,id',
+            'purpose_id' => [
                 'required',
                 'string',
                 function ($attribute, $value, $fail) {
                     $ids = explode(' :: ', $value);
                     foreach ($ids as $id) {
-                        if (!ctype_digit($id)) {
+                        if (! ctype_digit($id)) {
                             $fail("The purpose_id field must contain numeric IDs separated by ' :: '.");
+
                             return;
                         }
                     }
                 },
             ],
-            'date'             => 'nullable|date_format:Y-m-d',
-            'start_time'       => 'nullable|date_format:H:i',
-            'end_time'         => 'nullable|date_format:H:i|after:start_time',
-            'remarks'          => 'required|string|max:255',
-            'latitude'         => 'nullable|nullable|required_without:unlisted_dealer_id|numeric|between:-90,90',   // Standard lat range
-            'longitude'        => 'nullable|nullable|required_without:unlisted_dealer_id|numeric|between:-180,180', // Standard lng range
-            'next_visit_date'  => 'nullable|date_format:Y-m-d',
-            'contact_person'   => 'nullable|max:191',
+            'date' => 'nullable|date_format:Y-m-d',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
+            'remarks' => 'required|string|max:255',
+            'latitude' => 'nullable|nullable|required_without:unlisted_dealer_id|numeric|between:-90,90',   // Standard lat range
+            'longitude' => 'nullable|nullable|required_without:unlisted_dealer_id|numeric|between:-180,180', // Standard lng range
+            'next_visit_date' => 'nullable|date_format:Y-m-d',
+            'contact_person' => 'nullable|max:191',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -335,10 +336,10 @@ class SessionController extends Controller
         $purposeIds = explode(' :: ', $validated['purpose_id']);
         $existingPurposes = Purpose::whereIn('id', $purposeIds)->pluck('id')->toArray();
         $invalidPurposes = array_diff($purposeIds, $existingPurposes);
-        if (!empty($invalidPurposes)) {
+        if (! empty($invalidPurposes)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid purpose_id(s): ' . implode(', ', $invalidPurposes)
+                'message' => 'Invalid purpose_id(s): '.implode(', ', $invalidPurposes),
             ], 422);
         }
 
@@ -346,50 +347,50 @@ class SessionController extends Controller
 
         try {
             // 6. Create the session (manual assignment for clarity)
-            if (!empty($validated['unlisted_dealer_id'])) {
+            if (! empty($validated['unlisted_dealer_id'])) {
                 $unlistedDealer = UnlistedDealer::findOrFail($validated['unlisted_dealer_id']);
             } else {
                 $unlistedDealer = UnlistedDealer::firstOrCreate(
                     ['contact' => $validated['contact']],
                     [
-                        'name'    => $validated['dealer_name'],
+                        'name' => $validated['dealer_name'],
                         'address' => $validated['address'],
                         'area_code' => $validated['area_code'],
                         'subarea' => $validated['subarea'],
-                        'lat'     => $validated['latitude']  ?? null,
-                        'lng'     => $validated['longitude'] ?? null,
+                        'lat' => $validated['latitude'] ?? null,
+                        'lng' => $validated['longitude'] ?? null,
                     ]
                 );
             }
 
-            $session = new Session();
-            $session->user_id          = $user->id;   // Always use authenticated user
-            $session->dealer_name      = $unlistedDealer->name;
-            $session->dealer_address   = $unlistedDealer->address;
-            $session->contact          = $unlistedDealer->contact;
-            $session->purpose_id       = $validated['purpose_id']; // Keep concatenated string
-            $session->start_time       = $validated['start_time'] ?? null;
-            $session->end_time         = $validated['end_time'] ?? null;
-            $session->date             = $validated['date'] ?? null;
-            $session->status           = 'Unlisted';
-            $session->next_visit_date  = $validated['next_visit_date'] ?? null;
-            $session->contact_person   = $validated['contact_person'] ?? null;
-            $session->remarks          = $validated['remarks'];
-            $session->latitude         = $unlistedDealer->latitude;
-            $session->longitude        = $unlistedDealer->longitude;
+            $session = new Session;
+            $session->user_id = $user->id;   // Always use authenticated user
+            $session->dealer_name = $unlistedDealer->name;
+            $session->dealer_address = $unlistedDealer->address;
+            $session->contact = $unlistedDealer->contact;
+            $session->purpose_id = $validated['purpose_id']; // Keep concatenated string
+            $session->start_time = $validated['start_time'] ?? null;
+            $session->end_time = $validated['end_time'] ?? null;
+            $session->date = $validated['date'] ?? null;
+            $session->status = 'Unlisted';
+            $session->next_visit_date = $validated['next_visit_date'] ?? null;
+            $session->contact_person = $validated['contact_person'] ?? null;
+            $session->remarks = $validated['remarks'];
+            $session->latitude = $unlistedDealer->latitude;
+            $session->longitude = $unlistedDealer->longitude;
             $session->save();
 
             // 7. Create alert and batch-insert reminder purposes if next_visit_date provided
-            if (!empty($validated['next_visit_date'])) {
+            if (! empty($validated['next_visit_date'])) {
                 $alert = AlertReminder::create([
-                    'dealer_name'    => $unlistedDealer->name,
+                    'dealer_name' => $unlistedDealer->name,
                     'dealer_contact' => $unlistedDealer->contact,
                     'dealer_address' => $unlistedDealer->address,
-                    'date'           => $validated['next_visit_date'],
-                    'remarks'        => $validated['remarks'],
-                    'status'         => 'Pending',
-                    'flag'           => 'Alert',
-                    'mobileuser_id'  => $user->id,
+                    'date' => $validated['next_visit_date'],
+                    'remarks' => $validated['remarks'],
+                    'status' => 'Pending',
+                    'flag' => 'Alert',
+                    'mobileuser_id' => $user->id,
                 ]);
 
                 // Batch insert reminder purposes
@@ -397,10 +398,10 @@ class SessionController extends Controller
                 $reminderPurposes = [];
                 foreach ($purposeIds as $purposeId) {
                     $reminderPurposes[] = [
-                        'purpose_id'        => $purposeId,
-                        'alertreminder_id'  => $alert->id,
-                        'created_at'        => $now,
-                        'updated_at'        => $now,
+                        'purpose_id' => $purposeId,
+                        'alertreminder_id' => $alert->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ];
                 }
                 ReminderPurpose::insert($reminderPurposes);
@@ -411,11 +412,11 @@ class SessionController extends Controller
             $visitPurposes = [];
             foreach ($purposeIds as $purposeId) {
                 $visitPurposes[] = [
-                    'user_id'    => $session->user_id,
-                    'visit_id'   => $session->id,
+                    'user_id' => $session->user_id,
+                    'visit_id' => $session->id,
                     'purpose_id' => $purposeId,
-                    'date'       => $session->date,
-                    'status'     => 'Unlisted',
+                    'date' => $session->date,
+                    'status' => 'Unlisted',
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
@@ -438,14 +439,15 @@ class SessionController extends Controller
             $data['unlisted_dealer'] = $unlistedDealer;
 
             return response()->json([
-                'status'    => 'success',
-                'message'   => 'Session created successfully.',
-                'data'      => $data
+                'status' => 'success',
+                'message' => 'Session created successfully.',
+                'data' => $data,
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'An error occurred while creating the session. Please try again later.',
                 'error_details' => $e->getMessage(),
             ], 500);
@@ -482,22 +484,22 @@ class SessionController extends Controller
         } elseif ($count === 1) {
             $dealerList = $dealerNames[0];
         } elseif ($count === 2) {
-            $dealerList = $dealerNames[0] . ' and ' . $dealerNames[1];
+            $dealerList = $dealerNames[0].' and '.$dealerNames[1];
         } else {
-            $others     = $count - 2;
-            $dealerList = $dealerNames[0] . ', ' . $dealerNames[1]
-                . ', and ' . $others . ' other' . ($others > 1 ? 's' : '');
+            $others = $count - 2;
+            $dealerList = $dealerNames[0].', '.$dealerNames[1]
+                .', and '.$others.' other'.($others > 1 ? 's' : '');
         }
 
-        $isOnline  = strtolower($status) === 'online';
+        $isOnline = strtolower($status) === 'online';
         $visitType = $isOnline ? 'onsite' : 'offsite';
 
         $title = 'Team Attendance Update';
-        $body  = "{$user->name} conducted an {$visitType} visit to {$dealerList} at {$dateTime}.";
+        $body = "{$user->name} conducted an {$visitType} visit to {$dealerList} at {$dateTime}.";
 
         $data = [
             'route_channel' => 'my-team',
-            'user_id'       => $user->id,
+            'user_id' => $user->id,
         ];
 
         $report = $this->sendMulticast($tokens, $title, $body, $data);
@@ -530,12 +532,12 @@ class SessionController extends Controller
         $dateTime = $time ? date('g:i A', strtotime($time)) : date('g:i A');
 
         $title = 'Team Visit Update';
-        $body  = "{$user->name} conducted an unlisted visit to {$dealerName} at {$dateTime}.";
+        $body = "{$user->name} conducted an unlisted visit to {$dealerName} at {$dateTime}.";
 
         $data = [
             'route_channel' => 'my-team',
-            'user_id'       => $user->id,
-            'visit_type'    => 'unlisted',
+            'user_id' => $user->id,
+            'visit_type' => 'unlisted',
         ];
 
         $report = $this->sendMulticast($tokens, $title, $body, $data);

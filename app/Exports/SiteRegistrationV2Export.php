@@ -18,12 +18,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class SiteRegistrationV2Export implements
-    FromQuery,
-    WithChunkReading,
-    WithMapping,
-    WithCustomStartCell,
-    WithEvents
+class SiteRegistrationV2Export implements FromQuery, WithChunkReading, WithCustomStartCell, WithEvents, WithMapping
 {
     /** How many sites to read from the DB per batch. */
     private const CHUNK_SIZE = 500;
@@ -74,6 +69,7 @@ class SiteRegistrationV2Export implements
 
     /**
      * Unit per product type. Anything not listed falls back to 'LTR'.
+     *
      * @var array<string, string>
      */
     private const TYPE_UNITS = [
@@ -141,7 +137,7 @@ class SiteRegistrationV2Export implements
                     ->orderBy('types')
                     ->orderBy('name')
                     ->get()
-                    ->map(fn($row) => [
+                    ->map(fn ($row) => [
                         'type' => $row->types,
                         'name' => $row->name,
                     ])
@@ -153,8 +149,8 @@ class SiteRegistrationV2Export implements
         $buckets = [];
 
         foreach ($schema as $item) {
-            $type    = $this->normalizeTypeDisplay($item['type']);
-            $name    = $item['name'];
+            $type = $this->normalizeTypeDisplay($item['type']);
+            $name = $item['name'];
             $subtype = $this->detectSubtype($name); // exterior | interior | general
 
             $buckets[$type] ??= ['exterior' => [], 'interior' => [], 'general' => []];
@@ -197,7 +193,7 @@ class SiteRegistrationV2Export implements
             foreach ($groups as $group) {
                 foreach ($group['products'] as $name) {
                     $this->productColumnIndex[$name] = count($this->flatProductNames);
-                    $this->flatProductNames[]        = $name;
+                    $this->flatProductNames[] = $name;
                 }
             }
         }
@@ -212,11 +208,11 @@ class SiteRegistrationV2Export implements
         $type = ucwords(strtolower(trim((string) $type)));
 
         return match ($type) {
-            '', 'Uncategorized'      => 'Uncategorized',
-            'Top'                     => 'Top Coat',
-            'Under'                   => 'Under Coat',
-            'Waterproofing'           => 'Water Proofing',
-            default                   => $type,
+            '', 'Uncategorized' => 'Uncategorized',
+            'Top' => 'Top Coat',
+            'Under' => 'Under Coat',
+            'Waterproofing' => 'Water Proofing',
+            default => $type,
         };
     }
 
@@ -284,7 +280,7 @@ class SiteRegistrationV2Export implements
             }
 
             $typeStart = $col;
-            $typeEnd   = $col + $typeColumns - 1;
+            $typeEnd = $col + $typeColumns - 1;
 
             // Row 1: type name (merged across the whole type block)
             $sheet->setCellValue([$typeStart, 1], $type);
@@ -300,7 +296,7 @@ class SiteRegistrationV2Export implements
                 }
 
                 $subStart = $col;
-                $subEnd   = $col + $count - 1;
+                $subEnd = $col + $count - 1;
 
                 // Unit for this type — 'KG' for Putty, 'LTR' for everything else
                 $unit = $this->unitFor($type);
@@ -314,13 +310,13 @@ class SiteRegistrationV2Export implements
 
                     // Row 3: product names with unit
                     foreach ($group['products'] as $name) {
-                        $sheet->setCellValue([$col, 3], $name . ' (' . $unit . ')');
+                        $sheet->setCellValue([$col, 3], $name.' ('.$unit.')');
                         $col++;
                     }
                 } else {
                     // No subtype — merge row 2–3 vertically per product
                     foreach ($group['products'] as $name) {
-                        $sheet->setCellValue([$col, 2], $name . ' (' . $unit . ')');
+                        $sheet->setCellValue([$col, 2], $name.' ('.$unit.')');
                         $sheet->mergeCells([$col, 2, $col, 3]);
                         $col++;
                     }
@@ -364,30 +360,30 @@ class SiteRegistrationV2Export implements
 
     private function styleSheet(Worksheet $sheet): void
     {
-        $highestRow      = $sheet->getHighestRow();
-        $highestCol      = $sheet->getHighestColumn();
+        $highestRow = $sheet->getHighestRow();
+        $highestCol = $sheet->getHighestColumn();
         $highestColIndex = Coordinate::columnIndexFromString($highestCol);
 
         // ---- Header rows 1–3 ----
         $sheet->getStyle("A1:{$highestCol}3")->applyFromArray([
             'font' => [
-                'bold'  => true,
-                'size'  => 11,
+                'bold' => true,
+                'size' => 11,
                 'color' => ['rgb' => 'FFFFFF'],
             ],
             'fill' => [
-                'fillType'   => Fill::FILL_SOLID,
+                'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '282D7E'],
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
             ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['rgb' => 'FFFFFF'],
+                    'color' => ['rgb' => 'FFFFFF'],
                 ],
             ],
         ]);
@@ -405,7 +401,7 @@ class SiteRegistrationV2Export implements
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['rgb' => 'E5E7EB'],
+                    'color' => ['rgb' => 'E5E7EB'],
                 ],
             ],
             'alignment' => [
@@ -423,7 +419,7 @@ class SiteRegistrationV2Export implements
 
         // Center numeric product cells
         $firstProductCol = Coordinate::stringFromColumnIndex(count($this->fixedHeadings) + 1);
-        $lastProductCol  = Coordinate::stringFromColumnIndex(
+        $lastProductCol = Coordinate::stringFromColumnIndex(
             $highestColIndex - count($this->trailingHeadings)
         );
         $sheet->getStyle("{$firstProductCol}4:{$lastProductCol}{$highestRow}")
@@ -455,14 +451,14 @@ class SiteRegistrationV2Export implements
         $margins->setFooter(0.25);
 
         $sheet->getPageSetup()->setPrintArea(
-            'A1:' . $sheet->getHighestColumn() . $sheet->getHighestRow()
+            'A1:'.$sheet->getHighestColumn().$sheet->getHighestRow()
         );
 
         $sheet->freezePane('C4');
 
         $sheet->getHeaderFooter()
             ->setOddHeader('&L&B Site Registrations&R Printed: &D &T')
-            ->setOddFooter('&L' . config('app.name') . '&CPage &P of &N&R&F');
+            ->setOddFooter('&L'.config('app.name').'&CPage &P of &N&R&F');
     }
 
     /* ============================================================
@@ -471,7 +467,7 @@ class SiteRegistrationV2Export implements
     private function row(SiteRegistrationV2 $site): array
     {
         $householdContact = $site->contacts
-            ->sortBy(fn($c) => strtolower($c->role) === 'owner' ? 0 : 1)
+            ->sortBy(fn ($c) => strtolower($c->role) === 'owner' ? 0 : 1)
             ->first()?->phone;
 
         $fixed = [
@@ -485,7 +481,7 @@ class SiteRegistrationV2Export implements
             $householdContact,
             $site->floors,
             $site->dealer
-                ? $site->dealer->name . ' (' . $site->dealer->code . ')'
+                ? $site->dealer->name.' ('.$site->dealer->code.')'
                 : $site->dealer_code,
         ];
 
@@ -504,7 +500,7 @@ class SiteRegistrationV2Export implements
 
         $trailing = [
             $site->registeredByDashboard?->name ?? $site->registeredBy?->name,
-            'Status: ' . ucwords(str_replace('_', ' ', $site->status)),
+            'Status: '.ucwords(str_replace('_', ' ', $site->status)),
         ];
 
         return array_merge($fixed, $productColumns, $trailing);

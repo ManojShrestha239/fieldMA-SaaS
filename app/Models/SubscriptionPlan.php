@@ -51,7 +51,7 @@ class SubscriptionPlan extends Model
             [$featureKey, $subFeature] = explode('.', $featureKey, 2);
         }
 
-        if (!array_key_exists($featureKey, $this->features)) {
+        if (! array_key_exists($featureKey, $this->features)) {
             return false;
         }
 
@@ -62,6 +62,7 @@ class SubscriptionPlan extends Model
             if (is_bool($featureData)) {
                 return $featureData;
             }
+
             return true;
         }
 
@@ -73,8 +74,9 @@ class SubscriptionPlan extends Model
                 if (in_array($subFeature, $subs, true)) {
                     return true;
                 }
+
                 // Check associative array: ["new_order" => true]
-                return !empty($subs[$subFeature]);
+                return ! empty($subs[$subFeature]);
             }
         }
 
@@ -112,6 +114,7 @@ class SubscriptionPlan extends Model
             if (array_is_list($subs)) {
                 return $subs;
             }
+
             // If associative array: ['new_order' => true]
             return array_keys(array_filter($subs));
         }
@@ -123,8 +126,7 @@ class SubscriptionPlan extends Model
      * Get all enabled features for a given module, or a map of all enabled modules
      * and their features if no module is specified.
      *
-     * @param string|null $module Canonical module key (e.g. 'dealer_orders', 'visits')
-     * @return array
+     * @param  string|null  $module  Canonical module key (e.g. 'dealer_orders', 'visits')
      */
     public function getEnabledFeatures(?string $module = null): array
     {
@@ -132,7 +134,7 @@ class SubscriptionPlan extends Model
             return $this->getEnabledFeaturesForModule($module);
         }
 
-        if (empty($this->features) || !is_array($this->features)) {
+        if (empty($this->features) || ! is_array($this->features)) {
             return [];
         }
 
@@ -147,7 +149,6 @@ class SubscriptionPlan extends Model
     /**
      * Get all enabled features for a given module.
      *
-     * @param string $module
      * @return array<int, string>
      */
     public function getEnabledFeaturesForModule(string $module): array
@@ -157,9 +158,6 @@ class SubscriptionPlan extends Model
 
     /**
      * Alias for getEnabledFeatures().
-     *
-     * @param string|null $module
-     * @return array
      */
     public function getAllEnabledFeatures(?string $module = null): array
     {

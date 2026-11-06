@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 class AutoCheckout extends Command
 {
     use FCM;
+
     /**
      * The name and signature of the console command.
      *
@@ -50,7 +51,7 @@ class AutoCheckout extends Command
             $date = $user->latestAttendance->date ?? date('Y-m-d');
             $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $date])->first();
 
-            if (!$attendance) {
+            if (! $attendance) {
                 $attendances[] = [
                     'mobileuser_id' => $user->id,
                     'checkin_date' => date('H:i:s'),
@@ -58,15 +59,15 @@ class AutoCheckout extends Command
                     'status' => 'checkout',
                     'address' => null,
                     'checkinkm' => 0,
-                    'visit_method' => "Single",
-                    'remarks' => "Auto checkout by system.",
+                    'visit_method' => 'Single',
+                    'remarks' => 'Auto checkout by system.',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
             } else {
                 $attendance->checkoutkm = 0;
                 $attendance->status = 'checkout';
-                $attendance->remarks = "Auto checkout by system.";
+                $attendance->remarks = 'Auto checkout by system.';
                 $attendance->save();
             }
 
@@ -79,8 +80,8 @@ class AutoCheckout extends Command
                 'status' => 'checkout',
                 'address' => null,
                 'km' => 0,
-                'visit_method' => "Single",
-                'remarks' => "Auto checkout by system.",
+                'visit_method' => 'Single',
+                'remarks' => 'Auto checkout by system.',
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -88,21 +89,20 @@ class AutoCheckout extends Command
             $this->info('Processing location data...');
             $latestLocation = Location::where('user_id', $user->id)->latest()->first();
             $coordinates = $latestLocation->coordinates ?? [];
-            $latestCoordinate = !empty($coordinates) ? end($coordinates) : null;
+            $latestCoordinate = ! empty($coordinates) ? end($coordinates) : null;
             $latitude = $latestCoordinate['latitude'] ?? 'N/A';
             $longitude = $latestCoordinate['longitude'] ?? 'N/A';
 
             $location = Location::where(['day' => date('Y-m-d'), 'user_id' => $user->id])->first();
 
-
-            if (!$location) {
-                $cordinates[] = array(
+            if (! $location) {
+                $cordinates[] = [
                     'latitude' => $latitude,
                     'longitude' => $longitude,
-                    'time' => date('H:i:s')
-                );
+                    'time' => date('H:i:s'),
+                ];
 
-                $location = new Location();
+                $location = new Location;
 
                 $location->user_id = $user->id;
                 $location->day = date('Y-m-d');
@@ -112,11 +112,11 @@ class AutoCheckout extends Command
 
                 $location->save();
             } else {
-                $cordinates[] = array(
+                $cordinates[] = [
                     'latitude' => $latitude,
                     'longitude' => $longitude,
-                    'time' => date('H:i:s')
-                );
+                    'time' => date('H:i:s'),
+                ];
                 $location->coordinates = array_merge($location->coordinates, $cordinates);
 
                 $location->save();
@@ -124,23 +124,23 @@ class AutoCheckout extends Command
         }
 
         $this->info('Inserting auto checkout...');
-        if (!empty($attendances)) {
+        if (! empty($attendances)) {
             Attendance::insert($attendances);
         }
 
         $this->info('Inserting attendance status...');
-        if (!empty($attendanceStatuses)) {
+        if (! empty($attendanceStatuses)) {
             AttendanceStatus::insert($attendanceStatuses);
         }
 
         $this->info('Sending notification...');
         $fcmid = Mobileuser::first()->fcm_id;
         $topic = null;
-        $flag = "Auto Checkout";
-        $title = "Auto Checkout Notice";
-        $body = "Your attendance has been auto checked out by the system.";
+        $flag = 'Auto Checkout';
+        $title = 'Auto Checkout Notice';
+        $body = 'Your attendance has been auto checked out by the system.';
         $data = [
-            'title' => "Auto Checkout Notice",
+            'title' => 'Auto Checkout Notice',
             'msg' => $body,
             'flag' => $flag,
         ];
@@ -151,6 +151,6 @@ class AutoCheckout extends Command
         $this->info('Auto checkout notification sent successfully.');
         $endTime = microtime(true);
         $responseTime = $endTime - $startTime;
-        $this->info('Response time: ' . $responseTime . ' seconds');
+        $this->info('Response time: '.$responseTime.' seconds');
     }
 }

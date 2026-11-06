@@ -13,6 +13,7 @@ class MessageGroup extends Model
     {
         return $this->hasMany('App\Models\MessageGroupUser');
     }
+
     public function message()
     {
         return $this->hasMany('App\Models\Message', 'groupid');

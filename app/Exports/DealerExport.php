@@ -3,18 +3,18 @@
 namespace App\Exports;
 
 use App\Models\Dealer;
-use App\Models\Delaerr;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class DealerExport implements FromCollection,WithHeadings
+class DealerExport implements FromCollection, WithHeadings
 {
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return Collection
+     */
     public function collection()
     {
-        
+
         return Dealer::select(
             'code',
             'name',
@@ -32,12 +32,13 @@ class DealerExport implements FromCollection,WithHeadings
             'created_at',
             'updated_at'
         )
-            
+
             ->get();
     }
+
     public function headings(): array
     {
-        return[
+        return [
             [
                 'code',
                 'name',
@@ -53,8 +54,8 @@ class DealerExport implements FromCollection,WithHeadings
                 'status',
                 'active_status',
                 'created_at',
-                'updated_at'
-            ]
-            ];
+                'updated_at',
+            ],
+        ];
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateDealersTable extends Migration
 {
@@ -20,15 +20,15 @@ class CreateDealersTable extends Migration
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
             $table->string('mobile')->unique();
-            $table->string('email')->nullable();//->unique();
+            $table->string('email')->nullable(); // ->unique();
             $table->string('phone')->nullable();
             $table->string('state')->nullable();
             $table->string('area_code');
             $table->foreign('area_code')->references('areacode')->on('areas');
             $table->string('subarea');
             $table->integer('order_limit')->unsigned()->nullable();
-            $table->string('status')->default("1");
-            $table->string('active_status')->default("Active");
+            $table->string('status')->default('1');
+            $table->string('active_status')->default('Active');
             $table->string('ledger_file')->nullable();
             $table->float('due_amount')->default(0);
             $table->float('cheque_in_hand')->default(0);

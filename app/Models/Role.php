@@ -10,12 +10,14 @@ class Role extends Model
     use HasFactory;
 
     protected $fillable = [
-        'role','status'
+        'role', 'status',
     ];
 
-    public function mobileuser(){
+    public function mobileuser()
+    {
         return $this->hasMany(Mobileuser::class);
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

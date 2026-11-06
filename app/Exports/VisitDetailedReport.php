@@ -2,16 +2,22 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromView;
 
 class VisitDetailedReport implements FromView
 {
     /**
      * @return \Illuminate\Contracts\View\View;
      */
-    protected $data, $from, $to, $user;
+    protected $data;
+
+    protected $from;
+
+    protected $to;
+
+    protected $user;
+
     public function __construct($data, $from, $to, $user)
     {
         $this->data = $data;
@@ -19,6 +25,7 @@ class VisitDetailedReport implements FromView
         $this->to = $to;
         $this->user = $user;
     }
+
     public function view(): View
     {
         // dd($this->data);
@@ -26,7 +33,7 @@ class VisitDetailedReport implements FromView
             'list' => $this->data,
             'from' => $this->from,
             'to' => $this->to,
-            'user' => $this->user
+            'user' => $this->user,
         ]);
     }
 }

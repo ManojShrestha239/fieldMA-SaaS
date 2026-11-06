@@ -11,12 +11,14 @@ class SiteContact extends Model
     use SoftDeletes;
 
     protected $table = 'v2_site_contacts';
+
     protected $fillable = [
         'site_id',
         'name',
         'phone',
         'role',
     ];
+
     protected $casts = [
         'id' => 'integer',
         'site_id' => 'integer',

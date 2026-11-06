@@ -3,42 +3,43 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Dealer;
-use App\Models\Payment;
 use App\Models\Bank;
+use App\Models\Dealer;
 use App\Models\Denomination;
-use App\Models\Mobileuser;
-use App\Models\Schedulevisit;
-use Illuminate\Http\Request;
-use App\Models\Negotiation;
-use App\Models\Session;
-use App\Models\LogDetail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Denominationpoint;
+use App\Models\Negotiation;
+use App\Models\Payment;
 use App\Models\SchedulePurpose;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Schedulevisit;
+use App\Models\Session;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
     use CustomNepaliCalendarConverter, Nepali_Calendar;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index(Request $request)
     {
         $date = date('Y-m-d');
-        $user =  Auth::user();
+        $user = Auth::user();
         $user_id = explode('::', $user->id);
         $id = implode('', $user_id);
 
         $amount = Payment::where('user_id', $id)->where('collection_date', $date)->sum('amount');
 
         $count = Session::where('date', $date)->where('user_id', $id)->count();
+
         // $negotiation = Negotiation::where('date', $date)->where('user_id', $id)->get();
         // $count = count($negotiation) + count($session);
         return response()->json(['status' => 'success', 'error_code' => '200', 'collection' => $amount, 'visit' => $count]);
@@ -47,7 +48,7 @@ class PaymentController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -57,8 +58,7 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -69,12 +69,12 @@ class PaymentController extends Controller
             'collection_date' => 'required|date',
             'amount' => 'required|numeric',
             'payment_date' => 'nullable|date',
-            'bank_id' => "nullable|exists:banks,id",
+            'bank_id' => 'nullable|exists:banks,id',
             'TDS' => 'nullable|numeric',
             'discount' => 'nullable|numeric',
             'remarks' => 'required|string|max:255',
             'token' => 'nullable|numeric',
-            'quantity' => 'nullable|numeric'
+            'quantity' => 'nullable|numeric',
         ]);
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
@@ -99,7 +99,6 @@ class PaymentController extends Controller
             $payment->amount = $request->amount;
 
             $payment->mRemarks = $request->remarks;
-
 
             if ($request['payment_type'] == 'cash (regular)') {
                 $payment->receipt_num = $request->receipt_num;
@@ -144,7 +143,6 @@ class PaymentController extends Controller
                 $payment->discount = $request->discount;
             }
 
-
             $payment->save();
 
             if ($request->payment_type == 'token') {
@@ -152,24 +150,24 @@ class PaymentController extends Controller
                     // $denomination = Denomination::where('id', $token['id'])->first();
                     $denomination = Denomination::where('denomination', $token['denomination'])->first();
                     $qty = $token['quantity'];
-                    $data[] = array(
+                    $data[] = [
                         'collection_id' => $payment->id,
                         'denomination' => $token['denomination'],
                         'quantity' => $qty,
                         'denomination_id' => $denomination->id,
                         'total' => $token['denomination'] * $qty,
                         'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s')
-                    );
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ];
                 }
                 Denominationpoint::insert($data);
             }
 
-
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            return  response()->json(['error' => $e->getMessage()], 503);
+
+            return response()->json(['error' => $e->getMessage()], 503);
         }
 
         return response()->json(['message' => 'Success']);
@@ -179,7 +177,7 @@ class PaymentController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -198,7 +196,7 @@ class PaymentController extends Controller
         } else {
             $name = '';
         }
-        $collection = array(
+        $collection = [
             'id' => $data->id,
             'payment_type' => $data->payment_type,
             'dealer_code' => $data->dealer_code,
@@ -211,10 +209,11 @@ class PaymentController extends Controller
             'TDS' => $data->TDS,
             'discount' => $data->discount,
             'status' => $data->status,
-            "remarks" => $data->remarks,
+            'remarks' => $data->remarks,
             'mRemaks' => $data->mRemarks,
             'denomination' => $Denominationpoint,
-        );
+        ];
+
         return response()->json($collection);
     }
 
@@ -222,7 +221,7 @@ class PaymentController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -232,9 +231,8 @@ class PaymentController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -245,7 +243,7 @@ class PaymentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -272,6 +270,7 @@ class PaymentController extends Controller
                 $d->denomination = null;
             }
         }
+
         return response()->json($data);
     }
 }

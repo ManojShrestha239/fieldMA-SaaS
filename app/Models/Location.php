@@ -14,12 +14,14 @@ class Location extends Model
     ];
 
     protected $casts = [
-        'coordinates' => 'json'
+        'coordinates' => 'json',
     ];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(Mobileuser::class);
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

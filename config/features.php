@@ -10,17 +10,17 @@ return [
         'dealer_orders' => [
             'label' => 'Dealer Orders',
             'details' => 'Dealer Order Management',
-            'sub_features' => ['new_order', 'order_history', 'saved_orders']
+            'sub_features' => ['new_order', 'order_history', 'saved_orders'],
         ],
         'retailer_orders' => [
             'label' => 'Retailer Order',
             'details' => 'Retailer Order Management',
-            'sub_features' => ['new_order', 'order_history', 'saved_orders']
+            'sub_features' => ['new_order', 'order_history', 'saved_orders'],
         ],
         'collections' => [
             'label' => 'Payments/Collections',
             'details' => 'Payments/Collections Management',
-            'sub_features' => ['new_collection', 'collection_history']
+            'sub_features' => ['new_collection', 'collection_history'],
         ],
         'schedules' => [
             'label' => 'Schedules Visits',
@@ -50,7 +50,7 @@ return [
         'position' => [
             'label' => 'Position',
             'details' => 'Position Management',
-            'sub_features' => ['dealer_position', 'dealer_reposition']
+            'sub_features' => ['dealer_position', 'dealer_reposition'],
         ],
         'inventory' => [
             'label' => 'Inventory',

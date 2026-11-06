@@ -4,7 +4,6 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Illuminate\Http\Request;
 
 class TadaReportExport implements FromCollection, WithHeadings
 {
@@ -35,7 +34,7 @@ class TadaReportExport implements FromCollection, WithHeadings
             'Expense Types',
             'Total Expenses',
             'Physical Visit',
-            'Remarks'
+            'Remarks',
         ];
     }
 }

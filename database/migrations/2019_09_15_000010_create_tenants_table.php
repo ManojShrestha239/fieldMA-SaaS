@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('vat_number')->nullable();
             $table->text('address')->nullable();
             $table->string('status')->default('active'); // active, suspended, trial, inactive
-            
+
             $table->foreignId('subscription_plan_id')->nullable()->constrained('subscription_plans')->nullOnDelete();
             $table->timestamp('trial_ends_at')->nullable();
             $table->timestamp('plan_ends_at')->nullable();

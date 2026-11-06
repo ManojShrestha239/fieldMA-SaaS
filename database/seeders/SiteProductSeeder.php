@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\SiteProduct;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -59,8 +58,8 @@ class SiteProductSeeder extends Seeder
                     }
 
                     $values = [
-                        'name'     => $name,
-                        'types'    => $product['types'],
+                        'name' => $name,
+                        'types' => $product['types'],
                         'coverage' => 100,
                     ];
 
@@ -92,7 +91,7 @@ class SiteProductSeeder extends Seeder
 
         // 2. Ensure the letter after a hyphen is uppercase
         $value = preg_replace_callback('/-([a-z])/u', function ($m) {
-            return '-' . mb_strtoupper($m[1], 'UTF-8');
+            return '-'.mb_strtoupper($m[1], 'UTF-8');
         }, $value);
 
         // 3. Restore acronyms
@@ -102,7 +101,7 @@ class SiteProductSeeder extends Seeder
 
         foreach ($acronyms as $acronym) {
             $value = preg_replace(
-                '/\b' . preg_quote(mb_strtolower($acronym, 'UTF-8'), '/') . '\b/ui',
+                '/\b'.preg_quote(mb_strtolower($acronym, 'UTF-8'), '/').'\b/ui',
                 $acronym,
                 $value
             );

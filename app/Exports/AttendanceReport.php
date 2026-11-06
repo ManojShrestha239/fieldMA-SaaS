@@ -3,17 +3,21 @@
 namespace App\Exports;
 
 use App\Attendance;
+use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Illuminate\Contracts\View\View;
 
 // class AttendanceReport implements FromCollection,WithHeadings
 class AttendanceReport implements FromView
 {
-    protected $attendances, $user, $data;
+    protected $attendances;
 
-    function __construct($attendances, $user, $data)
+    protected $user;
+
+    protected $data;
+
+    public function __construct($attendances, $user, $data)
     {
         $this->attendances = $attendances;
         $this->user = $user;

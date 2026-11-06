@@ -9,16 +9,18 @@ use App\Models\ReminderPurpose;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AlertReminderController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -29,31 +31,32 @@ class AlertReminderController extends Controller
                 $data = DB::table($list->table_name)->where('id', $list->column_id)->first();
                 if ($data) {
                     if ($list->table_name == 'visits') {
-                        $dealerinfo = ($list->dealer_code) ? $list->dealer->code . ' ' . $list->dealer->name . ' ' . $list->dealer->mobile : $list->dealer_name . "  " . $list->dealer_address . ' ' . $list->contact;
+                        $dealerinfo = ($list->dealer_code) ? $list->dealer->code.' '.$list->dealer->name.' '.$list->dealer->mobile : $list->dealer_name.'  '.$list->dealer_address.' '.$list->contact;
                         $list->dealerinfo = $dealerinfo;
                         $list->visited_date = $data->date;
-                    } else if ($list->table_name == 'orders') {
-                        $dealerinfo = $list->dealer->code . ' ' . $list->dealer->name . ' ' . $list->dealer->mobile;
+                    } elseif ($list->table_name == 'orders') {
+                        $dealerinfo = $list->dealer->code.' '.$list->dealer->name.' '.$list->dealer->mobile;
                         $list->dealerinfo = $dealerinfo;
                         $list->visited_date = $data->date;
                     } else {
-                        $dealerinfo = $list->dealer->code . ' ' . $list->dealer->name . ' ' . $list->dealer->mobile;
+                        $dealerinfo = $list->dealer->code.' '.$list->dealer->name.' '.$list->dealer->mobile;
                         $list->dealerinfo = $dealerinfo;
                         $list->visited_date = $data->collection_date;
                     }
                 } else {
-                    $list->dealerinfo = "";
-                    $list->visited_date = "";
+                    $list->dealerinfo = '';
+                    $list->visited_date = '';
                 }
             }
         }
+
         return response()->json(['status' => 'success', 'lists' => $lists]);
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -63,8 +66,7 @@ class AlertReminderController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -86,37 +88,39 @@ class AlertReminderController extends Controller
 
         $dealer = Dealer::where('code', $request->dealer_code)->first();
 
-        if (!$dealer) {
+        if (! $dealer) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Dealer does not exist'
+                'message' => 'Dealer does not exist',
             ], 404);
         }
 
         if (
-            !in_array($dealer->area_code, $areaCodes) ||
-            !in_array($dealer->subarea, $subAreas)
+            ! in_array($dealer->area_code, $areaCodes) ||
+            ! in_array($dealer->subarea, $subAreas)
         ) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Your are not authorized to add reminder and alert for this dealer',
             ], 400);
         }
 
-        $alert = new AlertReminder();
+        $alert = new AlertReminder;
 
         $alert->dealer_code = $request->dealer_code;
         $alert->date = $request->date;
         $alert->remarks = $request->remarks;
-        $alert->status = "Pending";
-        $alert->flag = "Reminder";
+        $alert->status = 'Pending';
+        $alert->flag = 'Reminder';
         $alert->mobileuser_id = auth('api')->user()->id;
 
         $alert->save();
         foreach ($request->purpose as $pur) {
-            $purpose = new ReminderPurpose();
+            $purpose = new ReminderPurpose;
 
             $purpose->purpose_id = $pur;
             $purpose->alertreminder_id = $alert->id;
@@ -131,7 +135,7 @@ class AlertReminderController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -142,7 +146,7 @@ class AlertReminderController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -152,9 +156,8 @@ class AlertReminderController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -180,7 +183,7 @@ class AlertReminderController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {

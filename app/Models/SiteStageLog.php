@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SiteStageLog extends Model
 {
     protected $table = 'v2_site_stage_logs';
+
     // Only 'created_at' exists on this table
     public const UPDATED_AT = null;
+
     protected $fillable = [
         'site_id',
         'stage_id',

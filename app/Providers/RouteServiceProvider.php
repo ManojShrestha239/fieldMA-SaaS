@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\CheckTenantStatus;
+use App\Http\Middleware\InitializeTenancyForApi;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -39,19 +41,19 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function () {
             Route::prefix('api')
-                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
+                ->middleware(['api', InitializeTenancyForApi::class, CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/api.php'));
             Route::prefix('api/v2')
-                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
+                ->middleware(['api', InitializeTenancyForApi::class, CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/v2/api.php'));
             Route::prefix('api/v3')
-                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
+                ->middleware(['api', InitializeTenancyForApi::class, CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/v3/api.php'));
             Route::prefix('api/v4')
-                ->middleware(['api', \App\Http\Middleware\InitializeTenancyForApi::class, \App\Http\Middleware\CheckTenantStatus::class])
+                ->middleware(['api', InitializeTenancyForApi::class, CheckTenantStatus::class])
                 ->namespace($this->namespace)
                 ->group(base_path('routes/v4/api.php'));
 

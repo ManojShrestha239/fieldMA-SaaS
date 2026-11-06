@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ProductDealer;
 use App\Models\ProductStock;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ProductInventoryController extends Controller
 {
@@ -21,7 +20,8 @@ class ProductInventoryController extends Controller
 
             $dealerInfo = $dealers->map(function ($d) {
                 $dealerName = $d->dealer ? $d->dealer->name : $d->dealer_id;
-                return $dealerName . ' (' . $d->assign_qty . ')';
+
+                return $dealerName.' ('.$d->assign_qty.')';
             })->implode(', ');
 
             return [
@@ -36,7 +36,6 @@ class ProductInventoryController extends Controller
 
         return view('dashboards.productinventory.inventory', compact('inventory'));
     }
-
 
     /**
      * Show the form for creating a new resource.

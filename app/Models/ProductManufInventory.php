@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductManufInventory extends Model
 {
     use HasFactory;
+
     protected $table = 'productmanuf_inventories';
 
     protected $fillable = ['batch_number', 'product_id', 'size_id', 'total_qty', 'date'];

@@ -36,8 +36,6 @@ class ListSiteRegistrationsRequest extends FormRequest
 
     /**
      * Transform the validated request data into a DTO.
-     *
-     * @return ListSiteRegistrationsDTO
      */
     public function toDTO(): ListSiteRegistrationsDTO
     {
@@ -52,6 +50,4 @@ class ListSiteRegistrationsRequest extends FormRequest
             'cursor' => $validated['cursor'] ?? null,
         ]);
     }
-
-
 }

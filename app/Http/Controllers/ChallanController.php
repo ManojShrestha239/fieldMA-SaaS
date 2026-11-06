@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Dealer;
-use App\Models\Order;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Models\LogDetail;
-use App\Models\Orderitem;
-use App\Models\Mobileuser;
-use App\Http\Controllers\NotificationController;
-use App\Models\DealerUser;
-use App\Models\ProductSize;
 use App\Models\Category;
-use App\Models\Size;
-use App\Models\DealerInfo;
 use App\Models\Challan;
+use App\Models\Dealer;
+use App\Models\DealerUser;
+use App\Models\LogDetail;
+use App\Models\Mobileuser;
+use App\Models\Order;
+use App\Models\Orderitem;
+use App\Models\ProductSize;
+use App\Models\Size;
 use App\Traits\FCM;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ChallanController extends Controller
 {
@@ -60,12 +58,13 @@ class ChallanController extends Controller
         $s = Dealer::get()->toArray();
         $t = DealerUser::where('user_role', 1)->get()->toArray();
         $dealers = array_merge($s, $t);
+
         return view('dashboards.orders.challanList', ['challans' => $all, 'dealers' => $dealers]);
     }
 
-    function challan(Request $request, $id)
+    public function challan(Request $request, $id)
     {
-        $mo = "";
+        $mo = '';
         $o = Order::findOrFail($id);
 
         if ($o->user_id) {
@@ -94,13 +93,11 @@ class ChallanController extends Controller
         // Remove duplicates from $allOrderVariants that are already in $sizes
         $colorants = array_diff($allOrderVariants, $sizes);
 
-
-
         // Grouped order items
         $order = Orderitem::where('order_id', $id)
             ->with(['items.product', 'items.size'])
             ->get()
-            ->groupBy(fn($item) => $item->items->product_id);
+            ->groupBy(fn ($item) => $item->items->product_id);
 
         $finalData = [];
 
@@ -114,7 +111,7 @@ class ChallanController extends Controller
                 $qty = $item->quantity;
                 $amt = $qty * $item->items->price;
 
-                if (!isset($sizeData[$size])) {
+                if (! isset($sizeData[$size])) {
                     $sizeData[$size] = ['qty' => 0, 'amt' => 0];
                 }
 
@@ -124,7 +121,7 @@ class ChallanController extends Controller
 
             $finalData[] = [
                 'product' => $product->name,
-                'sizes' => $sizeData
+                'sizes' => $sizeData,
             ];
         }
 
@@ -166,9 +163,10 @@ class ChallanController extends Controller
 
                 if ((int) $productSize->product->category_id !== (int) $item['category']) {
                     DB::rollBack();
+
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'Invalid category/product combination selected.'
+                        'message' => 'Invalid category/product combination selected.',
                     ], 422);
                 }
 
@@ -189,7 +187,7 @@ class ChallanController extends Controller
 
                     $lineAmount = $qty * $unitRate;
                 } else {
-                    $orderItem = new Orderitem();
+                    $orderItem = new Orderitem;
                     $orderItem->order_id = $order->id;
                     $orderItem->items_id = $productSize->id;
                     $orderItem->quantity = $qty;
@@ -224,7 +222,6 @@ class ChallanController extends Controller
             ], 500);
         }
     }
-
 
     public function singleChallan($id)
     {
@@ -282,14 +279,14 @@ class ChallanController extends Controller
             $nepaliMth = $currentNepaliDay['month'];
             $d = strlen($nepaliMth);
             if ($d == 1) {
-                $nepaliMth = '0' . $nepaliMth;
+                $nepaliMth = '0'.$nepaliMth;
             }
             $nepaliYr = $currentNepaliDay['year'];
-            $order_date = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+            $order_date = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
             $dName = $n->dealer_name;
             $mo = $n->user_name;
             $orderid = $n->order_id;
-            $list[] = array(
+            $list[] = [
                 'order_id' => $n->order_id,
                 'dealer_name' => $n->dealer_name,
                 'order_status' => $n->order_status,
@@ -303,7 +300,7 @@ class ChallanController extends Controller
                 'user_name' => $n->user_name,
                 'sizeid' => $n->sizeid,
 
-            );
+            ];
         }
         if (empty($list)) {
             return view('dashboards.orders.challan', ['order' => '', 'dealer' => '', 'mo' => '']);
@@ -311,6 +308,7 @@ class ChallanController extends Controller
             return view('dashboards.orders.challan', ['order' => $list, 'dealer' => $dName, 'mo' => $mo]);
         }
     }
+
     public function challanEditView($id)
     {
         Orderitem::findorFail($id);
@@ -331,12 +329,12 @@ class ChallanController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
         $orderItem = Orderitem::findOrFail($id);
-        $order     = $orderItem->order;
+        $order = $orderItem->order;
 
         if ($request->quantity == $orderItem->quantity) {
             return response()->json([
                 'status' => 'info',
-                'message' => 'Previous Quantity is equal to your edited Quantity.'
+                'message' => 'Previous Quantity is equal to your edited Quantity.',
             ]);
         }
 
@@ -348,14 +346,14 @@ class ChallanController extends Controller
 
         $orderItem->update([
             'quantity' => $request->quantity,
-            'total_price' => $price * $request->quantity
+            'total_price' => $price * $request->quantity,
         ]);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Order has been updated.',
             'order_total_price' => $order->total_price,
-            'order_item_total_price' => $orderItem->total_price
+            'order_item_total_price' => $orderItem->total_price,
         ]);
     }
 
@@ -465,7 +463,7 @@ class ChallanController extends Controller
                 $newOrder->save();
 
                 // Attach the current item to the new order
-                $newItem = new Orderitem();
+                $newItem = new Orderitem;
                 $newItem->order_id = $newOrder->id;
                 $newItem->items_id = $orderItem->items_id;
                 $newItem->quantity = $orderItem->quantity;
@@ -491,17 +489,16 @@ class ChallanController extends Controller
         // Response handling
         if (request()->ajax()) {
             return response()->json([
-                'success'       => true,
-                'status'        => $isUnavailable ? 'unavailable' : 'available',
-                'message'       => $message,
+                'success' => true,
+                'status' => $isUnavailable ? 'unavailable' : 'available',
+                'message' => $message,
                 'orderitems_id' => $orderItem->id,
-                'order_status'  => $orderItem->status,
+                'order_status' => $orderItem->status,
             ]);
         }
 
         return redirect('/order')->with('Status', $message);
     }
-
 
     public function singleChallanAdd($id)
     {
@@ -511,7 +508,7 @@ class ChallanController extends Controller
             return redirect('/order')->with('Status', 'Product unavailable for this Order.');
         } else {
             foreach ($order as $or) {
-                $challan = new Challan();
+                $challan = new Challan;
                 $challan->order_id = $or->order_id;
                 $challan->items_id = $or->items_id;
                 $challan->quantity = $or->quantity;
@@ -519,7 +516,7 @@ class ChallanController extends Controller
                 $challan->remarks = $or->custom_unit_remarks;
                 $challan->save();
             }
-            $log = new LogDetail();
+            $log = new LogDetail;
             $log->flag = 'order';
             $log->ordercoll_id = $odr->id;
             if ($odr->tint_user == null) {
@@ -541,33 +538,33 @@ class ChallanController extends Controller
             $otp = Mobileuser::where(['id' => $odr->user_id])->first();
             if ($otp) {
                 $fcmid = $otp->fcm_id;
-                $flag = "order";
-                $title = "Sales Tracker";
+                $flag = 'order';
+                $title = 'Sales Tracker';
                 $detail = $odr->id;
                 $app = 0;
-                $content = array('Title' => 'Order Status Updated', 'Message' => 'Challan Created', 'order_id' => $detail, 'Status' => 'ongoing');
+                $content = ['Title' => 'Order Status Updated', 'Message' => 'Challan Created', 'order_id' => $detail, 'Status' => 'ongoing'];
                 if ($fcmid) {
-                    $notice = new NotificationController();
+                    $notice = new NotificationController;
                     $notice->individualNotificationSend($fcmid, $title, $flag, $content, $app);
                 }
             }
             $otp1 = DealerUser::where(['id' => $odr->tint_user])->first();
             if ($otp1) {
                 $fcmid = $otp1->fcm_id;
-                $flag = "order";
-                $title = "Sales Tracker";
+                $flag = 'order';
+                $title = 'Sales Tracker';
                 $detail = $odr->id;
                 $app = 1;
-                $content = array('Title' => 'Order Status Updated', 'Message' => 'Challan Created', 'order_id' => $detail, 'Status' => 'ongoing');
+                $content = ['Title' => 'Order Status Updated', 'Message' => 'Challan Created', 'order_id' => $detail, 'Status' => 'ongoing'];
                 if ($fcmid) {
-                    $notice = new NotificationController();
+                    $notice = new NotificationController;
                     $notice->individualNotificationSend($fcmid, $title, $flag, $content, $app);
                 }
             }
-            return redirect('/order/challan/' . $odr->id);
+
+            return redirect('/order/challan/'.$odr->id);
         }
     }
-
 
     public function allChallan($id)
     {
@@ -576,7 +573,6 @@ class ChallanController extends Controller
         $dealer = $o->dealer_code;
 
         $tuser = $o->tint_user;
-
 
         if ($dealer) {
             $orders = DB::table('orders')
@@ -607,11 +603,10 @@ class ChallanController extends Controller
                 ->get();
         }
         // return $logord;
-        if (!empty($orders)) {
-
+        if (! empty($orders)) {
 
             foreach ($orders as $order) {
-                $challan = new Challan();
+                $challan = new Challan;
 
                 $challan->order_id = $order->order_id;
                 $challan->items_id = $order->items_id;
@@ -620,7 +615,7 @@ class ChallanController extends Controller
                 $challan->save();
             }
             foreach ($logord as $lo) {
-                $log = new LogDetail();
+                $log = new LogDetail;
                 $log->flag = 'order';
                 $log->ordercoll_id = $lo->id;
                 // $log->cheque_no = '';
@@ -639,34 +634,34 @@ class ChallanController extends Controller
                 $otp = Mobileuser::where(['id' => $lo->user_id])->first();
                 if ($otp) {
                     $fcmid = $otp->fcm_id;
-                    $flag = "order";
-                    $title = "Sales Tracker";
+                    $flag = 'order';
+                    $title = 'Sales Tracker';
                     $detail = $lo->id;
                     $app = 0;
-                    $content = array('Title' => 'Order Status Updated', 'Message' => 'Challan Created', 'order_id' => $detail, 'Status' => 'ongoing');
+                    $content = ['Title' => 'Order Status Updated', 'Message' => 'Challan Created', 'order_id' => $detail, 'Status' => 'ongoing'];
                     if ($fcmid) {
-                        $notice = new NotificationController();
+                        $notice = new NotificationController;
                         $notice->individualNotificationSend($fcmid, $title, $flag, $content, $app);
                     }
                 }
                 $otp1 = DealerUser::where(['id' => $lo->tint_user])->first();
                 if ($otp1) {
                     $fcmid = $otp1->fcm_id;
-                    $flag = "order";
-                    $title = "Sales Tracker";
+                    $flag = 'order';
+                    $title = 'Sales Tracker';
                     $app = 1;
                     // $content = array('Title'=>'Cheque Status Updated', 'Message' => $remark, 'payment_id' =>$payment->id,'Status'=> request('status') );
-                    $content = array('Title' => 'Order Status Updated', 'Details' => 'Challan Created');
+                    $content = ['Title' => 'Order Status Updated', 'Details' => 'Challan Created'];
                     if ($fcmid) {
-                        $notice = new NotificationController();
+                        $notice = new NotificationController;
                         $notice->individualNotificationSend($fcmid, $title, $flag, $content, $app);
                     }
                 }
 
-
                 Order::where('id', $lo->id)->update(['status' => 'ongoing']);
             }
-            return redirect('/order/challan/' . $id);
+
+            return redirect('/order/challan/'.$id);
         } else {
             return redirect('/order')->with('Status', 'Product unavailable for this Order.');
         }

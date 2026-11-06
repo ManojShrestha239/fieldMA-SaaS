@@ -6,16 +6,14 @@ use App\Models\Product;
 use App\Models\ProductManufInventory;
 use App\Models\ProductSize;
 use App\Models\ProductStock;
-use Illuminate\Http\Request;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
-
-
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
 
 class ProductInventorymanufController extends Controller
 {
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
-    use  Nepali_Calendar, CustomNepaliCalendarConverter;
     /**
      * Display a listing of the resource.
      */
@@ -34,7 +32,6 @@ class ProductInventorymanufController extends Controller
         return view('dashboards.productinventory.list', compact('productmanufs', 'productStock'));
     }
 
-
     /**
      * Show the form for creating a new resource.
      */
@@ -49,14 +46,13 @@ class ProductInventorymanufController extends Controller
 
     public function getSize($product_id)
     {
-        $size = \App\Models\ProductSize::with('size')
+        $size = ProductSize::with('size')
             ->where('product_id', $product_id)->get();
-
 
         if ($size && $size->size) {
             return response()->json([
                 'size_name' => $size->size->size,
-                'variant_id' => $size->size_id  // <-- use size_id here, not id
+                'variant_id' => $size->size_id,  // <-- use size_id here, not id
             ]);
         }
 
@@ -84,17 +80,16 @@ class ProductInventorymanufController extends Controller
                 ->where('product_id', $product['product_id'])
                 ->exists();
 
-            if (!$variantExists) {
+            if (! $variantExists) {
                 $errors["products.$index.size_id"] = 'Selected size does not belong to the selected product.';
             }
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return back()->withErrors($errors)->withInput();
         }
 
         $dates = $this->custom_BS_to_AD($request->date);
-
 
         // Process each product
         foreach ($request->products as $product) {
@@ -109,8 +104,6 @@ class ProductInventorymanufController extends Controller
                 'updated_at' => now(),
             ]);
 
-
-
             // Update stock
             $productStock = ProductStock::firstOrNew([
                 'product_id' => $product['product_id'],
@@ -124,11 +117,8 @@ class ProductInventorymanufController extends Controller
         }
 
         return redirect('/productmanufac')
-            ->with('success', count($request->products) . ' product(s) added to inventory successfully.');
+            ->with('success', count($request->products).' product(s) added to inventory successfully.');
     }
-
-
-
 
     public function show($id)
     {
@@ -143,7 +133,6 @@ class ProductInventorymanufController extends Controller
 
         return view('dashboards.productinventory.details', compact('productStock', 'productmanufs', 'totalQty'));
     }
-
 
     /**
      * Show the form for editing the specified resource.

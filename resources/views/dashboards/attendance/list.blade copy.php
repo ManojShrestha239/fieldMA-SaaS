@@ -197,8 +197,11 @@
                                             @else -->
                                                 <!-- @endif -->
                                                 <?php
-                                                if (\Illuminate\Support\Facades\Request::get('date') != null) {
-                                                    $date = \Illuminate\Support\Facades\Request::get('date');
+
+use Illuminate\Support\Facades\Request;
+
+                                                if (Request::get('date') != null) {
+                                                    $date = Request::get('date');
                                                 } else {
                                                     $date = $today;
                                                 }

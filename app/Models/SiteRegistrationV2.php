@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class SiteRegistrationV2 extends Model
 {
-    use SoftDeletes, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, SoftDeletes;
 
     protected $table = 'v2_site_registrations';
 
@@ -57,7 +57,7 @@ class SiteRegistrationV2 extends Model
 
     protected $hidden = [
         'updated_at',
-        'deleted_at'
+        'deleted_at',
     ];
 
     // --- Booted ---
@@ -80,12 +80,12 @@ class SiteRegistrationV2 extends Model
 
             if ($lastRecord) {
                 // 3. Extract the last sequence number and increment it
-                $lastSequence = (int)Str::afterLast($lastRecord->site_registration_no, '-');
+                $lastSequence = (int) Str::afterLast($lastRecord->site_registration_no, '-');
                 $nextSequence = $lastSequence + 1;
             }
 
             // 4. Format the final ID with 5-digit padding (e.g., 00001)
-            $model->site_registration_no = $prefix . str_pad($nextSequence, 5, '0', STR_PAD_LEFT);
+            $model->site_registration_no = $prefix.str_pad($nextSequence, 5, '0', STR_PAD_LEFT);
         });
     }
 

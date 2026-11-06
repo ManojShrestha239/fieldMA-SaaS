@@ -1,4 +1,5 @@
 <?php
+
 // config/permission_redirects.php
 return [
     'home' => '/dashboard',

@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AttendanceReport;
+use App\Models\Area;
 use App\Models\Attendance;
 use App\Models\AttendanceStatus;
-use App\Exports\AttendanceReport;
-use Illuminate\Http\Request;
-use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Area;
 use App\Models\Location;
 use App\Models\Mobileuser;
+use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceSummaryController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     // public function index(Request $request)
     // {
@@ -159,17 +159,17 @@ class AttendanceSummaryController extends Controller
     {
         $this->validate($request, [
             'user' => 'nullable|exists:mobileusers,id',
-            'to' =>  ['nullable', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:from'],
-            'from' => ['nullable', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:to']
+            'to' => ['nullable', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:from'],
+            'from' => ['nullable', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:to'],
         ]);
 
-        if (!$request->filled(['from', 'to'])) {
+        if (! $request->filled(['from', 'to'])) {
             return view('dashboards.attendanceReport.summary', [
-                'from'        => '',
-                'to'          => '',
+                'from' => '',
+                'to' => '',
                 'attendances' => [],
-                'userinput'   => '',
-                'users'       => Mobileuser::all(),
+                'userinput' => '',
+                'users' => Mobileuser::all(),
             ]);
         }
 
@@ -182,7 +182,7 @@ class AttendanceSummaryController extends Controller
         $officeCheckoutTime = config('app.Office_END_TIME', '17:00:00');
 
         $interval = $end->diff($start);
-        $total_days = $interval->format("%a") + 1;
+        $total_days = $interval->format('%a') + 1;
 
         if ($total_days > 32) {
             return back()->withInput()->withErrors(['to' => 'date range cannot be more than 32 days']);
@@ -227,8 +227,9 @@ class AttendanceSummaryController extends Controller
         foreach ($attendances as $attendance) {
             $travelDistance = 0;
             $userLocations = $locationsByUser[$attendance->mobileuser_id] ?? null;
-            if (!$userLocations) {
+            if (! $userLocations) {
                 $attendance->distance = 0;
+
                 continue;
             }
 
@@ -343,6 +344,7 @@ class AttendanceSummaryController extends Controller
         }
         $data['from'] = $request->from;
         $data['to'] = $request->to;
+
         return view('dashboards.attendanceReport.summary', $data);
     }
 
@@ -375,7 +377,7 @@ class AttendanceSummaryController extends Controller
             $end = new \DateTime($to);
 
             $interval = $end->diff($start);
-            $total_days = $interval->format("%a");
+            $total_days = $interval->format('%a');
 
             if ($total_days > 32) {
                 return back()->withInput()->withErrors(['to' => 'date range cannot be more than 32 days']);
@@ -388,7 +390,7 @@ class AttendanceSummaryController extends Controller
         }
         foreach ($attendancestatus as $at_status) {
             $location = Location::where(['user_id' => $at_status->mobileuser_id, 'day' => $at_status->date])->first();
-            if (!$location) {
+            if (! $location) {
                 $at_status->distance = 0;
             } else {
                 $coordinates = $location->coordinates;
@@ -402,10 +404,10 @@ class AttendanceSummaryController extends Controller
                         $lon1 = $coordinates[$key - 1]['longitude'];
                         $lat2 = $coordinate['latitude'];
                         $lon2 = $coordinate['longitude'];
-                        $unit = "K";
+                        $unit = 'K';
                         $distance = $distance + $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                     }
-                    $at_status->distance = number_format($distance, 4) . " KM";
+                    $at_status->distance = number_format($distance, 4).' KM';
                 }
             }
             $checkout = AttendanceStatus::where(['attendance_id' => $at_status->attendance_id, 'status' => 'checkout'])->orderBy('id', 'DESC')->first();
@@ -429,19 +431,19 @@ class AttendanceSummaryController extends Controller
     {
 
         $theta = $lon1 - $lon2;
-        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
         $dist = acos($dist);
         $dist = rad2deg($dist);
         $miles = $dist * 60 * 1.1515;
         $unit = strtoupper($unit);
 
-        if ($unit == "K") { //Kilometers
-            return ($miles * 1.609344);
-        } else if ($unit == "N") { //Nautical Miles
-            return ($miles * 0.8684);
-        } else if ($unit == "MT") { //Meter
-            return ($miles * 1.609344 * 1000);
-        } else { //Miles
+        if ($unit == 'K') { // Kilometers
+            return $miles * 1.609344;
+        } elseif ($unit == 'N') { // Nautical Miles
+            return $miles * 0.8684;
+        } elseif ($unit == 'MT') { // Meter
+            return $miles * 1.609344 * 1000;
+        } else { // Miles
             return $miles;
         }
     }

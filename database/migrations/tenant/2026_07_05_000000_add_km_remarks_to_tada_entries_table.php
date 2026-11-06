@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tada_entries', function (Blueprint $table) {
-            if (!Schema::hasColumn('tada_entries', 'km_remarks')) {
+            if (! Schema::hasColumn('tada_entries', 'km_remarks')) {
                 $table->string('km_remarks', 500)->nullable()->after('admin_remarks');
             }
         });

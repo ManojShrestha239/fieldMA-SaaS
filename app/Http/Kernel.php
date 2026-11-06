@@ -2,7 +2,41 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\AccountAdminMiddleware;
+use App\Http\Middleware\AuthCheck;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\AuthenticateToken;
+use App\Http\Middleware\CheckTenantStatus;
+use App\Http\Middleware\ComboAdminMiddleware;
+use App\Http\Middleware\DispatchAdminMiddleware;
+use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnsureFeatureEnabled;
+use App\Http\Middleware\InitializeTenancyForApi;
+use App\Http\Middleware\marketingAdminMiddleware;
+use App\Http\Middleware\PreventRequestsDuringMaintenance;
+use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\SuperAdminMiddleware;
+use App\Http\Middleware\TrimStrings;
+use App\Http\Middleware\TrustProxies;
+use App\Http\Middleware\UserManagement;
+use App\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
+use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use Illuminate\Auth\Middleware\RequirePassword;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
+use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
+use Illuminate\Http\Middleware\SetCacheHeaders;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ValidateSignature;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 class Kernel extends HttpKernel
 {
@@ -15,12 +49,12 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
-        \App\Http\Middleware\TrustProxies::class,
+        TrustProxies::class,
         // \Fruitcake\Cors\HandleCors::class,
-        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
-        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
-        \App\Http\Middleware\TrimStrings::class,
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        PreventRequestsDuringMaintenance::class,
+        ValidatePostSize::class,
+        TrimStrings::class,
+        ConvertEmptyStringsToNull::class,
     ];
 
     /**
@@ -30,19 +64,19 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            ShareErrorsFromSession::class,
+            VerifyCsrfToken::class,
+            SubstituteBindings::class,
         ],
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            SubstituteBindings::class,
         ],
     ];
 
@@ -54,30 +88,30 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $routeMiddleware = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'super' => \App\Http\Middleware\SuperAdminMiddleware::class,
-        'dispatch' => \App\Http\Middleware\DispatchAdminMiddleware::class,
-        'account' => \App\Http\Middleware\AccountAdminMiddleware::class,
-        'marketing' => \App\Http\Middleware\marketingAdminMiddleware::class,
-        'combo' => \App\Http\Middleware\ComboAdminMiddleware::class,
-        'usermgnt' =>  \App\Http\Middleware\UserManagement::class,
-        'custom_auth' =>  \App\Http\Middleware\AuthCheck::class,
-        'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-        'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        'token.api' => \App\Http\Middleware\AuthenticateToken::class,
-        'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
-        'tenant.feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
-        'feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
-        'tenant.api' => \App\Http\Middleware\InitializeTenancyForApi::class,
+        'auth' => Authenticate::class,
+        'auth.basic' => AuthenticateWithBasicAuth::class,
+        'cache.headers' => SetCacheHeaders::class,
+        'can' => Authorize::class,
+        'guest' => RedirectIfAuthenticated::class,
+        'password.confirm' => RequirePassword::class,
+        'signed' => ValidateSignature::class,
+        'throttle' => ThrottleRequests::class,
+        'verified' => EnsureEmailIsVerified::class,
+        'super' => SuperAdminMiddleware::class,
+        'dispatch' => DispatchAdminMiddleware::class,
+        'account' => AccountAdminMiddleware::class,
+        'marketing' => marketingAdminMiddleware::class,
+        'combo' => ComboAdminMiddleware::class,
+        'usermgnt' => UserManagement::class,
+        'custom_auth' => AuthCheck::class,
+        'role' => RoleMiddleware::class,
+        'permission' => PermissionMiddleware::class,
+        'role_or_permission' => RoleOrPermissionMiddleware::class,
+        'token.api' => AuthenticateToken::class,
+        'tenant.status' => CheckTenantStatus::class,
+        'tenant.feature' => EnsureFeatureEnabled::class,
+        'feature' => EnsureFeatureEnabled::class,
+        'tenant.api' => InitializeTenancyForApi::class,
     ];
 
     /**
@@ -86,29 +120,29 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'super' => \App\Http\Middleware\SuperAdminMiddleware::class,
-        'dispatch' => \App\Http\Middleware\DispatchAdminMiddleware::class,
-        'account' => \App\Http\Middleware\AccountAdminMiddleware::class,
-        'marketing' => \App\Http\Middleware\marketingAdminMiddleware::class,
-        'combo' => \App\Http\Middleware\ComboAdminMiddleware::class,
-        'usermgnt' =>  \App\Http\Middleware\UserManagement::class,
-        'custom_auth' =>  \App\Http\Middleware\AuthCheck::class,
-        'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-        'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        'token.api' => \App\Http\Middleware\AuthenticateToken::class,
-        'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
-        'tenant.feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
-        'feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
-        'tenant.api' => \App\Http\Middleware\InitializeTenancyForApi::class,
+        'auth' => Authenticate::class,
+        'auth.basic' => AuthenticateWithBasicAuth::class,
+        'cache.headers' => SetCacheHeaders::class,
+        'can' => Authorize::class,
+        'guest' => RedirectIfAuthenticated::class,
+        'password.confirm' => RequirePassword::class,
+        'signed' => ValidateSignature::class,
+        'throttle' => ThrottleRequests::class,
+        'verified' => EnsureEmailIsVerified::class,
+        'super' => SuperAdminMiddleware::class,
+        'dispatch' => DispatchAdminMiddleware::class,
+        'account' => AccountAdminMiddleware::class,
+        'marketing' => marketingAdminMiddleware::class,
+        'combo' => ComboAdminMiddleware::class,
+        'usermgnt' => UserManagement::class,
+        'custom_auth' => AuthCheck::class,
+        'role' => RoleMiddleware::class,
+        'permission' => PermissionMiddleware::class,
+        'role_or_permission' => RoleOrPermissionMiddleware::class,
+        'token.api' => AuthenticateToken::class,
+        'tenant.status' => CheckTenantStatus::class,
+        'tenant.feature' => EnsureFeatureEnabled::class,
+        'feature' => EnsureFeatureEnabled::class,
+        'tenant.api' => InitializeTenancyForApi::class,
     ];
 }

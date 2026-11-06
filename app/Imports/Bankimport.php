@@ -2,19 +2,19 @@
 
 namespace App\Imports;
 
+use App\Models\Bank;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use App\Models\Bank;
 
 class Bankimport implements ToModel, WithHeadingRow, WithValidation
 {
     public function model(array $row)
     {
-        if (!empty($row['bank'])) {
+        if (! empty($row['bank'])) {
             $bankName = trim($row['bank']);
 
-            if (!Bank::where('name', $bankName)->exists()) {
+            if (! Bank::where('name', $bankName)->exists()) {
                 return Bank::create([
                     'name' => $bankName,
                 ]);

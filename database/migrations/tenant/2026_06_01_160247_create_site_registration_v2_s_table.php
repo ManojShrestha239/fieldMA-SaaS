@@ -5,7 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run migrations inside a transaction when supported by the DB.
      * This helps ensure a rollback if any part of the migration fails.
@@ -48,7 +49,7 @@ return new class extends Migration {
             ['id' => 1, 'name' => 'Residential', 'sort_order' => 1],
             ['id' => 2, 'name' => 'Commercial', 'sort_order' => 2],
             ['id' => 3, 'name' => 'Apartment', 'sort_order' => 3],
-            ['id' => 4, 'name' => 'Renovation', 'sort_order' => 4]
+            ['id' => 4, 'name' => 'Renovation', 'sort_order' => 4],
         ]);
 
         // Seed some common site types
@@ -222,7 +223,7 @@ return new class extends Migration {
             $table->boolean('auto_reminder_enabled')
                 ->default(true);
 
-            //Address
+            // Address
             $table->decimal('lat', 10, 7)->nullable();
             $table->decimal('lng', 10, 7)->nullable();
 

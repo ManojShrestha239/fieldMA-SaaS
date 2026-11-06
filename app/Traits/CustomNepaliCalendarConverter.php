@@ -2,8 +2,6 @@
 
 namespace App\Traits;
 
-use App\Traits\Nepali_Calendar;
-
 trait CustomNepaliCalendarConverter
 {
     use Nepali_Calendar;
@@ -18,29 +16,32 @@ trait CustomNepaliCalendarConverter
         $nepaliDay = $currentNepaliDay['date'];
         $nepaliMth = $currentNepaliDay['month'];
         if (strlen($nepaliMth) == 1) {
-            $nepaliMth = '0' . $nepaliMth;
+            $nepaliMth = '0'.$nepaliMth;
         }
         if (strlen($nepaliDay) == 1) {
-            $nepaliDay = '0' . $nepaliDay;
+            $nepaliDay = '0'.$nepaliDay;
         }
         $nepaliYr = $currentNepaliDay['year'];
-        return $nepalidate = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+
+        return $nepalidate = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
     }
+
     public function custom_BS_to_AD($date)
     {
         $d = explode('-', $date);
         $engDay = $this->BS_to_AD($d[0], $d[1], $d[2]);
         $nepaliDay = $engDay['date'];
         $c = strlen($nepaliDay);
-        if (!($c == 2)) {
-            $nepaliDay =  '0' . $nepaliDay;
+        if (! ($c == 2)) {
+            $nepaliDay = '0'.$nepaliDay;
         }
         $nepaliMth = $engDay['month'];
-        if (!(strlen($nepaliDay) == 2)) {
-            $nepaliDay =  '0' . $nepaliDay;
+        if (! (strlen($nepaliDay) == 2)) {
+            $nepaliDay = '0'.$nepaliDay;
         }
         $nepaliYr = $engDay['year'];
-        return $english = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+
+        return $english = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
     }
 
     private function getFiscalYear(): string
@@ -51,8 +52,8 @@ trait CustomNepaliCalendarConverter
         // Split the date to extract Year and Month
         // (Handles both "YYYY-MM-DD" and "YYYY/MM/DD" formats)
         $parts = preg_split('/[-\/]/', $bsDate);
-        $bsYear = (int)$parts[0];
-        $bsMonth = (int)$parts[1];
+        $bsYear = (int) $parts[0];
+        $bsMonth = (int) $parts[1];
 
         // Fiscal year starts on Shrawan 1 (Month 04)
         if ($bsMonth >= 4) {
@@ -90,12 +91,11 @@ trait CustomNepaliCalendarConverter
             return true;
         }
     }
+
     private function todayNepaliDate()
     {
         $now = now()->format('Y-m-d');
+
         return $currentNepaliDate = $this->custom_AD_to_BS($now);
     }
-
-
-
 }

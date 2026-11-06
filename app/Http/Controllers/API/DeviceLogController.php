@@ -52,7 +52,7 @@ class DeviceLogController extends Controller
             ->where('date', $date)
             ->first();
 
-        if (!$deviceLog) {
+        if (! $deviceLog) {
             DeviceLog::create([
                 'mobileuser_id' => $authId,
                 'date' => $date,
@@ -61,7 +61,7 @@ class DeviceLogController extends Controller
             $responseLogs = $deviceLogs;
         } else {
             $existingLogs = json_decode($deviceLog->device_info, true);
-            if (!is_array($existingLogs)) {
+            if (! is_array($existingLogs)) {
                 $existingLogs = empty($existingLogs) ? [] : [$existingLogs];
             }
             $mergedLogs = array_merge($existingLogs, $deviceLogs);

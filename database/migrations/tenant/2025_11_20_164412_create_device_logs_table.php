@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('device_logs')) {
+        if (! Schema::hasTable('device_logs')) {
             Schema::create('device_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('mobileuser_id');
@@ -28,7 +28,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasTable('device_logs')) {
+        if (! Schema::hasTable('device_logs')) {
             Schema::dropIfExists('device_logs');
         }
     }

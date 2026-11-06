@@ -2,33 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use Illuminate\Http\Request;
-use App\Models\Product;
-use App\Http\Controllers\NotificationController;
-use App\Models\Productimage;
-use Illuminate\Support\Facades\Session;
-use Intervention\Image\Facades\Image;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ProductImport;
 use App\Imports\UpdateProductExcel;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Productimage;
 use App\Traits\FCM;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
     use FCM;
+
     public function index()
     {
         $data['products'] = Product::orderBy('id', 'DESC')->get();
+
         return view('dashboards.products.list', $data);
     }
 
     public function create()
     {
         $data['categories'] = Category::where('status', 'Active')->get();
+
         return view('dashboards.products.new', $data);
     }
 
@@ -40,9 +42,9 @@ class ProductController extends Controller
             'image' => 'nullable|mimes:jpeg,png,jpg|max:2048',
         ]);
         $product = new Product;
-        if (!empty($request->image)) {
+        if (! empty($request->image)) {
             $filecontent = File::get($request->image);
-            $imageName = time() . '_' . $request->image->getClientOriginalName();
+            $imageName = time().'_'.$request->image->getClientOriginalName();
             Storage::disk('public')->put("/productImage/$imageName", $filecontent);
 
             $product->image = $imageName;
@@ -60,6 +62,7 @@ class ProductController extends Controller
     {
         $data['product'] = Product::findorFail($id);
         $data['categories'] = Category::all();
+
         return view('dashboards.products.edit', $data);
     }
 
@@ -73,9 +76,9 @@ class ProductController extends Controller
 
         $product = Product::findorFail($id);
 
-        if (!empty($request->image)) {
+        if (! empty($request->image)) {
             $filecontent = File::get($request->image);
-            $imageName = time() . '_' . $request->image->getClientOriginalName();
+            $imageName = time().'_'.$request->image->getClientOriginalName();
             Storage::disk('public')->put("/productImage/$imageName", $filecontent);
 
             $product->image = $imageName;
@@ -85,6 +88,7 @@ class ProductController extends Controller
         $product->category_id = $request->input('category_id');
 
         $product->save();
+
         return redirect('/product')->with('Status', 'Product Updated');
     }
 
@@ -92,11 +96,11 @@ class ProductController extends Controller
     {
         $product = Product::with('category')->findorFail($id);
         if ($product->category->status == 'Active') {
-            if ($product->status == "Active") {
-                $product->status = "Inactive";
+            if ($product->status == 'Active') {
+                $product->status = 'Inactive';
                 Session::flash('Status', 'product Disabled Successfully.');
             } else {
-                $product->status = "Active";
+                $product->status = 'Active';
                 Session::flash('Status', 'product Enabled Successfully.');
             }
             $product->save();
@@ -104,6 +108,7 @@ class ProductController extends Controller
             return back();
         } else {
             Session::flash('Status', "Product Cannot be update cause it's category is Disabled.");
+
             return back();
         }
     }
@@ -117,8 +122,8 @@ class ProductController extends Controller
         $file = $request->file('excel_file');
         Excel::import(new ProductImport, $file);
 
-        $title = "New Product Added";
-        $body  = "New products have been added to the company.";
+        $title = 'New Product Added';
+        $body = 'New products have been added to the company.';
         $topic = strtolower(config('app.env')) === 'production' ? config('app.prod-topic') : config('app.dev-topic');
 
         $data = [
@@ -133,6 +138,7 @@ class ProductController extends Controller
     public function viewImage($id)
     {
         $product = Product::findorFail($id);
+
         return view('dashboards.products.imageAddView', ['product' => $product]);
     }
 
@@ -146,23 +152,23 @@ class ProductController extends Controller
             return back()->withErrors($validate);
         }
 
-        if (!$request->hasFile('image')) {
+        if (! $request->hasFile('image')) {
             return back()->withErrors(['image' => 'No images provided']);
         }
 
         $destinationPath = public_path('thumbnail');
 
-        if (!File::isDirectory($destinationPath)) {
+        if (! File::isDirectory($destinationPath)) {
             File::makeDirectory($destinationPath, 0755, true);
         }
 
         foreach ($request->file('image') as $file) {
-            $name = time() . '_' . rand(1000, 9999) . '_' . $file->getClientOriginalName();
+            $name = time().'_'.rand(1000, 9999).'_'.$file->getClientOriginalName();
 
             Storage::disk('public')->put("productImage/{$name}", File::get($file));
 
             Image::make($file)
-                ->resize(100, 100, fn($constraint) => $constraint->aspectRatio())
+                ->resize(100, 100, fn ($constraint) => $constraint->aspectRatio())
                 ->save("{$destinationPath}/{$name}");
 
             Productimage::create([
@@ -179,22 +185,24 @@ class ProductController extends Controller
     {
         Product::findorFail($id);
         $images = Productimage::where('product_id', $id)->get();
+
         return view('dashboards.products.viewImg', ['images' => $images]);
     }
 
     public function unlink($id)
     {
         $img = Productimage::findorFail($id);
-        $image_path = public_path() . '/productImage/' . $img->image;
+        $image_path = public_path().'/productImage/'.$img->image;
         if (Storage::disk('public')->exists("productImage/$img->image")) {
             Storage::disk('public')->delete("productImage/$img->image");
         }
-        $thmb = public_path() . '/thumbnail/' . $img->image;
+        $thmb = public_path().'/thumbnail/'.$img->image;
         if (file_exists($thmb)) {
             @unlink($thmb);
         }
         $img->delete();
-        return  redirect('/product/images/' . $img->product_id . '/all')->with('Status', 'Image Deleted Successfully!!');
+
+        return redirect('/product/images/'.$img->product_id.'/all')->with('Status', 'Image Deleted Successfully!!');
     }
 
     public function excelUpdate(Request $request)
@@ -205,12 +213,11 @@ class ProductController extends Controller
         $file = $request->file('excel_file');
         Excel::import(new UpdateProductExcel, $file);
 
-
         $title = 'Product Price Updated';
         $flag = 'product';
-        $content = array('Title' => 'Product Price Updated', 'Message' => 'Product Price Updated.');
+        $content = ['Title' => 'Product Price Updated', 'Message' => 'Product Price Updated.'];
 
-        $notice = new NotificationController();
+        $notice = new NotificationController;
         // $notice->sendGroupNotification($flag, $title, $content);
 
         return redirect('product')->with('Status', 'Product Price Updated.');

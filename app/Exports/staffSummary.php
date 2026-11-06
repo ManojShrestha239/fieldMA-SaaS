@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -10,7 +11,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 // class staffSummary implements FromCollection, WithHeadings
 class staffSummary implements FromView
 {
-    protected $from, $to, $attendances, $total;
+    protected $from;
+
+    protected $to;
+
+    protected $attendances;
+
+    protected $total;
 
     public function __construct($attendances, $from, $to, $total)
     {
@@ -31,9 +38,9 @@ class staffSummary implements FromView
     }
 }
 /**
- * @return \Illuminate\Support\Collection
+ * @return Collection
  */
-    // protected $from, $to, $attendance, $total;
+// protected $from, $to, $attendance, $total;
 
 //     public function __construct($attendance, $from, $to, $total)
 //     {

@@ -4,33 +4,33 @@ namespace App\Http\Controllers\API\v3;
 
 use App\Http\Controllers\Controller;
 use App\Models\AlertReminder;
-use Illuminate\Http\Request;
+use App\Models\Dealer;
+use App\Models\LogDetail;
 use App\Models\Order;
 use App\Models\Orderitem;
-use App\Models\Schedulevisit;
-use App\Models\LogDetail;
-use App\Models\ProductSize;
 use App\Models\Productimage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
-use App\Models\SchedulePurpose;
-use App\Models\Dealer;
+use App\Models\ProductSize;
 use App\Models\Purpose;
 use App\Models\ReminderPurpose;
+use App\Models\SchedulePurpose;
+use App\Models\Schedulevisit;
 use App\Models\Session;
 use App\Models\VisitPurpose;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Geocodable;
 use App\Traits\Nepali_Calendar;
-use BcMath\Number;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter, Geocodable;
+    use CustomNepaliCalendarConverter, Geocodable, Nepali_Calendar;
+
     public function index(Request $request)
     {
         $all = [];
@@ -72,8 +72,7 @@ class OrderController extends Controller
                 ->first();
             if ($order->status == 'Pending') {
                 foreach (
-                    Orderitem::where('order_id', $order->id)->get()
-                    as $oi
+                    Orderitem::where('order_id', $order->id)->get() as $oi
                 ) {
                     // return $oi->items_id;
                     $product = ProductSize::where('id', $oi->items_id)
@@ -88,8 +87,7 @@ class OrderController extends Controller
 
             if ($order->status == 'Approved') {
                 foreach (
-                    Orderitem::where('order_id', $order->id)->get()
-                    as $oi
+                    Orderitem::where('order_id', $order->id)->get() as $oi
                 ) {
                     $product = ProductSize::where('id', $oi->items_id)
                         ->select('price as productprice')
@@ -103,8 +101,7 @@ class OrderController extends Controller
 
             if ($order->status == 'Sent to Dispatch') {
                 foreach (
-                    Orderitem::where('order_id', $order->id)->get()
-                    as $oi
+                    Orderitem::where('order_id', $order->id)->get() as $oi
                 ) {
                     $product = ProductSize::where('id', $oi->items_id)
                         ->select('price as productprice')
@@ -118,8 +115,7 @@ class OrderController extends Controller
 
             if ($order->status == 'Dispatched') {
                 foreach (
-                    Orderitem::where('order_id', $order->id)->get()
-                    as $oi
+                    Orderitem::where('order_id', $order->id)->get() as $oi
                 ) {
                     $product = ProductSize::where('id', $oi->items_id)
                         ->select('price as productprice')
@@ -186,6 +182,7 @@ class OrderController extends Controller
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items =
             $items instanceof Collection ? $items : Collection::make($items);
+
         return new LengthAwarePaginator(
             $items->forPage($page, $perPage)->values(),
             $items->count(),
@@ -202,10 +199,10 @@ class OrderController extends Controller
 
         $allowedStatuses = ['checkin', 'breakend'];
 
-        if (!in_array(strtolower($isUserCheckIn), $allowedStatuses)) {
+        if (! in_array(strtolower($isUserCheckIn), $allowedStatuses)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'You must check-in/break-end before placing an order.'
+                'message' => 'You must check-in/break-end before placing an order.',
             ], 403);
         }
 
@@ -229,8 +226,8 @@ class OrderController extends Controller
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
         }
 
-        $areaCodes  = array_map('trim', explode('::', $authUser->areas));
-        $subAreas   = array_map('trim', explode('::', $authUser->sub_areas));
+        $areaCodes = array_map('trim', explode('::', $authUser->areas));
+        $subAreas = array_map('trim', explode('::', $authUser->sub_areas));
 
         DB::beginTransaction();
         try {
@@ -238,7 +235,7 @@ class OrderController extends Controller
                 'user_id' => $request->user_id,
                 'dealer_code' => $request->dealer_code,
                 'date' => $request->date,
-                'is_visit' => 0
+                'is_visit' => 0,
             ])->get();
 
             $scheduleIds = $schedules->pluck('id');
@@ -254,7 +251,7 @@ class OrderController extends Controller
 
             $schedulesToUpdate = array_diff($scheduleIds->toArray(), $pendingSchedules);
 
-            if (!empty($schedulesToUpdate)) {
+            if (! empty($schedulesToUpdate)) {
                 Schedulevisit::whereIn('id', $schedulesToUpdate)
                     ->update(['is_visit' => 1]);
             }
@@ -263,11 +260,12 @@ class OrderController extends Controller
                 ->where('active_status', 'Active')
                 ->first();
 
-            if (!$dealer) {
+            if (! $dealer) {
                 DB::rollBack();
+
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Dealer does not exist'
+                    'message' => 'Dealer does not exist',
                 ], 404);
             }
 
@@ -275,10 +273,11 @@ class OrderController extends Controller
             $dealerSubAreaCode = trim($dealer->subarea);
 
             if (
-                !in_array($dealerAreaCode, $areaCodes) ||
-                !in_array($dealerSubAreaCode, $subAreas)
+                ! in_array($dealerAreaCode, $areaCodes) ||
+                ! in_array($dealerSubAreaCode, $subAreas)
             ) {
                 DB::rollBack();
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Your are not authorized to place order for this dealer',
@@ -295,7 +294,7 @@ class OrderController extends Controller
                 'status' => 'Pending',
                 'payment_commitment_date' => $request->payment_commitment_date,
                 'committed_amount' => $request->committed_amount ? $request->committed_amount : 0,
-                'lat_lng' => $request->latitude . ',' . $request->longitude,
+                'lat_lng' => $request->latitude.','.$request->longitude,
             ]);
 
             $purpose = Purpose::whereIn('purpose', ['Order', 'order'])->first();
@@ -305,10 +304,10 @@ class OrderController extends Controller
                     'dealer_code' => $request->dealer_code,
                     'date' => $request->payment_commitment_date,
                     'column_id' => $order->id,
-                    'table_name' => $order->getTable()
+                    'table_name' => $order->getTable(),
                 ])->first();
-                if (!$alert) {
-                    $alert = new AlertReminder();
+                if (! $alert) {
+                    $alert = new AlertReminder;
                 }
 
                 $alert->dealer_code = $request->dealer_code;
@@ -316,7 +315,7 @@ class OrderController extends Controller
                 $alert->column_id = $order->id;
                 $alert->table_name = $order->getTable();
                 $alert->remarks = $request->remarks;
-                if (!$request->remarks) {
+                if (! $request->remarks) {
                     $alert->remarks = 'Order';
                 }
                 $alert->status = 'Pending';
@@ -329,8 +328,8 @@ class OrderController extends Controller
                     'purpose_id' => $purpose->id,
                     'alertreminder_id' => $alert->id,
                 ])->first();
-                if (!$purposeAlert) {
-                    $purposeAlert = new ReminderPurpose();
+                if (! $purposeAlert) {
+                    $purposeAlert = new ReminderPurpose;
                 }
 
                 $purposeAlert->purpose_id = $purpose->id;
@@ -351,8 +350,8 @@ class OrderController extends Controller
             $newOrderItems = collect($request->orders)->map(function ($item) use ($products, $order, &$totalOrder) {
                 $product = $products->get($item['items_id']);
 
-                if (!$product) {
-                    throw new \Exception('Product not found or inactive: ' . $item['items_id']);
+                if (! $product) {
+                    throw new \Exception('Product not found or inactive: '.$item['items_id']);
                 }
 
                 $totalPrice = $product->price * $item['quantity'];
@@ -371,7 +370,7 @@ class OrderController extends Controller
                 ];
             })->toArray();
 
-            if (!empty($newOrderItems)) {
+            if (! empty($newOrderItems)) {
                 Orderitem::insert($newOrderItems);
             } else {
                 throw new \Exception('No valid order items found');
@@ -380,7 +379,6 @@ class OrderController extends Controller
             $order->update(['total_price' => $totalOrder]);
 
             $time = now()->format('H:i:s');
-
 
             $session = Session::create([
                 'dealer_code' => $request->dealer_code,
@@ -392,7 +390,7 @@ class OrderController extends Controller
                 'date' => $request->date,
                 'status' => $request->status ?? 'online',
                 'remarks' => $request->remarks,
-                'lat_lng' => $request->latitude && $request->longitude ? $request->latitude . ',' . $request->longitude : null,
+                'lat_lng' => $request->latitude && $request->longitude ? $request->latitude.','.$request->longitude : null,
             ]);
 
             VisitPurpose::create([
@@ -404,16 +402,18 @@ class OrderController extends Controller
             ]);
 
             DB::commit();
+
             return response()->json([
                 'message' => 'Success',
-                'order_id' => $order
+                'order_id' => $order,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to create order',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -422,7 +422,7 @@ class OrderController extends Controller
     {
         $order = Order::findorFail($id);
         $order->date = $this->custom_AD_to_BS($order->date);
-        $order->payment_commitment_date    = ($order->payment_commitment_date) ? $this->custom_AD_to_BS($order->payment_commitment_date) : null;
+        $order->payment_commitment_date = ($order->payment_commitment_date) ? $this->custom_AD_to_BS($order->payment_commitment_date) : null;
         $test = DB::table('orderitems')
             ->join('product_size', 'orderitems.items_id', 'product_size.id')
             ->join('products', 'product_size.product_id', 'products.id')
@@ -431,6 +431,7 @@ class OrderController extends Controller
             ->where('orderitems.order_id', $order->id)
             ->get();
         $order->orders = $test;
+
         return response()->json($order);
     }
 
@@ -446,7 +447,7 @@ class OrderController extends Controller
             $order->remarks = $request->remarks;
             $order->save();
 
-            $log = new LogDetail();
+            $log = new LogDetail;
             $date = date('Y-m-d');
 
             $log->ordercoll_id = $id;
@@ -455,7 +456,7 @@ class OrderController extends Controller
             $log->date = $date;
             $log->mo_user = $order->user_id;
             $log->user_id = $order->user_id;
-            $log->status = "Declined";
+            $log->status = 'Declined';
             $log->remarks = $request->remarks;
             $log->previous_status = $order->status;
 
@@ -473,7 +474,7 @@ class OrderController extends Controller
             foreach ($item as $t) {
                 $image = Productimage::where('product_id', $t->pid)->select('image', 'thumbnail')->get();
 
-                $lis[] = array(
+                $lis[] = [
                     'id' => $t->id,
                     'order_id' => $t->order_id,
                     'items_id' => $t->items_id,
@@ -484,18 +485,19 @@ class OrderController extends Controller
                     'product_id' => $t->product_id,
                     'size' => $t->size,
                     'image' => $image,
-                );
+                ];
             }
 
-            $list = array(
+            $list = [
                 'order_id' => $order->id,
                 'dealer_code' => $order->dealer_code,
                 'user_id' => $order->user_id,
                 'date' => $order->date,
                 'status' => $order->status,
                 'remarks' => $order->remarks,
-                'items' => $lis
-            );
+                'items' => $lis,
+            ];
+
             return response()->json($list);
         } else {
 
@@ -525,7 +527,7 @@ class OrderController extends Controller
                 foreach ($item as $t) {
                     $image = Productimage::where('product_id', $t->pid)->select('image', 'thumbnail')->get();
 
-                    $lis[] = array(
+                    $lis[] = [
                         'id' => $t->id,
                         'order_id' => $t->order_id,
                         'items_id' => $t->items_id,
@@ -536,18 +538,19 @@ class OrderController extends Controller
                         'product_id' => $t->product_id,
                         'size' => $t->size,
                         'image' => $image,
-                    );
+                    ];
                 }
 
-                $list = array(
+                $list = [
                     'order_id' => $order->id,
                     'dealer_code' => $order->dealer_code,
                     'user_id' => $order->user_id,
                     'date' => $order->date,
                     'status' => $order->status,
                     'remarks' => $order->remarks,
-                    'items' => $lis
-                );
+                    'items' => $lis,
+                ];
+
                 // $item->status = '1';
                 // $item->save();
                 return response()->json($list);
@@ -568,7 +571,7 @@ class OrderController extends Controller
             foreach ($items as $t) {
                 $image = Productimage::where('product_id', $t->pid)->select('image', 'thumbnail')->get();
 
-                $lis[] = array(
+                $lis[] = [
                     'id' => $t->id,
                     'order_id' => $t->order_id,
                     'items_id' => $t->items_id,
@@ -580,18 +583,19 @@ class OrderController extends Controller
                     'product_id' => $t->product_id,
                     'size' => $t->size,
                     'image' => $image,
-                );
+                ];
             }
 
-            $list = array(
+            $list = [
                 'order_id' => $order->id,
                 'dealer_code' => $order->dealer_code,
                 'user_id' => $order->user_id,
                 'date' => $order->date,
                 'status' => $order->status,
                 'remarks' => $order->remarks,
-                'items' => $lis
-            );
+                'items' => $lis,
+            ];
+
             return response()->json($list);
         } else {
             return response()->json(['status' => 'error', 'message' => 'This Order has already been  Approved or Cancelled.']);
@@ -606,13 +610,13 @@ class OrderController extends Controller
             'from' => 'nullable|required_with:to|date|date_format:Y-m-d',
             'to' => 'nullable|required_with:from|date||date_format:Y-m-d',
             'subarea' => 'nullable|string|max:191',
-            'sorting' => 'nullable|string|max:191|in:ASC,DESC'
+            'sorting' => 'nullable|string|max:191|in:ASC,DESC',
         ]);
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
         }
         $sort = $request->sorting;
-        if (!$sort) {
+        if (! $sort) {
             $sort = 'DESC';
         }
         $amt = 0.0;
@@ -624,37 +628,36 @@ class OrderController extends Controller
 
         $user = Auth::user();
 
-
         if ($request->dealer && $request->from) {
             $orders = DB::table('orders')
                 ->join('dealers', 'dealers.code', 'orders.dealer_code')
                 ->select('id', 'dealer_code as dealerCode', 'user_id', 'date', 'dealers.name', 'orders.status', 'remarks', 'payment_commitment_date', 'committed_amount')
                 ->where('user_id', '=', $user->id)
-                ->where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->wherebetween('orders.date', [$request->from, $request->to])
                 ->orderBy('orders.created_at', $sort)
                 ->paginate(10);
 
-            $amt = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $pending = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Pending')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $approved = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Approved')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $ongoing = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Sent to Dispatch')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $dispatch = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Dispatched')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-        } else if ($request->dealer && !$request->from) {
+            $amt = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $pending = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Pending')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $approved = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Approved')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $ongoing = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Sent to Dispatch')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $dispatch = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->wherebetween('orders.date', [$request->from, $request->to])->where('orders.status', 'Dispatched')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+        } elseif ($request->dealer && ! $request->from) {
             $orders = DB::table('orders')
                 ->join('dealers', 'dealers.code', 'orders.dealer_code')
                 ->select('id', 'dealer_code as dealerCode', 'user_id', 'date', 'dealers.name', 'orders.status', 'remarks', 'payment_commitment_date', 'committed_amount')
                 ->where('user_id', '=', $user->id)
-                ->where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->orderBy('orders.created_at', $sort)
                 ->paginate(10);
 
-            $amt = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $pending = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Pending')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $approved = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Approved')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $ongoing = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Sent to Dispatch')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-            $dispatch = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Dispatched')->where('dealers.name', 'like', '%' . $request->dealer . '%')->sum('orders.total_price'), 2, '.', '');
-        } else if (!$request->dealer && $request->from) {
+            $amt = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $pending = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Pending')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $approved = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Approved')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $ongoing = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Sent to Dispatch')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+            $dispatch = number_format(Order::join('dealers', 'dealers.code', 'orders.dealer_code')->where('orders.status', 'Dispatched')->where('dealers.name', 'like', '%'.$request->dealer.'%')->sum('orders.total_price'), 2, '.', '');
+        } elseif (! $request->dealer && $request->from) {
             $orders = DB::table('orders')
                 ->join('dealers', 'dealers.code', 'orders.dealer_code')
                 ->select('id', 'dealer_code as dealerCode', 'user_id', 'date', 'dealers.name', 'orders.status', 'remarks', 'payment_commitment_date', 'committed_amount')
@@ -685,6 +688,7 @@ class OrderController extends Controller
         foreach ($orders as $order) {
             $order->date = $this->custom_AD_to_BS($order->date);
         }
+
         return response()->json(['order' => $orders, 'total_order' => $amt, 'approved' => $approved, 'sent_to_dispatch' => $ongoing, 'pending' => $pending, 'dispatched' => $dispatch]);
     }
 }

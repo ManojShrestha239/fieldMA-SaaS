@@ -9,12 +9,12 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $table = "products";
+    protected $table = 'products';
 
-    protected  $fillable = [
+    protected $fillable = [
         'name',
         'category_id',
-        'status'
+        'status',
     ];
 
     public function category()
@@ -26,16 +26,16 @@ class Product extends Model
     {
         return $this->belongsToMany(Size::class);
     }
+
     public function challans()
     {
         return $this->hasMany(Challan::class, 'product_id');
     }
+
     public function rawProduct()
     {
         return $this->hasMany(RawProduct::class);
     }
-
-
 
     //    public function size(){
     //        return $this->belongsToMany(Size::class, 'product_size', 'size_id', 'product_id');
@@ -49,6 +49,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductManufInventory::class, 'product_id');
     }
+
     public function dealers()
     {
         return $this->belongsToMany(Dealer::class, 'product_dealers')

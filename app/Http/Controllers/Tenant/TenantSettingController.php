@@ -42,7 +42,7 @@ class TenantSettingController extends Controller
                 Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->logo_url));
             }
             $path = $request->file('logo')->store('branding/logos', 'public');
-            $tenant->logo_url = '/storage/' . $path;
+            $tenant->logo_url = '/storage/'.$path;
         }
 
         if ($request->hasFile('favicon')) {
@@ -50,7 +50,7 @@ class TenantSettingController extends Controller
                 Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->favicon_url));
             }
             $path = $request->file('favicon')->store('branding/favicons', 'public');
-            $tenant->favicon_url = '/storage/' . $path;
+            $tenant->favicon_url = '/storage/'.$path;
         }
 
         $tenant->company_name = $validated['company_name'];

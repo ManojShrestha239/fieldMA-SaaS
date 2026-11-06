@@ -12,7 +12,7 @@ class Contractor extends Model
     protected $fillable = [
         'name',
         'pass_book_no',
-        'contact'
+        'contact',
     ];
 
     protected $casts = [
@@ -25,7 +25,7 @@ class Contractor extends Model
 
     protected $hidden = [
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     protected function serializeDate(\DateTimeInterface $date)

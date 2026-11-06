@@ -2,12 +2,9 @@
 
 use App\Utilities\Helpers;
 
-if (!function_exists('tenant_has_feature')) {
+if (! function_exists('tenant_has_feature')) {
     /**
      * Check if current tenant has a feature flag enabled.
-     *
-     * @param string $feature
-     * @return bool
      */
     function tenant_has_feature(string $feature): bool
     {
@@ -15,12 +12,9 @@ if (!function_exists('tenant_has_feature')) {
     }
 }
 
-if (!function_exists('tenant_enabled_features')) {
+if (! function_exists('tenant_enabled_features')) {
     /**
      * Get all enabled features for a given module (or all enabled modules).
-     *
-     * @param string|null $module
-     * @return array
      */
     function tenant_enabled_features(?string $module = null): array
     {
@@ -28,12 +22,11 @@ if (!function_exists('tenant_enabled_features')) {
     }
 }
 
-if (!function_exists('tenant_setting')) {
+if (! function_exists('tenant_setting')) {
     /**
      * Retrieve a tenant setting or fallback to default.
      *
-     * @param string $key
-     * @param mixed $default
+     * @param  mixed  $default
      * @return mixed
      */
     function tenant_setting(string $key, $default = null)
@@ -41,16 +34,14 @@ if (!function_exists('tenant_setting')) {
         if (function_exists('tenant') && tenant()) {
             return tenant()->$key ?? $default;
         }
+
         return $default;
     }
 }
 
-if (!function_exists('tenant_brand_color')) {
+if (! function_exists('tenant_brand_color')) {
     /**
      * Retrieve the tenant primary brand color.
-     *
-     * @param string $default
-     * @return string
      */
     function tenant_brand_color(string $default = '#315DA9'): string
     {
@@ -58,34 +49,30 @@ if (!function_exists('tenant_brand_color')) {
     }
 }
 
-if (!function_exists('tenant_logo_url')) {
+if (! function_exists('tenant_logo_url')) {
     /**
      * Retrieve the tenant logo URL.
-     *
-     * @param string|null $default
-     * @return string|null
      */
     function tenant_logo_url(?string $default = null): ?string
     {
         if (function_exists('tenant') && tenant()) {
             return tenant()->getLogoUrl();
         }
+
         return $default ?: asset('assets/pages/img/logo-fieldma.png');
     }
 }
 
-if (!function_exists('tenant_favicon_url')) {
+if (! function_exists('tenant_favicon_url')) {
     /**
      * Retrieve the tenant favicon URL.
-     *
-     * @param string|null $default
-     * @return string|null
      */
     function tenant_favicon_url(?string $default = null): ?string
     {
         if (function_exists('tenant') && tenant()) {
             return tenant()->getFaviconUrl();
         }
+
         return $default ?: asset('assets/pages/img/logo-fieldma.png');
     }
 }

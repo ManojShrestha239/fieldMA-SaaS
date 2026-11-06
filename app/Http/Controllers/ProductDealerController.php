@@ -5,23 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Dealer;
 use App\Models\Product;
 use App\Models\ProductDealer;
+use App\Models\ProductSize;
 use App\Models\ProductStock;
-use Illuminate\Http\Request;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
 
 class ProductDealerController extends Controller
 {
-
-    use  Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index()
     {
 
         $productDealers = ProductDealer::with(['dealer', 'size', 'product'])->get();
+
         return view('dashboards.product-dealer.list', compact('productDealers'));
     }
-
 
     public function create()
     {
@@ -39,14 +39,13 @@ class ProductDealerController extends Controller
 
     public function getSize($product_id)
     {
-        $size = \App\Models\ProductSize::with('size')
+        $size = ProductSize::with('size')
             ->where('product_id', $product_id)->get();
-
 
         if ($size && $size->size) {
             return response()->json([
                 'size_name' => $size->size->size,
-                'variant_id' => $size->size_id  // <-- use size_id here, not id
+                'variant_id' => $size->size_id,  // <-- use size_id here, not id
             ]);
         }
 
@@ -71,7 +70,6 @@ class ProductDealerController extends Controller
 
         $dates = $this->custom_BS_to_AD($request->date);
 
-
         // Validate inventory for each product
         foreach ($request->products as $index => $product) {
             $availableQty = ProductStock::where('product_id', $product['product_id'])
@@ -81,13 +79,13 @@ class ProductDealerController extends Controller
             if ($availableQty === null) {
                 $errors["products.$index.assign_qty"] = 'Product/size combination not found in inventory';
             } elseif ($product['assign_qty'] > $availableQty) {
-                $errors["products.$index.assign_qty"] = 'Not enough inventory available (Available: ' . $availableQty . ')';
+                $errors["products.$index.assign_qty"] = 'Not enough inventory available (Available: '.$availableQty.')';
             } else {
                 $productsToProcess[] = $product;
             }
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return back()->withErrors($errors)->withInput();
         }
 
@@ -99,7 +97,7 @@ class ProductDealerController extends Controller
                 'product_id' => $product['product_id'],
                 'size_id' => $product['size_id'],
                 'assign_qty' => $product['assign_qty'],
-                'date' =>  $dates,
+                'date' => $dates,
                 'invoice_num' => $request->invoice_num,
 
             ]);
@@ -117,6 +115,6 @@ class ProductDealerController extends Controller
         }
 
         return redirect('/product-dealer')
-            ->with('Status', count($productsToProcess) . ' product(s) assigned to dealer successfully!');
+            ->with('Status', count($productsToProcess).' product(s) assigned to dealer successfully!');
     }
 }

@@ -11,11 +11,11 @@ class ExcelRawProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function export()
     {
-        return Excel::download(new RawProductExport, 'rawproduct-inventory_' . date('Y-m-d') . '_' . time() . '.xlsx');
+        return Excel::download(new RawProductExport, 'rawproduct-inventory_'.date('Y-m-d').'_'.time().'.xlsx');
     }
+
     public function index()
     {
         //

@@ -15,11 +15,10 @@ class TeamMemberService
     /**
      * Get team members for a given senior user, with optional search and date filters.
      *
-     * @param Mobileuser $user The senior user whose team members are to be fetched.
-     * @param int $perPage The number of results per page for pagination.
-     * @param string|null $search Optional search term to filter team members by name, email, phone, areas, or sub_areas.
-     * @param string|null $date Optional date in BS format to filter attendance status. Defaults to today if not provided or invalid.
-     *
+     * @param  Mobileuser  $user  The senior user whose team members are to be fetched.
+     * @param  int  $perPage  The number of results per page for pagination.
+     * @param  string|null  $search  Optional search term to filter team members by name, email, phone, areas, or sub_areas.
+     * @param  string|null  $date  Optional date in BS format to filter attendance status. Defaults to today if not provided or invalid.
      * @return array An associative array containing summary statistics and a paginated list of team members.
      */
     public function getTeamMembers(
@@ -57,7 +56,7 @@ class TeamMemberService
         $total = (clone $baseQuery)->count();
 
         $onLeave = (clone $baseQuery)
-            ->whereDoesntHave('attendance', fn($q) => $q->whereDate('date', $targetDate))
+            ->whereDoesntHave('attendance', fn ($q) => $q->whereDate('date', $targetDate))
             ->count();
 
         $presentToday = max(0, $total - $onLeave);
@@ -78,10 +77,10 @@ class TeamMemberService
             $term = addcslashes(trim($search), '%_\\');
 
             $listQuery->where(function ($q) use ($term) {
-                $q->where('name',      'like', "%{$term}%")
-                    ->orWhere('email',   'like', "%{$term}%")
-                    ->orWhere('phone',   'like', "%{$term}%")
-                    ->orWhere('areas',   'like', "%{$term}%")
+                $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%")
+                    ->orWhere('phone', 'like', "%{$term}%")
+                    ->orWhere('areas', 'like', "%{$term}%")
                     ->orWhere('sub_areas', 'like', "%{$term}%");
             });
         }
@@ -117,7 +116,7 @@ class TeamMemberService
                 $listQuery->where('latest_att.status', $type);
                 break;
 
-            // UI labels → DB values
+                // UI labels → DB values
             case 'breakin':
                 $listQuery->where('latest_att.status', 'breakstart');
                 break;
@@ -157,15 +156,15 @@ class TeamMemberService
         return [
             'summary' => [
                 'total_team_members' => $total,
-                'present_today'      => $presentToday,
-                'checkin'            => $checkin,
-                'on_leave'           => $onLeave,
+                'present_today' => $presentToday,
+                'checkin' => $checkin,
+                'on_leave' => $onLeave,
             ],
             'members' => $members,
             'filters' => [
                 'search' => $search,
-                'date'   => $targetDate,
-                'type'   => $type,
+                'date' => $targetDate,
+                'type' => $type,
             ],
         ];
     }
@@ -175,7 +174,7 @@ class TeamMemberService
      * the hydrated model plus the resolved target date.
      *
      * @param  Mobileuser  $user  Target mobilizer (route-bound).
-     * @param  string|null $date  BS or AD date. Null = today.
+     * @param  string|null  $date  BS or AD date. Null = today.
      * @return array{user: Mobileuser, target_date: string}
      */
     public function getTeamMemberDetail(Mobileuser $user, ?string $date = null): array
@@ -185,7 +184,7 @@ class TeamMemberService
         $this->loadDetail($user, $targetDate);
 
         return [
-            'user'        => $user,
+            'user' => $user,
             'target_date' => $targetDate,
         ];
     }
@@ -214,15 +213,15 @@ class TeamMemberService
     {
         $user
             ->loadCount([
-                'orders as today_orders_count'     => fn($q) => $q->whereDate('date', $targetDate),
-                'payments as today_payments_count' => fn($q) => $q->whereDate('collection_date', $targetDate),
+                'orders as today_orders_count' => fn ($q) => $q->whereDate('date', $targetDate),
+                'payments as today_payments_count' => fn ($q) => $q->whereDate('collection_date', $targetDate),
             ])
             ->loadSum(
-                ['orders as todays_order_total' => fn($q) => $q->whereDate('date', $targetDate)],
+                ['orders as todays_order_total' => fn ($q) => $q->whereDate('date', $targetDate)],
                 'total_price'
             )
             ->loadSum(
-                ['payments as todays_payments_total' => fn($q) => $q->whereDate('collection_date', $targetDate)],
+                ['payments as todays_payments_total' => fn ($q) => $q->whereDate('collection_date', $targetDate)],
                 'amount'
             )
             ->loadMissing([

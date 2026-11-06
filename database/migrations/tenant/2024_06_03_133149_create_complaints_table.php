@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('complaints')) {
+        if (! Schema::hasTable('complaints')) {
             Schema::create('complaints', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('issuetype_id')->index();
@@ -19,7 +19,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_admin_users')) {
+        if (! Schema::hasTable('complaint_admin_users')) {
             Schema::create('complaint_admin_users', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaint_id')->index();
@@ -28,7 +28,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_dealer_users')) {
+        if (! Schema::hasTable('complaint_dealer_users')) {
             Schema::create('complaint_dealer_users', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaint_id')->index();
@@ -38,7 +38,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_images')) {
+        if (! Schema::hasTable('complaint_images')) {
             Schema::create('complaint_images', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaint_id')->index();
@@ -47,7 +47,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_replies')) {
+        if (! Schema::hasTable('complaint_replies')) {
             Schema::create('complaint_replies', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaint_id')->index();
@@ -57,7 +57,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_reply_admin_users')) {
+        if (! Schema::hasTable('complaint_reply_admin_users')) {
             Schema::create('complaint_reply_admin_users', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaintreply_id')->index();
@@ -66,7 +66,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_reply_dealer_users')) {
+        if (! Schema::hasTable('complaint_reply_dealer_users')) {
             Schema::create('complaint_reply_dealer_users', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaintreply_id')->index();
@@ -76,7 +76,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('complaint_reply_images')) {
+        if (! Schema::hasTable('complaint_reply_images')) {
             Schema::create('complaint_reply_images', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('complaintreply_id')->index();
@@ -85,7 +85,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('product_complaints')) {
+        if (! Schema::hasTable('product_complaints')) {
             Schema::create('product_complaints', function (Blueprint $table) {
                 $table->id();
                 $table->string('customer_name', 255);

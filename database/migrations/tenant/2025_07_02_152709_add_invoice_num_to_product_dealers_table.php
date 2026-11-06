@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('product_dealers') && !Schema::hasColumn('product_dealers', 'invoice_num')) {
+        if (Schema::hasTable('product_dealers') && ! Schema::hasColumn('product_dealers', 'invoice_num')) {
             Schema::table('product_dealers', function (Blueprint $table) {
                 $table->string('invoice_num')->nullable()->after('size_id');
             });

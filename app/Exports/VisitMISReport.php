@@ -2,22 +2,27 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromView;
 
 class VisitMISReport implements FromView
 {
     /**
      * @return \Illuminate\Contracts\View\View;
      */
-    protected $data, $from, $to;
+    protected $data;
+
+    protected $from;
+
+    protected $to;
+
     public function __construct($data, $from, $to)
     {
         $this->data = $data;
         $this->from = $from;
         $this->to = $to;
     }
+
     public function view(): View
     {
         // dd($this->data);

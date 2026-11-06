@@ -80,7 +80,7 @@ class SubdealerInventoryController extends Controller
                 }
             }
 
-            if (!empty($logBuffer)) {
+            if (! empty($logBuffer)) {
                 SubdealerStockLog::insert($logBuffer);
             }
         });
@@ -159,7 +159,7 @@ class SubdealerInventoryController extends Controller
                 }
             }
 
-            if (!empty($logBuffer)) {
+            if (! empty($logBuffer)) {
                 SubdealerStockLog::insert($logBuffer);
             }
         });

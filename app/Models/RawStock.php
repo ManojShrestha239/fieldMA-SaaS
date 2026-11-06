@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class RawStock extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'r_id',
         'total_qty',
@@ -16,8 +17,8 @@ class RawStock extends Model
         'batch_number',
         'rawsize_id',
     ];
-    protected $table = 'raw_stock';
 
+    protected $table = 'raw_stock';
 
     public function rawMaterial()
     {

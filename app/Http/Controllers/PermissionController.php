@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -51,6 +50,7 @@ class PermissionController extends Controller
         $role->syncPermissions($permissions);
 
         Session::flash('Status', "Role '{$role->name}' added successfully.");
+
         return redirect()->route('role-permission.index');
     }
 
@@ -82,7 +82,7 @@ class PermissionController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'name' => 'required|string|max:125|unique:spatie_roles,name,' . $id,
+            'name' => 'required|string|max:125|unique:spatie_roles,name,'.$id,
             'features' => 'nullable|array',
             'core_permissions' => 'nullable|array',
         ]);
@@ -96,6 +96,7 @@ class PermissionController extends Controller
         $role->syncPermissions($permissions);
 
         Session::flash('Status', "Role '{$role->name}' updated successfully.");
+
         return redirect()->route('role-permission.index');
     }
 
@@ -103,7 +104,7 @@ class PermissionController extends Controller
      * Retrieve features allowed specifically for this tenant.
      * Enforces the tenant boundary rule: tenants can only see/do what their plan has.
      *
-     * @param mixed $tenant
+     * @param  mixed  $tenant
      * @return array<string, mixed>
      */
     protected function getTenantAllowedFeatures($tenant): array
@@ -114,15 +115,15 @@ class PermissionController extends Controller
         foreach ($allFeatures as $fKey => $fConfig) {
             // STRICT TENANT PLAN CHECK:
             // If tenant exists and does not have this feature, OMIT IT ENTIRELY
-            if ($tenant && method_exists($tenant, 'hasFeature') && !$tenant->hasFeature($fKey)) {
+            if ($tenant && method_exists($tenant, 'hasFeature') && ! $tenant->hasFeature($fKey)) {
                 continue;
             }
 
             $entry = $fConfig;
-            if (!empty($fConfig['sub_features'])) {
+            if (! empty($fConfig['sub_features'])) {
                 $allowedSubs = [];
                 foreach ($fConfig['sub_features'] as $subKey) {
-                    if (!$tenant || !method_exists($tenant, 'hasSubFeature') || $tenant->hasSubFeature($fKey, $subKey)) {
+                    if (! $tenant || ! method_exists($tenant, 'hasSubFeature') || $tenant->hasSubFeature($fKey, $subKey)) {
                         $allowedSubs[] = $subKey;
                     }
                 }
@@ -138,7 +139,6 @@ class PermissionController extends Controller
     /**
      * Parse requested features and core permissions into a flat list of permission names.
      *
-     * @param Request $request
      * @return array<string>
      */
     protected function resolvePermissionsFromRequest(Request $request): array
@@ -161,17 +161,17 @@ class PermissionController extends Controller
         $featuresInput = (array) $request->input('features', []);
         foreach ($allowedFeatures as $fKey => $fConfig) {
             $fInput = $featuresInput[$fKey] ?? null;
-            if (!$fInput) {
+            if (! $fInput) {
                 continue;
             }
 
-            $isMasterChecked = !empty($fInput['enabled']);
+            $isMasterChecked = ! empty($fInput['enabled']);
             $submittedSubs = (array) ($fInput['sub_features'] ?? []);
             $enabledSubs = [];
 
-            if (!empty($fConfig['sub_features'])) {
+            if (! empty($fConfig['sub_features'])) {
                 foreach ($fConfig['sub_features'] as $subKey) {
-                    if (!empty($submittedSubs[$subKey])) {
+                    if (! empty($submittedSubs[$subKey])) {
                         $enabledSubs[] = $subKey;
                     }
                 }
@@ -179,7 +179,7 @@ class PermissionController extends Controller
 
             if ($isMasterChecked || count($enabledSubs) > 0) {
                 // Add parent permissions mapped to this feature (e.g. notices -> notice, dealer_orders -> order)
-                if (!empty($permMap[$fKey])) {
+                if (! empty($permMap[$fKey])) {
                     foreach ($permMap[$fKey] as $p) {
                         $permissions[] = $p;
                     }
@@ -201,8 +201,7 @@ class PermissionController extends Controller
     /**
      * Ensure all given permission names exist in the database for the 'web' guard.
      *
-     * @param array<string> $permissions
-     * @return void
+     * @param  array<string>  $permissions
      */
     protected function ensurePermissionsExist(array $permissions): void
     {

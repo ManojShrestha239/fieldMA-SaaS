@@ -6,7 +6,6 @@ use App\Models\RawInventory;
 use App\Models\RawMaterial;
 use App\Models\RawSize;
 use App\Models\RawStock;
-use App\Models\Size;
 use Illuminate\Http\Request;
 
 class RawPurchaseController extends Controller
@@ -35,6 +34,7 @@ class RawPurchaseController extends Controller
             // Add the available quantity to the raw material object if inventory exists
             $rawMaterial->latest_available = $latestInventory ? $latestInventory->available : 0;
         }
+
         return view('dashboards.rawpurchase.create', compact('rawMaterials', 'rawSizes'));
     }
 
@@ -52,11 +52,10 @@ class RawPurchaseController extends Controller
             'batch_number' => 'required|string|max:255',
             // 'rawsize_id' => 'required|exists:raw_sizes,id',
 
-
         ]);
-        $rawMaterial = Rawmaterial::findOrFail($request->r_id);
+        $rawMaterial = RawMaterial::findOrFail($request->r_id);
         $rawSizeId = $rawMaterial->rawSize ? $rawMaterial->rawSize->id : null;
-        if (!$rawSizeId) {
+        if (! $rawSizeId) {
             return redirect()->back()->withErrors(['rawsize_id' => 'The selected raw material does not have a valid raw size.']);
         }
         $existingInventory = RawInventory::where('r_id', $request->r_id)->latest()->first();
@@ -75,7 +74,6 @@ class RawPurchaseController extends Controller
             'flag' => 1,
             'date' => $request->date,
         ]);
-
 
         $rawStock = RawStock::where('r_id', $request->r_id)
             ->where('rawsize_id', $rawSizeId)
@@ -101,7 +99,6 @@ class RawPurchaseController extends Controller
 
         return redirect()->back()->with('Status', 'Raw Inventory Added Successfully!');
     }
-
 
     /**
      * Display the specified resource.

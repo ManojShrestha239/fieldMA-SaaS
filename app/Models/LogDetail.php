@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LogDetail extends Model
 {
-    use HasFactory, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, HasFactory;
 
     protected $table = 'logdetails';
 
@@ -31,7 +31,7 @@ class LogDetail extends Model
         'update_lastyearsales',
         'remarks',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     protected $appends = ['nepali_created_at'];
@@ -58,11 +58,12 @@ class LogDetail extends Model
 
     public function getNepaliCreatedAtAttribute()
     {
-        if (!$this->created_at) {
+        if (! $this->created_at) {
             return null;
         }
-        $created_at = explode(' ', (string)$this->created_at);
-        return $this->custom_AD_to_BS($created_at[0]) . ' ' . $created_at[1];
+        $created_at = explode(' ', (string) $this->created_at);
+
+        return $this->custom_AD_to_BS($created_at[0]).' '.$created_at[1];
     }
 
     protected function serializeDate(\DateTimeInterface $date)

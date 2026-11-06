@@ -49,7 +49,7 @@ class SiteFollowUp extends Model
         'rescheduled_to_id',
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
     ];
 
     public function site(): BelongsTo

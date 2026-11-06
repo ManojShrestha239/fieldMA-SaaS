@@ -7,7 +7,16 @@ use Maatwebsite\Excel\Concerns\FromView;
 
 class OrderTrackingExport implements FromView
 {
-    protected $data, $dealer, $from, $to, $month;
+    protected $data;
+
+    protected $dealer;
+
+    protected $from;
+
+    protected $to;
+
+    protected $month;
+
     public function __construct($data, $dealer, $from, $to, $month)
     {
 

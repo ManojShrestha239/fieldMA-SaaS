@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
+use Illuminate\Support\Str;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
@@ -98,7 +99,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         $url = $this->logo_url ?? ($this->data['logo_url'] ?? null);
         if ($url) {
-            return \Illuminate\Support\Str::startsWith($url, ['http://', 'https://']) ? $url : asset($url);
+            return Str::startsWith($url, ['http://', 'https://']) ? $url : asset($url);
         }
 
         return asset('assets/pages/img/logo-fieldma.png');
@@ -108,7 +109,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         $url = $this->favicon_url ?? ($this->data['favicon_url'] ?? null);
         if ($url) {
-            return \Illuminate\Support\Str::startsWith($url, ['http://', 'https://']) ? $url : asset($url);
+            return Str::startsWith($url, ['http://', 'https://']) ? $url : asset($url);
         }
 
         return $this->getLogoUrl();
@@ -116,12 +117,12 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function hasCustomLogo(): bool
     {
-        return !empty($this->logo_url ?? ($this->data['logo_url'] ?? null));
+        return ! empty($this->logo_url ?? ($this->data['logo_url'] ?? null));
     }
 
     public function hasCustomFavicon(): bool
     {
-        return !empty($this->favicon_url ?? ($this->data['favicon_url'] ?? null));
+        return ! empty($this->favicon_url ?? ($this->data['favicon_url'] ?? null));
     }
 
     public function getThemeColor(): string
@@ -131,7 +132,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function getFcmTopic(): string
     {
-        return $this->fcm_topic ?? $this->data['fcm_topic'] ?? ($this->slug . '_fieldMA_allUser');
+        return $this->fcm_topic ?? $this->data['fcm_topic'] ?? ($this->slug.'_fieldMA_allUser');
     }
 
     /**
@@ -140,7 +141,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function getPrimaryDomain(): ?string
     {
         $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
-        $subdomain = $this->slug . '.' . $centralDomain;
+        $subdomain = $this->slug.'.'.$centralDomain;
 
         $match = $this->domains->firstWhere('domain', $subdomain);
         if ($match) {
@@ -148,7 +149,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         }
 
         return $this->domains->first(function ($d) use ($centralDomain) {
-            return \Illuminate\Support\Str::endsWith($d->domain, $centralDomain);
+            return Str::endsWith($d->domain, $centralDomain);
         })?->domain;
     }
 
@@ -187,7 +188,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             // Check structured overrides: e.g. $overrides['dealer_orders']['sub_features']
             if (isset($overrides[$featureKey]) && is_array($overrides[$featureKey]) && isset($overrides[$featureKey]['sub_features'])) {
                 $subs = (array) $overrides[$featureKey]['sub_features'];
-                return in_array($subFeature, $subs, true) || !empty($subs[$subFeature]);
+
+                return in_array($subFeature, $subs, true) || ! empty($subs[$subFeature]);
             }
         }
 
@@ -221,8 +223,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      * Get all enabled features for a given module, or a map of all enabled modules
      * and their features if no module is specified.
      *
-     * @param string|null $module Canonical module key (e.g. 'dealer_orders', 'visits')
-     * @return array
+     * @param  string|null  $module  Canonical module key (e.g. 'dealer_orders', 'visits')
      */
     public function getEnabledFeatures(?string $module = null): array
     {
@@ -236,14 +237,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         if (is_array($overrides)) {
             foreach (array_keys($overrides) as $key) {
                 $baseKey = str_contains($key, '.') ? explode('.', $key, 2)[0] : $key;
-                if (!in_array($baseKey, $availableModules, true)) {
+                if (! in_array($baseKey, $availableModules, true)) {
                     $availableModules[] = $baseKey;
                 }
             }
         }
         if ($this->plan && is_array($this->plan->features)) {
             foreach (array_keys($this->plan->features) as $key) {
-                if (!in_array($key, $availableModules, true)) {
+                if (! in_array($key, $availableModules, true)) {
                     $availableModules[] = $key;
                 }
             }
@@ -262,7 +263,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /**
      * Get all enabled features / sub-features for a given module.
      *
-     * @param string $module Canonical module key (e.g. 'dealer_orders', 'visits')
+     * @param  string  $module  Canonical module key (e.g. 'dealer_orders', 'visits')
      * @return array<int, string>
      */
     public function getEnabledFeaturesForModule(string $module): array
@@ -270,10 +271,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         // Support dot notation: e.g. "dealer_orders.new_order"
         if (str_contains($module, '.')) {
             [$modKey, $subKey] = explode('.', $module, 2);
+
             return $this->hasFeature($modKey, $subKey) ? [$subKey] : [];
         }
 
-        if (!$this->hasFeature($module)) {
+        if (! $this->hasFeature($module)) {
             return [];
         }
 
@@ -315,7 +317,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         foreach ($overrides as $k => $v) {
             if (str_starts_with($k, $prefix)) {
                 $subKey = substr($k, strlen($prefix));
-                if (!empty($subKey)) {
+                if (! empty($subKey)) {
                     $candidates[] = $subKey;
                 }
             }
@@ -336,9 +338,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     /**
      * Alias for getEnabledFeatures().
-     *
-     * @param string|null $module
-     * @return array
      */
     public function getAllEnabledFeatures(?string $module = null): array
     {
@@ -348,7 +347,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /**
      * Get all enabled sub-features for a given module (alias for getEnabledFeaturesForModule).
      *
-     * @param string $featureKey
      * @return array<int, string>
      */
     public function getEnabledSubFeatures(string $featureKey): array
@@ -361,7 +359,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function canAddMobileUser(int $currentCount): bool
     {
-        if (!$this->plan) {
+        if (! $this->plan) {
             return true;
         }
 

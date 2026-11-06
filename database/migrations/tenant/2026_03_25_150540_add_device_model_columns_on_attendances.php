@@ -13,7 +13,7 @@ return new class extends Migration
     {
         if (
             Schema::hasTable('attendances') &&
-            !Schema::hasColumn('attendances', 'device_model')
+            ! Schema::hasColumn('attendances', 'device_model')
         ) {
 
             Schema::table('attendances', function (Blueprint $table) {
@@ -23,7 +23,7 @@ return new class extends Migration
 
         if (
             Schema::hasTable('attendance_statuses') &&
-            !Schema::hasColumn('attendance_statuses', 'device_model')
+            ! Schema::hasColumn('attendance_statuses', 'device_model')
         ) {
 
             Schema::table('attendance_statuses', function (Blueprint $table) {
@@ -49,7 +49,7 @@ return new class extends Migration
 
         if (
             Schema::hasTable('attendance_statuses') &&
-            !Schema::hasColumn('attendance_statuses', 'device_model')
+            ! Schema::hasColumn('attendance_statuses', 'device_model')
         ) {
 
             Schema::table('attendance_statuses', function (Blueprint $table) {

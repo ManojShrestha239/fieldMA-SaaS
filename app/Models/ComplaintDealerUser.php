@@ -15,6 +15,7 @@ class ComplaintDealerUser extends Model
     {
         return $this->belongsTo(Complaint::class, 'complaint_id');
     }
+
     public function dealeruser()
     {
         return $this->belongsTo(Dealer::class, 'dealer_code');

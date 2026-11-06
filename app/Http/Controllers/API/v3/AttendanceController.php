@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\API\v3;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Attendance;
-use App\Models\Location;
 use App\Models\AttendanceStatus;
+use App\Models\Location;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class AttendanceController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -25,7 +26,7 @@ class AttendanceController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -35,19 +36,18 @@ class AttendanceController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
-        $rules = array(
+        $rules = [
             'latitude' => 'required_if:flag,==,checkin|required_if:flag,==,checkout',
             'longitude' => 'required_if:flag,==,checkin|required_if:flag,==,checkout',
             // 'address' => 'required_if:flag,==,checkin|required_if:flag,==,checkout',
             'flag' => 'required|in:checkin,breakstart,breakend,checkout',
             'date' => 'required|date_format:Y-m-d',
-            'time' => 'required|date_format:H:i:s'
-        );
+            'time' => 'required|date_format:H:i:s',
+        ];
         $valid = Validator::make($request->all(), $rules);
 
         if ($valid->fails()) {
@@ -55,9 +55,9 @@ class AttendanceController extends Controller
         }
         $user = Auth::user();
         $date = $request->date;
-        $attendance = Attendance::where(['mobileuser_id'=>$user->id,'date'=>$date])->first();
+        $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $date])->first();
 
-        if(!$attendance){
+        if (! $attendance) {
             $attendance = Attendance::create([
                 'mobileuser_id' => $user->id,
                 'checkin_date' => $request->time,
@@ -76,17 +76,17 @@ class AttendanceController extends Controller
         // $attendance_status->address = $request->address;
 
         $attendance_status->save();
-        if ($request->flag=="checkin"||$request->flag=="checkout") {
+        if ($request->flag == 'checkin' || $request->flag == 'checkout') {
             $location = Location::where(['day' => date('Y-m-d'), 'user_id' => $user->id])->first();
 
-            if (!$location) {
-                $cordinates[] = array(
+            if (! $location) {
+                $cordinates[] = [
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,
-                    'time' => date('H:i:s')
-                );
+                    'time' => date('H:i:s'),
+                ];
 
-                $location = new Location();
+                $location = new Location;
 
                 $location->user_id = $user->id;
                 $location->day = date('Y-m-d');
@@ -96,11 +96,11 @@ class AttendanceController extends Controller
 
                 $location->save();
             } else {
-                $cordinates[] = array(
+                $cordinates[] = [
                     'latitude' => $request->latitude,
                     'longitude' => $request->longitude,
-                    'time' => date('H:i:s')
-                );
+                    'time' => date('H:i:s'),
+                ];
                 $location->coordinates = array_merge($location->coordinates, $cordinates);
 
                 $location->save();
@@ -114,7 +114,7 @@ class AttendanceController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -125,7 +125,7 @@ class AttendanceController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -135,9 +135,8 @@ class AttendanceController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -148,12 +147,13 @@ class AttendanceController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
         //
     }
+
     public function offline(Request $request)
     {
         $valid = Validator::make($request->all(), [
@@ -168,19 +168,19 @@ class AttendanceController extends Controller
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
         }
-        $date = Date('Y-m-d');
-        $time = Date('H:i:s');
+        $date = date('Y-m-d');
+        $time = date('H:i:s');
         $user = Auth::user();
 
         foreach ($request->data as $d) {
-            $attendance = Attendance::where(['mobileuser_id'=>$user->id,'date'=>$d['date']])->first();
-            if(!$attendance){
+            $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $d['date']])->first();
+            if (! $attendance) {
                 $attendance = Attendance::create([
-                'status' => $d['flag'],
-                'mobileuser_id' => $user->id,
-                'date' => $d['date'],
-                'checkin_date' => $d['time'],
-                // 'address' => (isset($d['address']) ? $d['address'] : ''),
+                    'status' => $d['flag'],
+                    'mobileuser_id' => $user->id,
+                    'date' => $d['date'],
+                    'checkin_date' => $d['time'],
+                    // 'address' => (isset($d['address']) ? $d['address'] : ''),
                 ]);
             }
             $attendance_status = new AttendanceStatus;
@@ -193,47 +193,48 @@ class AttendanceController extends Controller
             // $attendance_status->address = $d['address'];
 
             $attendance_status->save();
-            $new[] = array(
+            $new[] = [
                 'status' => $d['flag'],
                 'mobileuser_id' => $user->id,
                 'date' => $d['date'],
                 'checkin_date' => $d['time'],
                 // 'address' => (isset($d['address']) ? $d['address'] : ''),
-                'created_at' => Date('Y-m-d H:s:i'),
-                'created_at' => Date('Y-m-d H:s:i'),
-            );
+                'created_at' => date('Y-m-d H:s:i'),
+                'created_at' => date('Y-m-d H:s:i'),
+            ];
             // if ($d['address']) {
-                $location = Location::where(['user_id' => $user->id, 'day' => $d['date']])->first();
+            $location = Location::where(['user_id' => $user->id, 'day' => $d['date']])->first();
 
-                if (!$location) {
-                    $cordinates[] = array(
-                        'latitude' => $d['latitude'],
-                        'longitude' => $d['longitude'],
-                        'time' => $d['time']
-                    );
+            if (! $location) {
+                $cordinates[] = [
+                    'latitude' => $d['latitude'],
+                    'longitude' => $d['longitude'],
+                    'time' => $d['time'],
+                ];
 
-                    $location = new Location();
+                $location = new Location;
 
-                    $location->user_id = $user->id;
-                    $location->day = $d['date'];
-                    $location->coordinates = $cordinates;
-                    $location->user_id = $user->id;
-                    $location->role_id = $user->role_id;
+                $location->user_id = $user->id;
+                $location->day = $d['date'];
+                $location->coordinates = $cordinates;
+                $location->user_id = $user->id;
+                $location->role_id = $user->role_id;
 
-                    $location->save();
-                    $cordinates = [];
-                } else {
-                    $cordinates[] = array(
-                        'latitude' => $d['latitude'],
-                        'longitude' => $d['longitude'],
-                        'time' => $d['time']
-                    );
-                    $location->coordinates = array_merge($location->coordinates, $cordinates);
+                $location->save();
+                $cordinates = [];
+            } else {
+                $cordinates[] = [
+                    'latitude' => $d['latitude'],
+                    'longitude' => $d['longitude'],
+                    'time' => $d['time'],
+                ];
+                $location->coordinates = array_merge($location->coordinates, $cordinates);
 
-                    $location->save();
-                    $cordinates = [];
-                }
+                $location->save();
+                $cordinates = [];
             }
+        }
+
         // }
         // Attendance::insert($new);
         return response()->json(['status' => 'success', 'message' => 'Thank You.']);

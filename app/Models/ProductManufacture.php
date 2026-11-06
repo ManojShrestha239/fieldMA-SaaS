@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductManufacture extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'p_id',          // Add p_id here
         'total_qty',
@@ -17,6 +18,7 @@ class ProductManufacture extends Model
         'date',
         'flag',
     ];
+
     public function rawInventories()
     {
         return $this->hasMany(RawInventory::class, 'pm_id');

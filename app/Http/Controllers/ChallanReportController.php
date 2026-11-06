@@ -2,14 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Challan;
-use App\Models\Dealer;
 use App\Exports\ChallanExport;
 use App\LogDetail;
+use App\Models\Challan;
 use App\Models\Order;
-use App\Models\Product;
-use App\Models\ProductSize;
 use App\Models\Size;
 use App\Models\Subproduct;
 use Illuminate\Http\Request;
@@ -21,10 +17,10 @@ class ChallanReportController extends Controller
     {
         $custom_size = Size::where('size', 'CUSTOM')->first();
         $data['sizes'] = $sizes = Size::where('size', '!=', 'CUSTOM')->whereNull('size_type')->get();
-        $data['d_sizes'] = $d_sizes = Size::where([['size', '!=', 'CUSTOM'],'size_type'=>'door'])->get();
-        if(count($sizes)>count($d_sizes)){
-            for($i=0;$i<(count($sizes)-count($d_sizes));$i++){
-                $obj = new \stdClass();
+        $data['d_sizes'] = $d_sizes = Size::where([['size', '!=', 'CUSTOM'], 'size_type' => 'door'])->get();
+        if (count($sizes) > count($d_sizes)) {
+            for ($i = 0; $i < (count($sizes) - count($d_sizes)); $i++) {
+                $obj = new \stdClass;
 
                 $obj->id = '-';
                 $obj->size = '-';
@@ -35,9 +31,9 @@ class ChallanReportController extends Controller
 
                 $d_sizes->push($obj);
             }
-        }else if(count($sizes)<count($d_sizes)){
-            for($i=0;$i<(count($d_sizes)-count($sizes));$i++){
-                $obj = new \stdClass();
+        } elseif (count($sizes) < count($d_sizes)) {
+            for ($i = 0; $i < (count($d_sizes) - count($sizes)); $i++) {
+                $obj = new \stdClass;
 
                 $obj->id = '-';
                 $obj->size = '-';
@@ -54,7 +50,7 @@ class ChallanReportController extends Controller
             ->get();
         // $ch = Challan::where('order_id',$id)->first();
         $custom_size = Size::where('size', 'CUSTOM')->first();
-        if (!$custom_size) {
+        if (! $custom_size) {
             return back()->with('Status', 'Add CUSTOM Size.');
         }
         foreach ($challans as $challan) {
@@ -75,10 +71,10 @@ class ChallanReportController extends Controller
         $ac_sqft = $ac_challans->sum('area');
         $ac_wt = $ac_challans->sum('weight');
 
-        $ch = LogDetail::where(['ordercoll_id'=>$id,'flag'=>'order','status'=>'Dispatched'])->first();
-        $data['total_SQFT'] =$cu_sqft+$ac_sqft;
-        $data['total_quantity'] =$cu_quantity+$ac_quantity;
-        $data['total_weight'] =$cu_wt+$ac_wt;
+        $ch = LogDetail::where(['ordercoll_id' => $id, 'flag' => 'order', 'status' => 'Dispatched'])->first();
+        $data['total_SQFT'] = $cu_sqft + $ac_sqft;
+        $data['total_quantity'] = $cu_quantity + $ac_quantity;
+        $data['total_weight'] = $cu_wt + $ac_wt;
 
         $order = Order::findorFail($id);
         $data['custom_challans'] = $cu_challan;
@@ -86,10 +82,11 @@ class ChallanReportController extends Controller
         $data['subproducts'] = Subproduct::all();
         $data['order'] = $order;
         $data['ch'] = $ch;
-        $data['loopcount'] = (count($sizes)>=count($d_sizes))?count($sizes):count($d_sizes);
-        if($request->type=="report"){
-            return Excel::download(new ChallanExport($data),"challan_report_of_".$order->dealer->code.".xlsx");
+        $data['loopcount'] = (count($sizes) >= count($d_sizes)) ? count($sizes) : count($d_sizes);
+        if ($request->type == 'report') {
+            return Excel::download(new ChallanExport($data), 'challan_report_of_'.$order->dealer->code.'.xlsx');
         }
+
         return view('dashboards.challans.challan-report', $data);
     }
 }

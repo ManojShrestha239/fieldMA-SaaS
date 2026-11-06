@@ -10,8 +10,6 @@ class TenantDatabaseSeeder extends Seeder
 {
     /**
      * Seed the tenant database with initial roles, permissions, and settings.
-     *
-     * @return void
      */
     public function run(): void
     {

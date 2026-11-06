@@ -2,11 +2,10 @@
 
 use App\Http\Controllers\API\v2\AttendanceController;
 use App\Http\Controllers\API\v2\MobileuserController;
+use App\Http\Controllers\API\v2\NoticeController;
 use App\Http\Controllers\API\v2\PaymentController;
 use App\Http\Controllers\API\v2\ProductController;
-use App\Http\Controllers\API\v2\NoticeController;
 use App\Http\Controllers\API\v2\SiteRegistrationController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,7 +47,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // // [ACTIVE] Broadcast Notices (Ref: Api_Audit.md #27, #28)
     // Route::get('/notice', [NoticeController::class, 'index']);
     // Route::get('/notice/{id}', [NoticeController::class, 'individual']);
-    require __DIR__ . '/../tenants/api/notice.php';
+    require __DIR__.'/../tenants/api/notice.php';
 
     // [INACTIVE] Flutter uses /api/v3/orderDetails (Ref: Api_Audit.md #31)
     // Route::get('/orderDetails/{id}', [NoticeController::class, 'orderDetails']);

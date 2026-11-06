@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class AddNewColumnOnAttendanceStatuses extends Migration
 {
@@ -14,7 +14,7 @@ class AddNewColumnOnAttendanceStatuses extends Migration
     public function up()
     {
         Schema::table('attendance_statuses', function (Blueprint $table) {
-           
+
             $table->decimal('km')->nullable();
             $table->string('visit_method')->nullable();
             $table->string('remarks')->nullable();

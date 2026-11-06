@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Size;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Session;
 
 class SizeController extends Controller
@@ -11,12 +12,13 @@ class SizeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
         //
         $data['sizes'] = Size::all();
+
         return view('dashboards.size.list', $data);
         // ->with('sizes', $sizes);
     }
@@ -24,7 +26,7 @@ class SizeController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -34,8 +36,7 @@ class SizeController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -54,7 +55,7 @@ class SizeController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -65,25 +66,25 @@ class SizeController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
         $data['size'] = Size::withCount('product')->findorFail($id);
+
         return view('dashboards.size.edit', $data);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'size' => 'required|unique:sizes,size,' . $id,
+            'size' => 'required|unique:sizes,size,'.$id,
         ]);
 
         $size = Size::findorFail($id);
@@ -91,6 +92,7 @@ class SizeController extends Controller
         $size->size = $request->input('size');
 
         $size->save();
+
         return redirect('/size')->with('Status', 'Size Updated.');
     }
 
@@ -98,17 +100,17 @@ class SizeController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
         $size = Size::findorFail($id);
 
-        if ($size->status == "Active") {
-            $size->status = "Inactive";
+        if ($size->status == 'Active') {
+            $size->status = 'Inactive';
             Session::flash('Status', 'size Disabled Successfully.');
         } else {
-            $size->status = "Active";
+            $size->status = 'Active';
             Session::flash('Status', 'size Enabled Successfully.');
         }
         $size->save();

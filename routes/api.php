@@ -9,6 +9,7 @@ use App\Http\Controllers\API\MyTeamController;
 use App\Http\Controllers\API\NoticeController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\SessionController;
+use App\Http\Controllers\API\TadaReportController;
 use App\Http\Controllers\API\v2\SiteRegistrationController;
 use App\Http\Controllers\API\v3\OrderController;
 use Illuminate\Support\Facades\Route;
@@ -145,19 +146,19 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::get('unlisted-dealers', [DealerController::class, 'unlistedDealers']);
 
     // [ACTIVE] TADA Expense Claims (Ref: Api_Audit.md Section 1.2 #18-#24, #15-#16)
-    Route::post('/tada/upload-image', [\App\Http\Controllers\API\TadaReportController::class, 'uploadImage']);
-    Route::delete('/tada-expenses/images/{image_id}', [\App\Http\Controllers\API\TadaReportController::class, 'deleteExpenseImage']);
+    Route::post('/tada/upload-image', [TadaReportController::class, 'uploadImage']);
+    Route::delete('/tada-expenses/images/{image_id}', [TadaReportController::class, 'deleteExpenseImage']);
 
     // [INACTIVE] Redundant with DELETE /api/tada-expenses/images/{id} (Ref: Api_Audit.md #23)
     // Route::post('/tada-expenses/images/delete', [\App\Http\Controllers\API\TadaReportController::class, 'deleteExpenseImage']);
 
-    Route::get('/tada/authorized-users', [\App\Http\Controllers\API\TadaReportController::class, 'authorizedUsers']);
-    Route::get('/tada/expense-authorized-users', [\App\Http\Controllers\API\TadaReportController::class, 'expenseAuthorizedUsers']);
-    Route::get('/tada', [\App\Http\Controllers\API\TadaReportController::class, 'index']);
-    Route::post('/tada', [\App\Http\Controllers\API\TadaReportController::class, 'store']);
-    Route::get('/tada/{id}', [\App\Http\Controllers\API\TadaReportController::class, 'show']);
-    Route::put('/tada/{id}', [\App\Http\Controllers\API\TadaReportController::class, 'update']);
-    Route::delete('/tada/{id}', [\App\Http\Controllers\API\TadaReportController::class, 'destroy']);
+    Route::get('/tada/authorized-users', [TadaReportController::class, 'authorizedUsers']);
+    Route::get('/tada/expense-authorized-users', [TadaReportController::class, 'expenseAuthorizedUsers']);
+    Route::get('/tada', [TadaReportController::class, 'index']);
+    Route::post('/tada', [TadaReportController::class, 'store']);
+    Route::get('/tada/{id}', [TadaReportController::class, 'show']);
+    Route::put('/tada/{id}', [TadaReportController::class, 'update']);
+    Route::delete('/tada/{id}', [TadaReportController::class, 'destroy']);
 });
 
 // [INACTIVE] Not used in Flutter (Ref: Api_Audit.md #24, #25)

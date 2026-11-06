@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Mobileuser;
 use App\Models\Session;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class NegotiationController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index()
     {
@@ -41,7 +41,7 @@ class NegotiationController extends Controller
                 ->map(function ($group) {
                     return (object) [
                         'purpose' => $group->first()->purposes->purpose,
-                        'visit_count' => $group->count()
+                        'visit_count' => $group->count(),
                     ];
                 })
                 ->values();
@@ -52,7 +52,7 @@ class NegotiationController extends Controller
         return view('dashboards.negotiations.default', [
             'list' => $negotiations,
             'from' => $today,
-            'to' => $today
+            'to' => $today,
         ]);
     }
 
@@ -60,7 +60,7 @@ class NegotiationController extends Controller
     {
         $validated = $request->validate([
             'start-date' => ['required', 'date_format:Y-m-d'],
-            'end-date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start-date']
+            'end-date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start-date'],
         ]);
 
         if ($request['start-date'] > $request['end-date']) {
@@ -102,7 +102,7 @@ class NegotiationController extends Controller
                 ->map(function ($group) {
                     return (object) [
                         'purpose' => $group->first()->purposes->purpose,
-                        'visit_count' => $group->count()
+                        'visit_count' => $group->count(),
                     ];
                 })
                 ->values();
@@ -113,7 +113,7 @@ class NegotiationController extends Controller
         return view('dashboards.negotiations.default', [
             'list' => $negotiations,
             'from' => $startDateBS,
-            'to' => $endDateBS
+            'to' => $endDateBS,
         ]);
     }
 
@@ -122,14 +122,14 @@ class NegotiationController extends Controller
         $request->validate([
             'type' => ['nullable', 'in:dealer,retailer'],
             'from' => ['nullable', 'required_with:to', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'required_with:from', 'date_format:Y-m-d', 'after_or_equal:from']
+            'to' => ['nullable', 'required_with:from', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
 
         $user = Mobileuser::findOrFail($id);
 
         $query = Session::where([
             'status' => 'Unlisted',
-            'user_id' => $id
+            'user_id' => $id,
         ]);
 
         $type = strtolower($request->type ?? '');
@@ -155,7 +155,7 @@ class NegotiationController extends Controller
                 ->map(function ($group) {
                     return (object) [
                         'purpose' => optional($group->first()->purposes)->purpose ?? 'Unknown',
-                        'visit_count' => $group->count()
+                        'visit_count' => $group->count(),
                     ];
                 })
                 ->values();
@@ -168,17 +168,18 @@ class NegotiationController extends Controller
             'from' => $request->from,
             'to' => $request->to,
             'user' => $user,
-            'type' => $request->type
+            'type' => $request->type,
         ]);
     }
 
     public function map($id)
     {
         $session = Session::select('id', 'latitude', 'longitude', 'dealer_name')->findorFail($id);
-        if (!$session->latitude && !$session->longitude) {
+        if (! $session->latitude && ! $session->longitude) {
             abort(404);
         }
         $data['visit'] = $session;
+
         return view('dashboards.negotiations.map', $data);
     }
 }

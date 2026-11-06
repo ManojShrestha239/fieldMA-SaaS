@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Exports\DealerExport;
-use Illuminate\Http\Request;
-use App\Models\Dealer;
-use App\Models\Area;
-use Illuminate\Support\Facades\Session;
 use App\Imports\DealerImport;
+use App\Models\Area;
 use App\Models\Assignarea;
+use App\Models\Dealer;
 use App\Models\Subarea;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
@@ -19,6 +19,7 @@ class DealerController extends Controller
     public function index()
     {
         $data['dealers'] = Dealer::with('mainDealer')->orderBy('created_at', 'desc')->get();
+
         return view('dashboards.dealers.list', $data);
     }
 
@@ -26,6 +27,7 @@ class DealerController extends Controller
     {
         $data['areas'] = Area::all();
         $data['mainDealers'] = Dealer::Formaindealer()->get();
+
         return view('dashboards.dealers.create', $data);
     }
 
@@ -45,7 +47,7 @@ class DealerController extends Controller
             'phone' => 'nullable|digits_between:9,10',
             'area_code' => 'required|exists:areas,areacode',
             'order_limit' => 'nullable|integer',
-            'subarea' => 'required|exists:subareas,subarea'
+            'subarea' => 'required|exists:subareas,subarea',
         ]);
 
         if ($request->email == null) {
@@ -86,6 +88,7 @@ class DealerController extends Controller
         $data['subareas'] = $sub;
         $data['dealer'] = $dealer;
         $data['areas'] = $areas;
+
         return view('dashboards.dealers.edit', $data);
     }
 
@@ -100,7 +103,7 @@ class DealerController extends Controller
             'area' => 'required|exists:areas,areacode',
             'order_limit' => 'nullable|integer',
             'status' => 'required',
-            'subarea' => 'required|exists:subareas,subarea'
+            'subarea' => 'required|exists:subareas,subarea',
         ]);
         if ($valid->fails()) {
             return back()->withErrors($valid);
@@ -117,16 +120,17 @@ class DealerController extends Controller
             $phone = $request->input('phone');
         }
 
-
         $dealer = Dealer::findorFail($id);
-        if ($dealer->mobile != $request->mobile)
+        if ($dealer->mobile != $request->mobile) {
             $this->validate($request, [
                 'mobile' => 'required|digits_between:9,10|unique:dealers',
             ]);
-        if ($dealer->email != $request->email)
+        }
+        if ($dealer->email != $request->email) {
             $this->validate($request, [
                 'email' => 'required|unique:dealers',
             ]);
+        }
         $dealer->main_dealer_code = $request->main_dealer;
         $dealer->name = $request->name;
         $dealer->address = $request->address;
@@ -139,20 +143,22 @@ class DealerController extends Controller
         $dealer->subarea = $request->subarea;
 
         $dealer->save();
+
         return redirect('/dealer')->with('Status', 'Dealer Details Updated');
     }
 
     public function destroy($code)
     {
         $dealer = Dealer::findorFail($code);
-        if ($dealer->active_status == "Active") {
-            $dealer->active_status = "Inactive";
+        if ($dealer->active_status == 'Active') {
+            $dealer->active_status = 'Inactive';
             Session::flash('Status', 'Dealer Disabled Successfully');
         } else {
-            $dealer->active_status = "Active";
+            $dealer->active_status = 'Active';
             Session::flash('Status', 'Dealer Enabled Successfully');
         }
         $dealer->save();
+
         return back();
     }
 
@@ -163,6 +169,7 @@ class DealerController extends Controller
         try {
             $import = new DealerImport;
             Excel::import($import, $request->file('excel_file'));
+
             return back()->with('success', "Import completed. Inserted: {$import->getInsertedCount()}");
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
@@ -170,7 +177,6 @@ class DealerController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
-
 
     public function dealermap()
     {
@@ -184,24 +190,26 @@ class DealerController extends Controller
         $dealer = Dealer::where(['active_status' => 'Active', 'status' => 'approved'])->get();
 
         foreach ($dealer as $d) {
-            $data[] = array(
-                'info' => '<strong>' . $d->name . '</strong><br>' . $d->address . 'Outlet <br>' . $d->mobile,
+            $data[] = [
+                'info' => '<strong>'.$d->name.'</strong><br>'.$d->address.'Outlet <br>'.$d->mobile,
                 'lat' => $d->latitude,
                 'long' => $d->longitude,
                 'province' => $d->area_code,
                 'district' => $d->subarea,
                 //    'info'=>"<strong>".$d->name."</strong><br>\".$d->address ." Outlet<br>\" ,
-            );
+            ];
         }
         if (count($dealer) == 0) {
             $data = [];
         }
+
         return response()->json($data);
     }
 
     public function getdealer(Request $request)
     {
         $dealer = Dealer::whereIn('subarea', $request->data)->get();
+
         return response()->json($dealer);
     }
 
@@ -209,22 +217,23 @@ class DealerController extends Controller
     {
         ob_start();
         ob_end_clean();
-        return Excel::download(new DealerExport, 'Dealer_' . date('Y-m-d') . '_' . time() . '.xlsx');
+
+        return Excel::download(new DealerExport, 'Dealer_'.date('Y-m-d').'_'.time().'.xlsx');
     }
 
     public function dealerOrRetailer(Request $request)
     {
         $type = $request->input('type');
 
-        if (!in_array($type, ['dealer', 'retailer'])) {
+        if (! in_array($type, ['dealer', 'retailer'])) {
             return response()->json(['error' => 'Invalid type'], 400);
         }
 
         $query = Dealer::select('code', 'name')
             ->where('active_status', 'Active');
 
-        $query->when($type === 'dealer', fn($q) => $q->whereNull('main_dealer_code'))
-            ->when($type === 'retailer', fn($q) => $q->whereNotNull('main_dealer_code'));
+        $query->when($type === 'dealer', fn ($q) => $q->whereNull('main_dealer_code'))
+            ->when($type === 'retailer', fn ($q) => $q->whereNotNull('main_dealer_code'));
 
         return response()->json($query->get());
     }

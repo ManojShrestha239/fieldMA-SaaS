@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\API\v2;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\AttendanceStatus;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class AttendanceController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index(Request $request)
     {
@@ -21,17 +21,17 @@ class AttendanceController extends Controller
 
         // ✅ Validate inputs early
         $validated = $request->validate([
-            'year'  => 'nullable|integer',
+            'year' => 'nullable|integer',
             'month' => 'nullable|integer|min:1|max:12',
         ]);
 
-        $year  = $validated['year'] ?? null;
+        $year = $validated['year'] ?? null;
         $month = $validated['month'] ?? null;
 
         // ✅ Common eager loads
         $with = [
             'attendance_status:id,attendance_id,date,time,status,km,visit_method,remarks',
-            'attendance_status.image:attendancestatus_id,image'
+            'attendance_status.image:attendancestatus_id,image',
         ];
 
         // =========================
@@ -42,7 +42,7 @@ class AttendanceController extends Controller
             $month = str_pad($month, 2, '0', STR_PAD_LEFT);
 
             $startDateAD = $this->custom_BS_to_AD("$year-$month-01");
-            $endDateAD   = $this->custom_BS_to_AD("$year-$month-32");
+            $endDateAD = $this->custom_BS_to_AD("$year-$month-32");
 
             // ✅ Fetch attendances (Added orderBy to sort latest date to the top)
             $attendances = Attendance::with($with)
@@ -56,7 +56,7 @@ class AttendanceController extends Controller
                     'status',
                     'visit_method',
                     'totalkm',
-                    'remarks'
+                    'remarks',
                 ])
                 ->orderBy('date', 'DESC') // ⚡ Order by descending date here
                 ->get();
@@ -79,13 +79,13 @@ class AttendanceController extends Controller
                 return [
                     ...$attendance->toArray(),
                     'status' => $statuses[$originalDate]->status ?? $attendance->status,
-                    'date'   => $this->custom_AD_to_BS($originalDate),
+                    'date' => $this->custom_AD_to_BS($originalDate),
                 ];
             });
 
             return response()->json([
                 'status' => 'Success',
-                'data'   => $data
+                'data' => $data,
             ]);
         }
 
@@ -100,10 +100,10 @@ class AttendanceController extends Controller
             ->latest('id')
             ->first();
 
-        if (!$attend) {
+        if (! $attend) {
             return response()->json([
                 'status' => 'Success',
-                'data'   => null
+                'data' => null,
             ]);
         }
 
@@ -119,12 +119,12 @@ class AttendanceController extends Controller
         $data = [
             ...$attend->toArray(),
             'status' => $latestStatus ?? $attend->status,
-            'date'   => $this->custom_AD_to_BS($attend->date),
+            'date' => $this->custom_AD_to_BS($attend->date),
         ];
 
         return response()->json([
             'status' => 'Success',
-            'data'   => $data
+            'data' => $data,
         ]);
     }
 
@@ -133,21 +133,21 @@ class AttendanceController extends Controller
         $valid = Validator::make($request->all(), [
             'flag' => 'required|in:checkin,checkout,breakstart,breakend',
             'date' => 'required|date_format:Y-m-d',
-            'time' => 'required|date_format:H:i:s'
+            'time' => 'required|date_format:H:i:s',
         ]);
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
         }
-        $date = Date('Y-m-d');
-        $time = Date('H:i:s');
-        $user = $user =  Auth::user();
+        $date = date('Y-m-d');
+        $time = date('H:i:s');
+        $user = $user = Auth::user();
         $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $date])->first();
-        if (!$attendance) {
+        if (! $attendance) {
             $attendance = Attendance::create([
                 'mobileuser_id' => $user->id,
                 'checkin_date' => $request->time,
                 'date' => $request->date,
-                'status' => $request->flag
+                'status' => $request->flag,
             ]);
         }
         $attendance_status = new AttendanceStatus;
@@ -179,12 +179,12 @@ class AttendanceController extends Controller
 
         foreach ($request->data as $d) {
             $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $d['date']])->first();
-            if (!$attendance) {
+            if (! $attendance) {
                 $attendance = Attendance::create([
                     'mobileuser_id' => $user->id,
                     'checkin_date' => $d['time'],
                     'date' => $d['date'],
-                    'status' => $d['flag']
+                    'status' => $d['flag'],
                 ]);
             }
             $attendance_status = new AttendanceStatus;
@@ -197,6 +197,7 @@ class AttendanceController extends Controller
 
             $attendance_status->save();
         }
+
         // Attendance::insert($new);
         return response()->json(['status' => 'success', 'message' => 'Thank You.']);
     }

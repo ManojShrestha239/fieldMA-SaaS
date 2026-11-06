@@ -40,7 +40,7 @@ class ImportExistingTenantCommand extends Command
     {
         $companyName = $this->argument('company_name');
         $slug = Str::slug($this->argument('slug'));
-        $dbName = $this->option('db') ?? config('tenancy.database.prefix') . $slug . config('tenancy.database.suffix');
+        $dbName = $this->option('db') ?? config('tenancy.database.prefix').$slug.config('tenancy.database.suffix');
         $email = $this->option('email') ?? "admin@{$slug}.com";
         $planSlug = $this->option('plan');
 
@@ -49,6 +49,7 @@ class ImportExistingTenantCommand extends Command
         // Check if tenant already exists
         if (Tenant::find($slug)) {
             $this->error("A tenant with slug '{$slug}' already exists in the central database.");
+
             return Command::FAILURE;
         }
 
@@ -56,7 +57,7 @@ class ImportExistingTenantCommand extends Command
         $plan = null;
         if ($planSlug) {
             $plan = SubscriptionPlan::where('slug', $planSlug)->first();
-            if (!$plan) {
+            if (! $plan) {
                 $this->warn("Plan '{$planSlug}' not found. Tenant will be created without plan assignment.");
             }
         }

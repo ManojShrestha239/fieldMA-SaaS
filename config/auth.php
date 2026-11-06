@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Mobileuser;
+use App\Models\SuperAdmin;
+use App\Models\User;
+
 return [
 
     /*
@@ -70,15 +74,15 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => User::class,
         ],
         'super_admins' => [
             'driver' => 'eloquent',
-            'model' => App\Models\SuperAdmin::class,
+            'model' => SuperAdmin::class,
         ],
         'mobileusers' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Mobileuser::class,
+            'model' => Mobileuser::class,
         ],
 
         // 'users' => [

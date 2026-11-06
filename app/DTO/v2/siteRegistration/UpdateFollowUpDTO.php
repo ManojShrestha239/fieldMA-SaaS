@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\DTO\v2\siteRegistration;
@@ -10,29 +11,23 @@ final readonly class UpdateFollowUpDTO
 {
     /** @param UploadedFile[]|null $sitePhotos */
     public function __construct(
-        public int     $followUpId,
-        public int     $constructionStatusId,
+        public int $followUpId,
+        public int $constructionStatusId,
         public ?string $currentFollowUpType,
         public ?string $currentFollowUpStatus,
         public ?string $currentFollowUpNotes,
-        public ?float  $lat,
-        public ?float  $lng,
+        public ?float $lat,
+        public ?float $lng,
         public ?string $nextFollowUpAt,
         public ?string $followUpType,
         public ?string $followUpStatus,
         public ?string $followUpNotes,
-        public ?bool   $autoReminderEnabled,
-        public ?array  $sitePhotos,
-    )
-    {
-    }
+        public ?bool $autoReminderEnabled,
+        public ?array $sitePhotos,
+    ) {}
 
     /**
      * Build the DTO from a validated FormRequest.
-     *
-     * @param UpdateFollowUpRequest $request
-     * @param int $followUpId
-     * @return self
      */
     public static function fromRequest(UpdateFollowUpRequest $request, int $followUpId): self
     {
@@ -40,8 +35,8 @@ final readonly class UpdateFollowUpDTO
         $validated = $request->validated();
 
         // Cast numeric values explicitly
-        $lat = isset($validated['lat']) ? (float)$validated['lat'] : null;
-        $lng = isset($validated['lng']) ? (float)$validated['lng'] : null;
+        $lat = isset($validated['lat']) ? (float) $validated['lat'] : null;
+        $lng = isset($validated['lng']) ? (float) $validated['lng'] : null;
 
         // Files may be null – keep as null or array of UploadedFile
         $photos = $request->hasFile('site_photos')
@@ -50,7 +45,7 @@ final readonly class UpdateFollowUpDTO
 
         return new self(
             followUpId: $followUpId,
-            constructionStatusId: (int)$validated['construction_status_id'],
+            constructionStatusId: (int) $validated['construction_status_id'],
             currentFollowUpType: $validated['current_follow_up_type'] ?? null,
             currentFollowUpStatus: $validated['current_follow_up_status'] ?? null,
             currentFollowUpNotes: $validated['current_follow_up_notes'] ?? null,
@@ -85,4 +80,3 @@ final readonly class UpdateFollowUpDTO
         ];
     }
 }
-

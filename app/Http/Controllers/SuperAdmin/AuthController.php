@@ -30,8 +30,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $admin = Auth::guard('super_admin')->user();
-            if (!$admin->is_active) {
+            if (! $admin->is_active) {
                 Auth::guard('super_admin')->logout();
+
                 return back()->withErrors(['email' => 'Your account has been deactivated.']);
             }
             $request->session()->forget('url.intended');
@@ -39,6 +40,7 @@ class AuthController extends Controller
             // dd('1', "Login successful. Redirecting to dashboard...");
             return redirect()->route('super-admin.dashboard');
         }
+
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');

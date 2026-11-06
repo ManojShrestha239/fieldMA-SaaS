@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class RawSize extends Model
 {
     use HasFactory;
+
     protected $fillable = ['unit'];
 
     public function rawStocks()

@@ -15,12 +15,12 @@ class RawProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function index()
     {
         $rawproducts = RawProduct::with(['product', 'rawMaterial'])
             ->whereHas('rawMaterial')
             ->orderby('created_at', 'desc')->get();
+
         // return  $rawproducts[1]->first()->product;
         return view('dashboards.rawproducts.index', compact('rawproducts'));
     }
@@ -39,7 +39,6 @@ class RawProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-
     public function store(Request $request)
     {
         $this->validate($request, [
@@ -63,12 +62,12 @@ class RawProductController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // FIXED
             Session::flash('Status', 'Cannot assign Rawmaterials please try again later');
+
             return back();
         }
 
         return redirect('/raw-product')->with('Status', 'New Raw Materials Assigned With Products.');
     }
-
 
     /**
      * Display the specified resource.
@@ -81,7 +80,6 @@ class RawProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-
     public function edit($id)
     {
         $rawProduct = RawProduct::with('rawMaterial', 'product')->findOrFail($id); // Eager load rawMaterials
@@ -90,13 +88,8 @@ class RawProductController extends Controller
 
         $rawMaterialIds = explode('::', $rawProduct->rawmaterial_id);  // Convert to array
 
-
         return view('dashboards.rawproducts.edit', compact('rawProduct', 'products', 'rawMaterials', 'rawMaterialIds'));
     }
-
-
-
-
 
     /**
      * Update the specified resource in storage.
@@ -116,7 +109,6 @@ class RawProductController extends Controller
             $rawProduct = RawProduct::findOrFail($id);
             $oldProductId = $rawProduct->product_id;
 
-
             // Update the product_id and rawmaterial_id
             $ids = collect($request->raw_material_ids)->implode('::'); // Concatenate raw material IDs
 
@@ -125,19 +117,16 @@ class RawProductController extends Controller
             $rawProduct->save();  // Save the changes to the database
             ProductManufacture::where('p_id', $oldProductId)->update(['p_id' => $request->product_id]);
 
-
-
-
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
             Session::flash('Status', 'Cannot assign Raw Materials, please try again later');
+
             return back();
         }
 
         return redirect('/raw-product')->with('Status', 'Raw Materials updated successfully.');
     }
-
 
     /**
      * Remove the specified resource from storage.

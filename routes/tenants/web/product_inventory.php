@@ -10,14 +10,14 @@ use App\Http\Controllers\RawPurchaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['permission:rawmaterial', 'feature:inventory']], function () {
-    //begin for raw materials
+    // begin for raw materials
     Route::resource('raw', RawMaterialController::class);
-    //for raw-products
+    // for raw-products
     Route::resource('raw-product', RawProductController::class);
-    //rawpurchase
+    // rawpurchase
     Route::resource('rawpurchase', RawPurchaseController::class);
-    //productmanufactures
+    // productmanufactures
     Route::resource('product-manufactures', ProductManufactureController::class);
-    //inventory
+    // inventory
     Route::resource('inventory', RawInventoryController::class);
 });

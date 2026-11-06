@@ -9,7 +9,7 @@ class AdminUser extends Model
 {
     use HasFactory;
 
-    protected $table = "area_user";
+    protected $table = 'area_user';
 
     protected function serializeDate(\DateTimeInterface $date)
     {

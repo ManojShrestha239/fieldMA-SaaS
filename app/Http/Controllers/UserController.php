@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Area;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Hash;
 use App\Models\AdminArea;
+use App\Models\Area;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -17,21 +18,22 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
         $data['users'] = User::where('app', 'SOA')->get();
-        if (Auth::user()->hasRole('super') || Auth::user()->hasRole('Super-Admin') ||  Auth::user()->hasRole('marketing') || Auth::user()->hasRole('ASM'))
+        if (Auth::user()->hasRole('super') || Auth::user()->hasRole('Super-Admin') || Auth::user()->hasRole('marketing') || Auth::user()->hasRole('ASM')) {
             return view('dashboards.admins.admin-index', $data);
-        else
+        } else {
             abort(403);
+        }
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -42,17 +44,17 @@ class UserController extends Controller
         } else {
             $data['roles'] = Role::where('name', '!=', 'Super-Admin')->get();
         }
-        if (Auth::user()->hasRole('super') || Auth::user()->hasRole('Super-Admin') || Auth::user()->hasRole('marketing') || Auth::user()->hasRole('ASM'))
+        if (Auth::user()->hasRole('super') || Auth::user()->hasRole('Super-Admin') || Auth::user()->hasRole('marketing') || Auth::user()->hasRole('ASM')) {
             return view('dashboards.admins.admin-register', $data);
-        else
+        } else {
             abort(403);
+        }
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -61,9 +63,9 @@ class UserController extends Controller
             'email' => 'required|email|unique:users|max:255',
             'phone' => 'required|numeric|unique:users|digits_between:9,10',
             'password' => 'required|confirmed|min:6|max:255',
-            'user_type' => 'required|exists:spatie_roles,id', //ASM
+            'user_type' => 'required|exists:spatie_roles,id', // ASM
             'area' => 'nullable|array',
-            'area.*' => 'nullable|exists:areas,areacode'
+            'area.*' => 'nullable|exists:areas,areacode',
         ]);
         DB::beginTransaction();
 
@@ -77,7 +79,7 @@ class UserController extends Controller
                 'phone' => $request['phone'],
                 'password' => Hash::make($request['password']),
                 'user_type' => $role->name,
-                'app' => 'SOA'
+                'app' => 'SOA',
             ]);
             $user->assignRole($role);
             if ($request->area) {
@@ -91,8 +93,10 @@ class UserController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Session::flash('Status', 'Something Went Wrong please try again');
+
             return back()->withInput();
         }
+
         return redirect('/admin')->with('Status', 'New Admin created.');
     }
 
@@ -100,7 +104,7 @@ class UserController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -111,7 +115,7 @@ class UserController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -140,9 +144,8 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -152,7 +155,7 @@ class UserController extends Controller
             'phone' => 'required|numeric|digits_between:9,10',
             'user_type' => 'nullable|exists:spatie_roles,id',
             'area' => 'nullable|array',
-            'area.*' => 'nullable|exists:areas,areacode'
+            'area.*' => 'nullable|exists:areas,areacode',
         ]);
 
         $user = User::findorFail($id);
@@ -185,6 +188,7 @@ class UserController extends Controller
                     }
                 }
             }
+
             return back()->with('Status', 'Admin Details Updated.');
         } else {
             abort(403);
@@ -195,17 +199,17 @@ class UserController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
         $user = User::findorFail($id);
         if ($user->id != Auth::user()->id) {
-            if ($user->status == "Active") {
-                $user->status = "Inactive";
+            if ($user->status == 'Active') {
+                $user->status = 'Inactive';
                 Session::flash('Status', 'User Disabled Successfully.');
             } else {
-                $user->status = "Active";
+                $user->status = 'Active';
                 Session::flash('Status', 'User Enabled Successfully.');
             }
             $user->save();
@@ -223,8 +227,9 @@ class UserController extends Controller
         $user = User::findorFail($id);
         if ($AuthUser->user_type == 'super' || $id == $AuthUser->id) {
             return view('dashboards.admins.admin-password', compact('user'));
-        } else
+        } else {
             abort(403);
+        }
     }
 
     public function changepass(Request $request, $id)
@@ -241,6 +246,7 @@ class UserController extends Controller
                 $pass = Hash::make($request['password']);
                 $user->password = $pass;
                 $user->save();
+
                 //            $user->update(['password' => $pass]);
                 return redirect('/admin')->with('Status', 'Password Changed.');
             } else {
@@ -250,6 +256,7 @@ class UserController extends Controller
             $pass = Hash::make($request['password']);
             $user->password = $pass;
             $user->save();
+
             //            $user->update(['password' => $pass]);
             return redirect('/admin')->with('Status', 'Password Changed.');
         }

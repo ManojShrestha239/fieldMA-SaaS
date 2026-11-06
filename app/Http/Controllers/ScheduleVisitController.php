@@ -2,26 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Purpose;
-use Illuminate\Http\Request;
-use App\Models\Schedulevisit;
-use App\Models\Mobileuser;
-use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
-use App\Models\Dealer;
 use App\Models\Area;
+use App\Models\Dealer;
+use App\Models\Mobileuser;
+use App\Models\Purpose;
 use App\Models\SchedulePurpose;
+use App\Models\Schedulevisit;
+use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\FCM;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class ScheduleVisitController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter, FCM;
+    use CustomNepaliCalendarConverter, FCM, Nepali_Calendar;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -33,8 +35,8 @@ class ScheduleVisitController extends Controller
         }
         $data['schedules'] = $schedules;
         $data['users'] = Mobileuser::all();
-        $data['mr'] = "";
-        $data['date'] = "";
+        $data['mr'] = '';
+        $data['date'] = '';
 
         return view('dashboards.schedules.schedules', $data);
     }
@@ -44,14 +46,14 @@ class ScheduleVisitController extends Controller
         $data['mobiles'] = Mobileuser::all();
         $data['purpose'] = Purpose::all();
         $data['dealers'] = Dealer::all();
+
         return view('dashboards.schedules.bulkschedule', $data);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -62,7 +64,7 @@ class ScheduleVisitController extends Controller
             'purpose_id' => 'required|array',
             'purpose_id.*' => 'required|exists:purposes,id',
             'expiry_date' => ['regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required'],
-            'remarks' => 'required'
+            'remarks' => 'required',
         ]);
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
         if ($request['expiry_date'] < $today) {
@@ -88,11 +90,11 @@ class ScheduleVisitController extends Controller
                 $schedule->is_visit = 0;
                 $schedule->save();
                 foreach ($request->purpose_id as $purpose) {
-                    $sch = new SchedulePurpose();
+                    $sch = new SchedulePurpose;
 
                     $sch->visitschedule_id = $schedule->id;
-                    $sch->purpose_id  = $purpose;
-                    $sch->status = "pending";
+                    $sch->purpose_id = $purpose;
+                    $sch->status = 'pending';
 
                     $sch->save();
                 }
@@ -100,7 +102,7 @@ class ScheduleVisitController extends Controller
                 $dealerNames[] = [$del->name];
             }
 
-            $delNames = implode(", ", array_map(function ($item) {
+            $delNames = implode(', ', array_map(function ($item) {
                 return $item[0];
             }, $dealerNames));
 
@@ -109,11 +111,11 @@ class ScheduleVisitController extends Controller
             $user = Mobileuser::findorFail($request['user_id']);
 
             if ($user && $user->fcm_id) {
-                $title = "Schedule to visit " . $delNames;
-                $body  = "You are scheduled to visit " . $delNames . " on " . $this->custom_AD_to_BS($dates);
+                $title = 'Schedule to visit '.$delNames;
+                $body = 'You are scheduled to visit '.$delNames.' on '.$this->custom_AD_to_BS($dates);
 
                 $data = [
-                    'route_channel' => 'schedule?schedule=' . $schedule->load('dealer'),
+                    'route_channel' => 'schedule?schedule='.$schedule->load('dealer'),
                 ];
 
                 $this->runFirebaseNotification($user->fcm_id, null, $title, $body, $data);
@@ -121,9 +123,11 @@ class ScheduleVisitController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            Session::flash('Status', 'Cannot add Visit Schedule Please Try again later' . $e->getMessage());
+            Session::flash('Status', 'Cannot add Visit Schedule Please Try again later'.$e->getMessage());
+
             return back()->withInput();
         }
+
         return redirect('/schedule')->with('Status', 'Schedule Visit Created.');
     }
 
@@ -131,7 +135,7 @@ class ScheduleVisitController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -142,24 +146,24 @@ class ScheduleVisitController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($code)
     {
         $data['mobiles'] = Mobileuser::all();
         $data['purposes'] = Purpose::all();
         $schedule = Schedulevisit::with('schedulepurpose')->findorFail($code);
-        $data['dealers'] = Dealer::whereIn('area_code', explode(" :: ", $schedule->user['areas']))->get();
+        $data['dealers'] = Dealer::whereIn('area_code', explode(' :: ', $schedule->user['areas']))->get();
         $data['schedules'] = $schedule;
+
         return view('dashboards.schedules.schedule-edit', $data);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -170,7 +174,6 @@ class ScheduleVisitController extends Controller
             'purpose_id.*' => 'required|exists:purposes,id',
             'expiry_date' => ['regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required'],
         ]);
-
 
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
         if ($request['expiry-date'] > $today) {
@@ -193,11 +196,11 @@ class ScheduleVisitController extends Controller
         $schedule->save();
         SchedulePurpose::where('visitschedule_id', $schedule->id)->delete();
         foreach ($request->purpose_id as $purpose) {
-            $sch = new SchedulePurpose();
+            $sch = new SchedulePurpose;
 
             $sch->visitschedule_id = $schedule->id;
-            $sch->purpose_id  = $purpose;
-            $sch->status = "pending";
+            $sch->purpose_id = $purpose;
+            $sch->status = 'pending';
 
             $sch->save();
         }
@@ -209,7 +212,7 @@ class ScheduleVisitController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -218,18 +221,20 @@ class ScheduleVisitController extends Controller
 
         $schedule->delete();
         Session::flash('Status', 'Successfully Deleted');
+
         return back();
     }
 
     public function dealerValue($id)
     {
-        $user =  Mobileuser::findorFail($id);
+        $user = Mobileuser::findorFail($id);
         $areacode = explode(' :: ', $user->areas);
         $subAreas = explode(' :: ', $user->sub_areas);
         $dealers = Dealer::select(['name', 'code'])->formaindealer()
             ->whereIn('area_code', $areacode)
             ->whereIn('subarea', $subAreas)
             ->get();
+
         return json_encode($dealers);
     }
 
@@ -241,19 +246,19 @@ class ScheduleVisitController extends Controller
         ]);
         $dd = $request['date'];
         $code = $request['user'];
-        if (!empty($request['date'])) {
+        if (! empty($request['date'])) {
             $date = $this->custom_BS_to_AD($request->date);
         }
         $today = date('Y-m-d');
-        if (!empty($request['date']) && !empty($request['user'])) {
+        if (! empty($request['date']) && ! empty($request['user'])) {
             $schedules = Schedulevisit::where(['date' => $date, 'user_id' => $request->user])
                 ->orderBy('created_at', 'desc')
                 ->get();
-        } elseif (empty($request['date']) && !empty($request['user'])) {
+        } elseif (empty($request['date']) && ! empty($request['user'])) {
             $schedules = Schedulevisit::where(['user_id' => $request->user])
                 ->orderBy('created_at', 'desc')
                 ->get();
-        } elseif (!empty($request['date']) && empty($request['user'])) {
+        } elseif (! empty($request['date']) && empty($request['user'])) {
             $schedules = Schedulevisit::where(['date' => $date])
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -267,7 +272,7 @@ class ScheduleVisitController extends Controller
             $role = Purpose::where('id', $roles)->pluck('purpose')->toArray();
             $schedule->purpose = $role;
         }
-        if (!empty($code)) {
+        if (! empty($code)) {
             $mrk_user = Mobileuser::where('id', $code)->first();
             $mrk = explode('::', $mrk_user->name);
             $mr = implode('', $mrk);
@@ -288,7 +293,7 @@ class ScheduleVisitController extends Controller
     {
         $user = Mobileuser::findorFail($id);
         $areas = explode(' :: ', $user->areas);
-        $area =  Area::whereIn('areacode', $areas)->get();
+        $area = Area::whereIn('areacode', $areas)->get();
 
         return response()->json($area);
     }

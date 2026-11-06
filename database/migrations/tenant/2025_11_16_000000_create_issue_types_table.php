@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        if (!Schema::hasTable('issue_types')) {
+        if (! Schema::hasTable('issue_types')) {
             Schema::create('issue_types', function (Blueprint $table) {
                 $table->id();
                 $table->string('type')->unique();
@@ -24,7 +25,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        if (!Schema::hasTable('issue_types')) {
+        if (! Schema::hasTable('issue_types')) {
             Schema::dropIfExists('issue_types');
         }
     }

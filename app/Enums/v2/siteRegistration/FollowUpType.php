@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Enums\v2\siteRegistration;
@@ -11,4 +12,3 @@ enum FollowUpType: string
     case SAMPLING = 'sampling';
     case OTHERS = 'others';
 }
-

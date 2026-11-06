@@ -36,7 +36,7 @@ class SiteRegistrationRequest extends FormRequest
                 'required_with:stakeholders',
                 'string',
                 'max:20',
-                Rule::unique('v2_site_contacts', 'phone')
+                Rule::unique('v2_site_contacts', 'phone'),
             ],
 
             // Step 3 – site details
@@ -75,7 +75,7 @@ class SiteRegistrationRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $next = $this->input('next_followup_at');
-            if ($next && !$this->isFutureNepaliDate($next)) {
+            if ($next && ! $this->isFutureNepaliDate($next)) {
                 $validator->errors()->add('next_followup_at', 'The next follow‑up date must be in the future.');
             }
         });

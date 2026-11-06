@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Bank;
 use App\Models\IssueType;
+use App\Models\Purpose;
 use Illuminate\Database\Seeder;
 
 class IssueTypeSedder extends Seeder
@@ -13,15 +15,15 @@ class IssueTypeSedder extends Seeder
     public function run(): void
     {
         $issueTypes = [
-            "Account",
-            "Product",
-            "Machine",
-            "Other"
+            'Account',
+            'Product',
+            'Machine',
+            'Other',
         ];
 
         foreach ($issueTypes as $issueType) {
             $existingIssueType = IssueType::where('type', $issueType)->first();
-            if (!$existingIssueType) {
+            if (! $existingIssueType) {
                 IssueType::create(['type' => $issueType]);
             }
         }
@@ -29,15 +31,15 @@ class IssueTypeSedder extends Seeder
         $purposes = ['Feedback Collection', 'Order', 'Collection'];
 
         foreach ($purposes as $purpose) {
-            $existingPurpose = \App\Models\Purpose::where('purpose', $purpose)->first();
-            if (!$existingPurpose) {
-                \App\Models\Purpose::create(['purpose' => $purpose]);
+            $existingPurpose = Purpose::where('purpose', $purpose)->first();
+            if (! $existingPurpose) {
+                Purpose::create(['purpose' => $purpose]);
             }
         }
 
-        $existingBank = \App\Models\Bank::where('name', 'cash')->first();
-        if (!$existingBank) {
-            \App\Models\Bank::create(['name' => 'cash']);
+        $existingBank = Bank::where('name', 'cash')->first();
+        if (! $existingBank) {
+            Bank::create(['name' => 'cash']);
         }
     }
 }

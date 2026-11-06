@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateSchedulePurposesTable extends Migration
 {
@@ -14,7 +14,7 @@ class CreateSchedulePurposesTable extends Migration
     public function up()
     {
         Schema::create('schedule_purposes', function (Blueprint $table) {
-            $table->id();;
+            $table->id();
             $table->bigInteger('visitschedule_id')->unsigned();
             $table->bigInteger('purpose_id')->unsigned();
             $table->string('status');

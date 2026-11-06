@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\AutoCheckout;
-use Illuminate\Http\Request;
 use App\Models\Setting;
+use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
     public function index()
     {
         $distance = Setting::first();
+
         return view('dashboards.distance.distance', ['distance' => $distance]);
     }
 
@@ -24,7 +25,7 @@ class SettingController extends Controller
         if ($dist) {
             $dist->distance = $request['distance'];
         } else {
-            $dist = new Setting();
+            $dist = new Setting;
 
             $dist->distance = $request['distance'];
         }
@@ -36,6 +37,7 @@ class SettingController extends Controller
     public function checkoutIndex()
     {
         $data['checkoutTime'] = AutoCheckout::where('user_id', null)->value('checkout_time');
+
         return view('dashboards.distance.checkouttime', $data);
     }
 
@@ -49,7 +51,7 @@ class SettingController extends Controller
         if ($checkout) {
             $checkout->checkout_time = $request['checkoutTime'];
         } else {
-            $checkout = new AutoCheckout();
+            $checkout = new AutoCheckout;
             $checkout->user_id = null;
             $checkout->checkout_time = $request['checkoutTime'];
         }

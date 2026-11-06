@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -31,13 +32,13 @@ class InitializeTenancyForApi
         // 1. Check for X-Tenant header or query parameter
         $tenantIdentifier = $request->header('X-Tenant') ?? $request->query('tenant');
 
-        if (!empty($tenantIdentifier)) {
+        if (! empty($tenantIdentifier)) {
             // Find tenant by ID or slug
             $tenant = Tenant::where('id', $tenantIdentifier)
                 ->orWhere('slug', $tenantIdentifier)
                 ->first();
 
-            if (!$tenant) {
+            if (! $tenant) {
                 return response()->json([
                     'success' => false,
                     'status' => 'error',
@@ -46,6 +47,7 @@ class InitializeTenancyForApi
             }
 
             tenancy()->initialize($tenant);
+
             return $next($request);
         }
 
@@ -55,12 +57,13 @@ class InitializeTenancyForApi
             try {
                 $payload = auth('api')->setToken($bearerToken)->getPayload();
                 $tokenTenantId = $payload->get('tenant_id');
-                if (!empty($tokenTenantId)) {
+                if (! empty($tokenTenantId)) {
                     $tenant = Tenant::where('id', $tokenTenantId)
                         ->orWhere('slug', $tokenTenantId)
                         ->first();
                     if ($tenant) {
                         tenancy()->initialize($tenant);
+
                         return $next($request);
                     }
                 }
@@ -72,7 +75,7 @@ class InitializeTenancyForApi
         // 3. Fall back to Domain or Subdomain resolution
         try {
             return $this->domainResolver->handle($request, $next);
-        } catch (\Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException $e) {
+        } catch (TenantCouldNotBeIdentifiedOnDomainException $e) {
             return response()->json([
                 'success' => false,
                 'status' => 'error',

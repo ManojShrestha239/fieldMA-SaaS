@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateMessagesTable extends Migration
 {
     public function up()
     {
-        if (!Schema::hasTable('message_groups')) {
+        if (! Schema::hasTable('message_groups')) {
             Schema::create('message_groups', function (Blueprint $table) {
                 $table->id();
                 $table->string('group_name');
@@ -19,7 +19,7 @@ class CreateMessagesTable extends Migration
             });
         }
 
-        if (!Schema::hasTable('messages')) {
+        if (! Schema::hasTable('messages')) {
             Schema::create('messages', function (Blueprint $table) {
                 $table->id();
                 $table->bigInteger('from')->nullable();
@@ -37,7 +37,7 @@ class CreateMessagesTable extends Migration
             });
         }
 
-        if (!Schema::hasTable('message_group_users')) {
+        if (! Schema::hasTable('message_group_users')) {
             Schema::create('message_group_users', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedInteger('user_id')->nullable();
@@ -53,7 +53,7 @@ class CreateMessagesTable extends Migration
             });
         }
 
-        if (!Schema::hasTable('message_images')) {
+        if (! Schema::hasTable('message_images')) {
             Schema::create('message_images', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('chat_id');

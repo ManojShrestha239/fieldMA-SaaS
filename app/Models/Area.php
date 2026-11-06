@@ -12,7 +12,7 @@ class Area extends Model
     protected $fillable = [
         'areacode',
         'area',
-        'status'
+        'status',
     ];
 
     protected $hidden = [
@@ -22,7 +22,9 @@ class Area extends Model
     ];
 
     protected $primaryKey = 'areacode';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public function mobileuser()

@@ -2,40 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Dealer;
-use App\Models\Order;
-use App\Models\Complaint;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Models\LogDetail;
-use App\Models\Orderitem;
-use App\Models\Mobileuser;
-use App\Models\ProductSize;
-use App\Models\Size;
-use App\Traits\FCM;
-use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
-use Illuminate\Support\Str;
 use App\Models\Area;
+use App\Models\Complaint;
+use App\Models\Dealer;
 use App\Models\DealerwiseTarget;
-use App\Models\Product;
+use App\Models\LogDetail;
+use App\Models\Mobileuser;
+use App\Models\Order;
 use App\Models\OrderImage;
+use App\Models\Orderitem;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductSize;
 use App\Models\ProductwiseTarget;
+use App\Models\Size;
 use App\Models\TargetInfo;
 use App\Models\UserTarget;
-use Carbon\Carbon;
+use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\FCM;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
     use FCM;
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
 
     public function show($id)
     {
-        //Todo
+        // Todo
         $o = Order::findorFail($id);
         $order = DB::table('orders')
             ->join('orderitems', 'orderitems.order_id', '=', 'orders.id')
@@ -61,14 +60,14 @@ class OrderController extends Controller
             $nepaliMth = $currentNepaliDay['month'];
             $d = strlen($nepaliMth);
             if ($d == 1) {
-                $nepaliMth = '0' . $nepaliMth;
+                $nepaliMth = '0'.$nepaliMth;
             }
             $nepaliYr = $currentNepaliDay['year'];
-            $order_date = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+            $order_date = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
             $dealer = $n->dealer_name;
             $mo = $n->user_name;
 
-            $list[] = array(
+            $list[] = [
                 'order_id' => $n->order_id,
                 'dealer_name' => $n->dealer_name,
                 'order_status' => $n->order_status,
@@ -83,15 +82,15 @@ class OrderController extends Controller
                 'status' => $n->status,
                 'user_name' => $n->user_name,
                 'dealer_code' => $n->dealer_code,
-                'custom_remarks' => $n->custom_remarks
-            );
+                'custom_remarks' => $n->custom_remarks,
+            ];
         }
         if (empty($list)) {
             //    if (count($list)<1) {
             return view('dashboards.orders.list', ['order' => '', 'dealer' => '', 'mo' => '', 'o' => '']);
         } else {
             return view('dashboards.orders.list', ['order' => $list, 'dealer' => $dealer, 'mo' => $mo, 'o' => $o]);
-        } //todo
+        } // todo
     }
 
     public function index()
@@ -110,7 +109,7 @@ class OrderController extends Controller
         $from = $this->custom_AD_to_BS($engfrom);
         $to = $this->custom_AD_to_BS(date('Y-m-d'));
 
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $areas = Area::whereIn('areacode', $admin_area)->get();
@@ -138,12 +137,12 @@ class OrderController extends Controller
                     ")
             ->first();
 
-        $total     = $stats->total;
-        $pending   = $stats->pending;
-        $ongoing   = $stats->ongoing;
+        $total = $stats->total;
+        $pending = $stats->pending;
+        $ongoing = $stats->ongoing;
         $cancelled = $stats->cancelled;
         $completed = $stats->completed;
-        $draft     = $stats->draft;
+        $draft = $stats->draft;
 
         $orders = Order::with(['dealer:code,name,discount', 'user:id,name', 'items:id,custom_unit_remarks'])
             ->whereIn('dealer_code', $dealercodes)
@@ -155,7 +154,7 @@ class OrderController extends Controller
         foreach ($orders as $order) {
             $order_date = $this->custom_AD_to_BS($order->date);
 
-            $list[] = array(
+            $list[] = [
                 'order_id' => $order->id,
                 'dealer_name' => $order->dealer->name,
                 'order_status' => $order->status,
@@ -177,7 +176,7 @@ class OrderController extends Controller
                 'vat' => $order->vat,
                 'lat_lng' => $order->lat_lng,
                 'location' => $order->location,
-            );
+            ];
             $orderamt = 0;
         }
 
@@ -197,6 +196,7 @@ class OrderController extends Controller
 
         $data['areas'] = $areas;
         $data['areacode'] = '';
+
         return view('dashboards.orders.Allorder', $data);
     }
 
@@ -209,26 +209,26 @@ class OrderController extends Controller
             'dealer' => 'nullable|exists:dealers,code',
             'areacode' => 'nullable|exists:areas,areacode',
             'filter_type' => 'required|in:all,Pending,approved,ongoing,completed,cancelled,draft',
-            'end-date' =>  ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:start-date'],
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:end-date']
+            'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:start-date'],
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:end-date'],
         ]);
 
         $filterType = strtolower(trim($request->filter_type));
 
         $statusMap = [
-            'pending'       => ['Pending', 'Sent to Account'],
-            'approved'      => ['Approved', 'Account'],
-            'ongoing'       => ['Sent to Dispatch', 'Dispatched'],
-            'cancelled'     => ['Declined'],
-            'completed'     => ['Delivered'],
-            'urgent order'  => ['Urgent Order'],
-            'draft'         => ['Draft'],
+            'pending' => ['Pending', 'Sent to Account'],
+            'approved' => ['Approved', 'Account'],
+            'ongoing' => ['Sent to Dispatch', 'Dispatched'],
+            'cancelled' => ['Declined'],
+            'completed' => ['Delivered'],
+            'urgent order' => ['Urgent Order'],
+            'draft' => ['Draft'],
         ];
 
         $status = $statusMap[$filterType] ?? 'all';
 
         $startDate = $request->input('start-date');
-        $endDate   = $request->input('end-date');
+        $endDate = $request->input('end-date');
         // $today     = $today;
 
         // if ($startDate->gt($endDate)) {
@@ -249,13 +249,13 @@ class OrderController extends Controller
         $fr = $request['start-date'];
         $t = $request['end-date'];
 
-        if (!empty($request['start-date'] || $request['end-date'])) {
+        if (! empty($request['start-date'] || $request['end-date'])) {
             $from = $this->custom_BS_to_AD($request['start-date']);
             $to = $this->custom_BS_to_AD($request['end-date']);
         }
 
         $user = Auth::user();
-        $isRestricted = !$user->hasRole('Super-Admin')
+        $isRestricted = ! $user->hasRole('Super-Admin')
             && optional($user->roles->first())->hasArea;
 
         $admin_area = $isRestricted
@@ -265,8 +265,7 @@ class OrderController extends Controller
         $mobileuser = $isRestricted
             ? Mobileuser::whereHas(
                 'areas',
-                fn($q) =>
-                $q->whereIn('areacode', $admin_area)
+                fn ($q) => $q->whereIn('areacode', $admin_area)
             )->pluck('id')
             : Mobileuser::pluck('id');
 
@@ -274,18 +273,15 @@ class OrderController extends Controller
             ->whereNull('main_dealer_code')
             ->when(
                 $isRestricted,
-                fn($q) =>
-                $q->whereIn('area_code', $admin_area)
+                fn ($q) => $q->whereIn('area_code', $admin_area)
                     ->where('active_status', 'Active')
                     ->whereHas(
                         'area',
-                        fn($a) =>
-                        $a->where('status', 'Published')
+                        fn ($a) => $a->where('status', 'Published')
                     )
             )->get();
 
         $areas = Area::whereIn('areacode', $admin_area)->get();
-
 
         $dealercodes = $dealers->pluck('code');
 
@@ -301,18 +297,17 @@ class OrderController extends Controller
             $baseQuery->where('areacode', $area);
         }
 
-        if (!$dealer && !$area) {
+        if (! $dealer && ! $area) {
             $baseQuery->whereIn('user_id', $mobileuser);
         }
 
-        if (!$dealer && $area) {
+        if (! $dealer && $area) {
             $baseQuery->whereIn('user_id', $mobileuser);
         }
 
         $baseQuery->when($status !== 'all', function ($query) use ($status) {
             $query->whereIn('status', (array) $status);
         });
-
 
         $stats = (clone $baseQuery)
             ->selectRaw("
@@ -327,18 +322,18 @@ class OrderController extends Controller
                 ")
             ->first();
 
-        $total     = $stats->total ?? 0;
-        $pending   = $stats->pending ?? 0;
-        $ongoing   = $stats->ongoing ?? 0;
-        $approved  = $stats->approved ?? 0;
+        $total = $stats->total ?? 0;
+        $pending = $stats->pending ?? 0;
+        $ongoing = $stats->ongoing ?? 0;
+        $approved = $stats->approved ?? 0;
         $dispatched = $stats->dispatched ?? 0;
         $completed = $stats->completed ?? 0;
         $cancelled = $stats->cancelled ?? 0;
-        $draft     = $stats->draft ?? 0;
+        $draft = $stats->draft ?? 0;
 
         $order = $baseQuery->get();
 
-        if (!empty($dealer)) {
+        if (! empty($dealer)) {
             $dea = Dealer::where('code', $dealer)->first();
             $d = $dea->name;
         } else {
@@ -362,7 +357,7 @@ class OrderController extends Controller
         $data['ongoing'] = $ongoing;
         $data['cancelled'] = $cancelled;
         $data['dispatched'] = $dispatched;
-        $data['draft'] =  $draft;
+        $data['draft'] = $draft;
         $data['areas'] = $areas;
         $data['status'] = $request->filter_type;
 
@@ -378,7 +373,7 @@ class OrderController extends Controller
             'delivery_cost' => 'nullable|required_if:status,==,Account|min:0|numeric|between:0,99.99',
             'due' => 'nullable',
             'last_collection_date' => 'nullable|date|before:today',
-            'last_collection' => 'nullable'
+            'last_collection' => 'nullable',
 
         ]);
 
@@ -404,7 +399,7 @@ class OrderController extends Controller
 
             $orders->save();
             $status = '';
-            if ($orders->status == "Approved" || $orders->status == "Dispatched" || $orders->status == "Sent to Dispatch") {
+            if ($orders->status == 'Approved' || $orders->status == 'Dispatched' || $orders->status == 'Sent to Dispatch') {
                 $status = 'true';
             }
             if ($orders->status == 'Sent To Account' && $request->status == 'Approved') {
@@ -413,15 +408,15 @@ class OrderController extends Controller
                 $areacode = $orders->areacode;
                 $dealer_code = $orders->dealer_code;
                 $target_month = explode('-', $orders->date);
-                $target_month = $target_month[0] . '-' . $target_month[1];
+                $target_month = $target_month[0].'-'.$target_month[1];
 
-                if ($orders->date >= $target_month . '-01' && $orders->date <= $target_month . '-07') {
+                if ($orders->date >= $target_month.'-01' && $orders->date <= $target_month.'-07') {
                     $week = 'week_1_target';
-                } else if ($orders->date >= $target_month . '-08' && $orders->date <= $target_month . '-14') {
+                } elseif ($orders->date >= $target_month.'-08' && $orders->date <= $target_month.'-14') {
                     $week = 'week_2_target';
-                } else if ($orders->date >= $target_month . '-15' && $orders->date <= $target_month . '-21') {
+                } elseif ($orders->date >= $target_month.'-15' && $orders->date <= $target_month.'-21') {
                     $week = 'week_3_target';
-                } else if ($orders->date >= $target_month . '-22' && $orders->date <= $target_month . '-31') {
+                } elseif ($orders->date >= $target_month.'-22' && $orders->date <= $target_month.'-31') {
                     $week = 'week_4_target';
                 } else {
                     $week = 'week_4_target';
@@ -465,12 +460,12 @@ class OrderController extends Controller
                     }
                 }
             }
-            //to change if need correction
+            // to change if need correction
             if ($request->status == 'Declined') {
                 $order = Order::findorFail($id);
                 $order->is_need_correction = $request->needcorrection;
-                if ($request->needcorrection == "1") {
-                    $order->status = "Draft";
+                if ($request->needcorrection == '1') {
+                    $order->status = 'Draft';
                 }
                 $order->save();
             }
@@ -479,18 +474,15 @@ class OrderController extends Controller
                 $areacode = $orders->areacode;
                 $dealer_code = $orders->dealer_code;
                 $target_month = explode('-', $orders->date);
-                $target_month = $target_month[0] . '-' . $target_month[1];
+                $target_month = $target_month[0].'-'.$target_month[1];
 
-
-
-
-                if ($orders->date >= $target_month . '-01' && $orders->date <= $target_month . '-07') {
+                if ($orders->date >= $target_month.'-01' && $orders->date <= $target_month.'-07') {
                     $week = 'week_1_target';
-                } else if ($orders->date >= $target_month . '-08' && $orders->date <= $target_month . '-14') {
+                } elseif ($orders->date >= $target_month.'-08' && $orders->date <= $target_month.'-14') {
                     $week = 'week_2_target';
-                } else if ($orders->date >= $target_month . '-15' && $orders->date <= $target_month . '-21') {
+                } elseif ($orders->date >= $target_month.'-15' && $orders->date <= $target_month.'-21') {
                     $week = 'week_3_target';
-                } else if ($orders->date >= $target_month . '-22' && $orders->date <= $target_month . '-31') {
+                } elseif ($orders->date >= $target_month.'-22' && $orders->date <= $target_month.'-31') {
                     $week = 'week_4_target';
                 } else {
                     $week = 'week_4_target';
@@ -538,11 +530,11 @@ class OrderController extends Controller
             $user = Mobileuser::find($orders->user_id);
 
             if ($user && $user->fcm_id) {
-                $title = "Dealer Order Status Updated";
-                $body  = "{$orders->dealer->name} order status has been updated to {$request->status}";
+                $title = 'Dealer Order Status Updated';
+                $body = "{$orders->dealer->name} order status has been updated to {$request->status}";
 
                 $data = [
-                    'route_channel' => 'order?order_id=' . $orders->id . '&dealer=' . $orders->dealer,
+                    'route_channel' => 'order?order_id='.$orders->id.'&dealer='.$orders->dealer,
                 ];
 
                 $this->runFirebaseNotification($user->fcm_id, null, $title, $body, $data);
@@ -559,7 +551,7 @@ class OrderController extends Controller
                 ->get();
 
             // Order Log details
-            $log = new LogDetail();
+            $log = new LogDetail;
             $log->flag = 'order';
             $log->ordercoll_id = $orders->id;
             $log->cheque_no = $orders->cheque_num;
@@ -572,24 +564,25 @@ class OrderController extends Controller
 
             $log->save();
 
-
             foreach ($order as $n) {
                 $order_date = $this->custom_AD_to_BS($n->order_date);
-                $list[] = array(
+                $list[] = [
                     'order_id' => $n->order_id,
                     'dealer_name' => $n->dealer_name,
                     'order_status' => $n->order_status,
                     'order_date' => $order_date,
                     'remarks' => $n->remarks,
                     'user_name' => $n->user_name,
-                    'dealer_code' => $n->dealer_code
-                );
+                    'dealer_code' => $n->dealer_code,
+                ];
             }
             DB::commit();
+
             return back()->with('Status', 'Order has been updated.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'An error occurred while updating the order status.' . $e->getMessage());
+
+            return back()->with('error', 'An error occurred while updating the order status.'.$e->getMessage());
         }
     }
 
@@ -611,26 +604,26 @@ class OrderController extends Controller
             'dealer' => 'nullable|exists:dealers,code',
             'areacode' => 'nullable|exists:areas,areacode',
             'filter_type' => 'required|in:all,Pending,approved,ongoing,completed,cancelled,draft',
-            'end-date' =>  ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:start-date'], //'nullable|date_format:Y-m-d|after_or_equal:start-date',
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:end-date'] //'nullable|required_with_all:end-date|date|date_format:Y-m-d',
+            'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:start-date'], // 'nullable|date_format:Y-m-d|after_or_equal:start-date',
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:end-date'], // 'nullable|required_with_all:end-date|date|date_format:Y-m-d',
         ]);
 
         $filterType = strtolower(trim($request->filter_type));
 
         $statusMap = [
-            'pending'       => ['Pending', 'Sent to Account'],
-            'approved'      => ['Approved', 'Account'],
-            'ongoing'       => ['Sent to Dispatch', 'Dispatched'],
-            'cancelled'     => ['Declined'],
-            'completed'     => ['Delivered'],
-            'urgent order'  => ['Urgent Order'],
-            'draft'         => ['Draft'],
+            'pending' => ['Pending', 'Sent to Account'],
+            'approved' => ['Approved', 'Account'],
+            'ongoing' => ['Sent to Dispatch', 'Dispatched'],
+            'cancelled' => ['Declined'],
+            'completed' => ['Delivered'],
+            'urgent order' => ['Urgent Order'],
+            'draft' => ['Draft'],
         ];
 
         $status = $statusMap[$filterType] ?? 'all';
 
         $startDate = $request->input('start-date');
-        $endDate   = $request->input('end-date');
+        $endDate = $request->input('end-date');
         // $today     = $today;
 
         // if ($startDate->gt($endDate)) {
@@ -652,13 +645,13 @@ class OrderController extends Controller
         $t = $request['end-date'];
         $orderamt = 0;
 
-        if (!empty($fr || $t)) {
+        if (! empty($fr || $t)) {
             $from = $this->custom_BS_to_AD($fr);
             $to = $this->custom_BS_to_AD($t);
         }
 
         $user = Auth::user();
-        $isRestricted = !$user->hasRole('Super-Admin')
+        $isRestricted = ! $user->hasRole('Super-Admin')
             && optional($user->roles->first())->hasArea;
 
         $admin_area = $isRestricted
@@ -668,8 +661,7 @@ class OrderController extends Controller
         $mobileuser = $isRestricted
             ? Mobileuser::whereHas(
                 'areas',
-                fn($q) =>
-                $q->whereIn('areacode', $admin_area)
+                fn ($q) => $q->whereIn('areacode', $admin_area)
             )->pluck('id')
             : Mobileuser::pluck('id');
 
@@ -677,18 +669,15 @@ class OrderController extends Controller
             ->whereNull('main_dealer_code')
             ->when(
                 $isRestricted,
-                fn($q) =>
-                $q->whereIn('area_code', $admin_area)
+                fn ($q) => $q->whereIn('area_code', $admin_area)
                     ->where('active_status', 'Active')
                     ->whereHas(
                         'area',
-                        fn($a) =>
-                        $a->where('status', 'Published')
+                        fn ($a) => $a->where('status', 'Published')
                     )
             )->get();
 
         $areas = Area::whereIn('areacode', $admin_area)->get();
-
 
         $dealercodes = $dealers->pluck('code');
 
@@ -704,18 +693,17 @@ class OrderController extends Controller
             $baseQuery->where('areacode', $area);
         }
 
-        if (!$dealer && !$area) {
+        if (! $dealer && ! $area) {
             $baseQuery->whereIn('user_id', $mobileuser);
         }
 
-        if (!$dealer && $area) {
+        if (! $dealer && $area) {
             $baseQuery->whereIn('user_id', $mobileuser);
         }
 
         $baseQuery->when($status !== 'all', function ($query) use ($status) {
             $query->whereIn('status', (array) $status);
         });
-
 
         $stats = (clone $baseQuery)
             ->selectRaw("
@@ -730,18 +718,18 @@ class OrderController extends Controller
                 ")
             ->first();
 
-        $total     = $stats->total ?? 0;
-        $pending   = $stats->pending ?? 0;
-        $ongoing   = $stats->ongoing ?? 0;
-        $approved  = $stats->approved ?? 0;
+        $total = $stats->total ?? 0;
+        $pending = $stats->pending ?? 0;
+        $ongoing = $stats->ongoing ?? 0;
+        $approved = $stats->approved ?? 0;
         $dispatched = $stats->dispatched ?? 0;
         $completed = $stats->completed ?? 0;
         $cancelled = $stats->cancelled ?? 0;
-        $draft     = $stats->draft ?? 0;
+        $draft = $stats->draft ?? 0;
 
         $order = $baseQuery->get();
 
-        if (!empty($dealer)) {
+        if (! empty($dealer)) {
             $dea = Dealer::where('code', $dealer)->first();
             $d = $dea->name;
         } else {
@@ -764,7 +752,7 @@ class OrderController extends Controller
         $data['ongoing'] = $ongoing;
         $data['cancelled'] = $cancelled;
         $data['dispatched'] = $dispatched;
-        $data['draft'] =  $draft;
+        $data['draft'] = $draft;
         $data['areas'] = $areas;
         $data['status'] = $request->filter_type;
 
@@ -780,17 +768,16 @@ class OrderController extends Controller
         foreach ($log as $n) {
             $date = $this->custom_AD_to_BS($n->date);
 
-
-            $list[] = array(
+            $list[] = [
                 'ordercoll_id' => $n->ordercoll_id,
                 'status' => $n->status,
                 'previous_status' => $n->previous_status,
                 'admin' => $n->adminUser->name,
                 'remarks' => $n->remarks,
                 'date' => $date,
-            );
+            ];
         }
-        if (!empty($list)) {
+        if (! empty($list)) {
             return view('dashboards.orders.log', ['log' => $list]);
         } else {
             return view('dashboards.orders.log');
@@ -825,7 +812,7 @@ class OrderController extends Controller
             $dName = $n->dealer_name;
             $mo = $n->user_name;
 
-            $list[] = array(
+            $list[] = [
                 'order_id' => $n->order_id,
                 'dealer_name' => $n->dealer_name,
                 'order_status' => $n->order_status,
@@ -840,7 +827,7 @@ class OrderController extends Controller
                 'sizeid' => $n->sizeid,
                 'status' => $n->status,
                 'dealer_code' => $n->dealer_code,
-            );
+            ];
         }
         //    return $list;
         if (empty($list)) {
@@ -850,7 +837,7 @@ class OrderController extends Controller
         }
     }
 
-    function editOrderView($id)
+    public function editOrderView($id)
     {
         $products = DB::table('products')
             ->join('product_size', 'products.id', 'product_size.product_id')
@@ -863,18 +850,21 @@ class OrderController extends Controller
         $size = ProductSize::where('id', $item_id)->first();
         $product_size = ProductSize::where('product_id', $size->product_id)->get();
         $variants = Size::all();
+
         return view('dashboards.orders.orderEdit', ['products' => $products, 'orderItems' => $orderItems, 'variants' => $variants, 'size' => $size]);
     }
 
     public function orderdetails($id)
     {
         $data['odr'] = Order::findorfail($id);
+
         return view('dashboards.orders.orderdetails', $data);
     }
 
     public function viewcomplaint($id)
     {
-        $complaint = complaint::find($id);
+        $complaint = Complaint::find($id);
+
         // return dd($complaint->id);
         return view('dashboards.complaints.view2')->with('complaint', $complaint);
     }
@@ -901,22 +891,21 @@ class OrderController extends Controller
         foreach ($productSizes as $key => $value) {
             $quantity = $quantities[$key] ?? 0;
 
-
             if ($quantity > 0) {
                 $orderItem[] = [
-                    "order_id" => $order->id,
-                    "items_id" => $value->id,
-                    "quantity" => $quantity,
-                    "product_rate" => $value->price,
-                    "total_price" => $quantity * $value->price,
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
+                    'order_id' => $order->id,
+                    'items_id' => $value->id,
+                    'quantity' => $quantity,
+                    'product_rate' => $value->price,
+                    'total_price' => $quantity * $value->price,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
                 ];
                 $totalorder += $quantity * $value->price;
             }
         }
 
-        if (!empty($orderItem)) {
+        if (! empty($orderItem)) {
             Orderitem::insert($orderItem);
         }
 
@@ -925,7 +914,7 @@ class OrderController extends Controller
         $order->total_price += $totalorder;
         $order->save();
 
-        return back()->with("Success", "Order placed successfully");
+        return back()->with('Success', 'Order placed successfully');
     }
 
     public function getOrderLocationDetails(Request $request, $id)
@@ -953,8 +942,9 @@ class OrderController extends Controller
         $data['type'] = $request->type;
 
         if ($array[0] == '' || $array[1] == '') {
-            return back()->with('error', 'Location data not available for this ' . $request->type);
+            return back()->with('error', 'Location data not available for this '.$request->type);
         }
+
         return view('dashboards.orders.map', $data);
     }
 }

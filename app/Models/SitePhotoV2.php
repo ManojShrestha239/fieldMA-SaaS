@@ -40,12 +40,10 @@ class SitePhotoV2 extends Model
 
     /**
      * Get the full URL for the file_path.
-     *
-     * @return string
      */
     public function getFilePathAttribute($value): string
     {
-        if (!$value) {
+        if (! $value) {
             return '';
         }
 

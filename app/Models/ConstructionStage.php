@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ConstructionStage extends Model
 {
     protected $table = 'v2_site_construction_stages';
+
     protected $fillable = ['name', 'material_icon', 'sort_order', 'recommended_followup_days'];
+
     protected $casts = [
         'id' => 'integer',
         'name' => 'string',
@@ -16,6 +18,7 @@ class ConstructionStage extends Model
         'sort_order' => 'integer',
         'recommended_followup_days' => 'integer',
     ];
+
     public $timestamps = false; // No created_at or updated_at columns
 
     public function sites(): HasMany

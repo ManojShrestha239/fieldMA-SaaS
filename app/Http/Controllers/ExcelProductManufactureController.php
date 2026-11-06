@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductManufactureExport;
-use App\Models\ProductManufacture;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -12,11 +11,11 @@ class ExcelProductManufactureController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function export()
     {
-        return Excel::download(new ProductManufactureExport, 'productmanufacture-list_' . date('Y-m-d') . '_' . time() . '.xlsx');
+        return Excel::download(new ProductManufactureExport, 'productmanufacture-list_'.date('Y-m-d').'_'.time().'.xlsx');
     }
+
     public function index()
     {
         //

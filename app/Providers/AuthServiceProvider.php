@@ -44,7 +44,7 @@ class AuthServiceProvider extends ServiceProvider
                 $permissions = Permission::query()
                     ->where('guard_name', 'web')
                     ->pluck('name')
-                    ->map(fn($n) => strtolower(trim($n)))
+                    ->map(fn ($n) => strtolower(trim($n)))
                     ->flip()
                     ->all();
             }

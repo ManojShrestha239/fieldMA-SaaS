@@ -9,8 +9,9 @@ class Denominationpoint extends Model
 {
     use HasFactory;
 
-    public function payment(){
-        return $this->belongsTo(Payment::class,'collection_id');
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class, 'collection_id');
     }
 
     protected function serializeDate(\DateTimeInterface $date)

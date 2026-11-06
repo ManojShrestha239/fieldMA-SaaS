@@ -2,15 +2,16 @@
 
 namespace App\Exports;
 
+use App\Models\RawMaterial;
 use App\Models\RawProduct;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Facades\Excel;
 
 class RawProductExport implements FromCollection, WithHeadings
 {
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function collection()
     {
@@ -20,10 +21,8 @@ class RawProductExport implements FromCollection, WithHeadings
             $productName = $rawproduct->product ? $rawproduct->product->name : 'N/A';
 
             $ids = explode('::', $rawproduct->rawmaterial_id);
-            $materials = \App\Models\RawMaterial::whereIn('id', $ids)->pluck('name')->toArray();
+            $materials = RawMaterial::whereIn('id', $ids)->pluck('name')->toArray();
             $rawMaterials = implode(', ', $materials);
-
-
 
             return [
                 'SN' => $index + 1,

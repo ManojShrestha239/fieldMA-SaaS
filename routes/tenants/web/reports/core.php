@@ -34,7 +34,7 @@ Route::group(['middleware' => ['permission:reports', 'feature:visits']], functio
     Route::get('/attendance/{id}', [AttendanceController::class, 'view']);
     Route::get('/attendance/view/{id}', [AttendanceController::class, 'show']);
 
-    //Attendance Image
+    // Attendance Image
     Route::get('attendanceimage/{id}', [AttendanceController::class, 'attendanceimageshow'])->name('attendanceimage');
 
     // UpdateKM for Attendance
@@ -60,6 +60,6 @@ Route::group(['middleware' => ['permission:reports', 'feature:visits']], functio
     Route::post('/unlisted-visit-export', [UnlistedExportController::class, 'unlisted_visit_Report']);
     Route::post('/unlisted-visit-detailed-export', [UnlistedExportController::class, 'unlisted_visit_Detailed_Report']);
 
-    //Dealer ot Retailer Route
+    // Dealer ot Retailer Route
     Route::get('/dealerOrRetailer', [DealerController::class, 'dealerOrRetailer']);
 });

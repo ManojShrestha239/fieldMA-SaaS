@@ -2,27 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
+use App\Exports\TadaReportExport;
+use App\Models\AttendanceImage;
+use App\Models\Dealer;
+use App\Models\Mobileuser;
 use App\Models\Session;
-use App\Models\VisitPurpose;
-use App\Models\Payment;
+use App\Models\TadaAuthorizedUser;
+use App\Models\TadaEntry;
+use App\Models\TadaExpenseAuthorizedUser;
+use App\Models\TadaImage;
+use App\Models\User;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
-use App\Exports\TadaReportExport;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TadaReportController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     private function isDashboardWebUser(): bool
     {
         $user = auth()->user();
 
-        return $user instanceof \App\Models\User;
+        return $user instanceof User;
     }
 
     private function getDailyVisitListForReport($report)
@@ -53,6 +61,7 @@ class TadaReportController extends Controller
                 $matchingVisit->setAttribute('unlisted_dealer_name', $visit->unlisted_dealer_name ?? $matchingVisit->unlisted_dealer_name);
                 $matchingVisit->setAttribute('dealer_name', $visit->dealer_name ?? $matchingVisit->dealer_name ?? $visit->unlisted_dealer_name ?? $matchingVisit->unlisted_dealer_name);
                 $matchingVisit->setAttribute('dealer_code', $visit->dealer_code ?? $matchingVisit->dealer_code);
+
                 continue;
             }
 
@@ -68,7 +77,7 @@ class TadaReportController extends Controller
 
     private function fillMissingAttendanceKilometers($report): void
     {
-        $attendanceKm = \App\Models\TadaEntry::attendanceKilometersForUserDate(
+        $attendanceKm = TadaEntry::attendanceKilometersForUserDate(
             $report->user_id,
             $report->entry_date
         );
@@ -91,7 +100,7 @@ class TadaReportController extends Controller
      */
     public function index(Request $request)
     {
-        if (!$request->filled('start-date') && !$request->filled('end-date')) {
+        if (! $request->filled('start-date') && ! $request->filled('end-date')) {
             $todayBs = $this->custom_AD_to_BS(now()->toDateString());
             $request->merge([
                 'start-date' => $todayBs,
@@ -102,11 +111,11 @@ class TadaReportController extends Controller
         if ($request->query->count() > 0) {
             $input = $request->all();
 
-            if (!empty($input['start-date']) && $this->isNepaliDateString($input['start-date'])) {
+            if (! empty($input['start-date']) && $this->isNepaliDateString($input['start-date'])) {
                 $input['start-date'] = $this->custom_BS_to_AD($input['start-date']);
             }
 
-            if (!empty($input['end-date']) && $this->isNepaliDateString($input['end-date'])) {
+            if (! empty($input['end-date']) && $this->isNepaliDateString($input['end-date'])) {
                 $input['end-date'] = $this->custom_BS_to_AD($input['end-date']);
             }
 
@@ -128,14 +137,14 @@ class TadaReportController extends Controller
             }
         }
 
-        $users = \App\Models\Mobileuser::orderBy('name')->get();
+        $users = Mobileuser::orderBy('name')->get();
         $selectedUserIds = collect((array) $request->input('user', []))
-            ->filter(static fn($userId) => is_numeric($userId) && (int) $userId > 0)
-            ->map(static fn($userId) => (int) $userId)
+            ->filter(static fn ($userId) => is_numeric($userId) && (int) $userId > 0)
+            ->map(static fn ($userId) => (int) $userId)
             ->values()
             ->all();
 
-        $query = \App\Models\TadaEntry::with([
+        $query = TadaEntry::with([
             'user',
             'visits.dealer',
             'dealerExpenses.dealer',
@@ -149,7 +158,7 @@ class TadaReportController extends Controller
             $query->whereIn('user_id', $selectedUserIds);
         }
 
-        if ($request->has('start-date') && !empty($request->get('start-date'))) {
+        if ($request->has('start-date') && ! empty($request->get('start-date'))) {
             $startDate = $request->get('start-date');
             if ($this->isNepaliDateString($startDate)) {
                 $startDate = $this->custom_BS_to_AD($startDate);
@@ -157,7 +166,7 @@ class TadaReportController extends Controller
             $query->where('entry_date', '>=', $startDate);
         }
 
-        if ($request->has('end-date') && !empty($request->get('end-date'))) {
+        if ($request->has('end-date') && ! empty($request->get('end-date'))) {
             $endDate = $request->get('end-date');
             if ($this->isNepaliDateString($endDate)) {
                 $endDate = $this->custom_BS_to_AD($endDate);
@@ -165,7 +174,7 @@ class TadaReportController extends Controller
             $query->where('entry_date', '<=', $endDate);
         }
 
-        if ($request->has('status') && !empty($request->status)) {
+        if ($request->has('status') && ! empty($request->status)) {
             $query->where('status', strtoupper($request->status));
         }
 
@@ -181,10 +190,10 @@ class TadaReportController extends Controller
             $visitDealerCodes = $item->preview_visits
                 ->pluck('dealer_code')
                 ->filter()
-                ->map(static fn($code) => trim((string) $code));
+                ->map(static fn ($code) => trim((string) $code));
 
             $expenseOnlyRows = $item->dealerExpenses
-                ->filter(static fn($expense) => !$visitDealerCodes->contains(trim((string) $expense->dealer_code)))
+                ->filter(static fn ($expense) => ! $visitDealerCodes->contains(trim((string) $expense->dealer_code)))
                 ->map(static function ($expense) {
                     return (object) [
                         'dealer_code' => $expense->dealer_code,
@@ -201,15 +210,15 @@ class TadaReportController extends Controller
 
             $item->preview_visits = $item->preview_visits->concat($expenseOnlyRows);
 
-            $attendanceImages = \App\Models\AttendanceImage::where([
+            $attendanceImages = AttendanceImage::where([
                 'mobileuser_id' => $item->user_id,
                 'date' => $item->entry_date,
             ])->get()->keyBy('status');
 
             foreach (['checkin', 'checkout'] as $status) {
                 $image = $attendanceImages->get($status);
-                $item->{$status . '_photo_url'} = $image && $image->image
-                    ? url(Storage::disk('public')->url('attendance/' . $image->image))
+                $item->{$status.'_photo_url'} = $image && $image->image
+                    ? url(Storage::disk('public')->url('attendance/'.$image->image))
                     : null;
             }
 
@@ -217,11 +226,11 @@ class TadaReportController extends Controller
         });
 
         $data = [
-            'users'          => $users,
-            'list'           => $list,
-            'userid'         => $selectedUserIds,
-            'from'           => $request->get('start-date'),
-            'to'             => $request->get('end-date'),
+            'users' => $users,
+            'list' => $list,
+            'userid' => $selectedUserIds,
+            'from' => $request->get('start-date'),
+            'to' => $request->get('end-date'),
             'selectedStatus' => $request->get('status', ''),
         ];
 
@@ -234,7 +243,7 @@ class TadaReportController extends Controller
         $displayStartDate = $request->input('start-date');
         $displayEndDate = $request->input('end-date');
         foreach (['start-date', 'end-date'] as $dateField) {
-            if (!empty($input[$dateField]) && $this->isNepaliDateString($input[$dateField])) {
+            if (! empty($input[$dateField]) && $this->isNepaliDateString($input[$dateField])) {
                 $input[$dateField] = $this->custom_BS_to_AD($input[$dateField]);
             }
         }
@@ -249,23 +258,23 @@ class TadaReportController extends Controller
             'end-date.after_or_equal' => 'To Date must be greater than or equal to From Date.',
         ]);
 
-        $users = \App\Models\Mobileuser::orderBy('name')->get();
+        $users = Mobileuser::orderBy('name')->get();
         $selectedUserIds = collect((array) $request->input('user', []))
-            ->filter(static fn($userId) => is_numeric($userId) && (int) $userId > 0)
-            ->map(static fn($userId) => (int) $userId)
+            ->filter(static fn ($userId) => is_numeric($userId) && (int) $userId > 0)
+            ->map(static fn ($userId) => (int) $userId)
             ->values()
             ->all();
 
         $selectedExpenseTypes = collect((array) $request->input('expense_type', []))
-            ->filter(static fn($type) => !empty(trim((string)$type)))
-            ->map(static fn($type) => strtolower(trim((string)$type)))
+            ->filter(static fn ($type) => ! empty(trim((string) $type)))
+            ->map(static fn ($type) => strtolower(trim((string) $type)))
             ->values()
             ->all();
 
         $startDate = $request->input('start-date');
         $endDate = $request->input('end-date');
 
-        $query = \App\Models\TadaEntry::with([
+        $query = TadaEntry::with([
             'user',
             'dealerExpenses.expenseAuthorizedUser',
             'otherExpenses.expenseAuthorizedUser',
@@ -334,16 +343,16 @@ class TadaReportController extends Controller
         }
 
         if ($amountSort === 'asc') {
-            $rawExpenses = $rawExpenses->sortBy(static fn($expense) => (float) $expense->amount)->values();
+            $rawExpenses = $rawExpenses->sortBy(static fn ($expense) => (float) $expense->amount)->values();
         } elseif ($amountSort === 'desc') {
-            $rawExpenses = $rawExpenses->sortByDesc(static fn($expense) => (float) $expense->amount)->values();
+            $rawExpenses = $rawExpenses->sortByDesc(static fn ($expense) => (float) $expense->amount)->values();
         }
 
         $totalExpensesAmount = (float) $rawExpenses->sum('amount');
 
         $perPage = 20;
-        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-        $expenses = new \Illuminate\Pagination\LengthAwarePaginator(
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $expenses = new LengthAwarePaginator(
             $rawExpenses->forPage($currentPage, $perPage)->values(),
             $rawExpenses->count(),
             $perPage,
@@ -369,7 +378,7 @@ class TadaReportController extends Controller
     {
         $input = $request->all();
         foreach (['start-date', 'end-date'] as $dateField) {
-            if (!empty($input[$dateField]) && $this->isNepaliDateString($input[$dateField])) {
+            if (! empty($input[$dateField]) && $this->isNepaliDateString($input[$dateField])) {
                 $input[$dateField] = $this->custom_BS_to_AD($input[$dateField]);
             }
         }
@@ -381,17 +390,17 @@ class TadaReportController extends Controller
         ]);
 
         $selectedUserIds = collect((array) $request->input('user', []))
-            ->filter(static fn($userId) => is_numeric($userId) && (int) $userId > 0)
-            ->map(static fn($userId) => (int) $userId)
+            ->filter(static fn ($userId) => is_numeric($userId) && (int) $userId > 0)
+            ->map(static fn ($userId) => (int) $userId)
             ->values()
             ->all();
         $selectedExpenseTypes = collect((array) $request->input('expense_type', []))
-            ->filter(static fn($type) => !empty(trim((string) $type)))
-            ->map(static fn($type) => strtolower(trim((string) $type)))
+            ->filter(static fn ($type) => ! empty(trim((string) $type)))
+            ->map(static fn ($type) => strtolower(trim((string) $type)))
             ->values()
             ->all();
 
-        $query = \App\Models\TadaEntry::with([
+        $query = TadaEntry::with([
             'user',
             'dealerExpenses.expenseAuthorizedUser',
             'otherExpenses.expenseAuthorizedUser',
@@ -441,14 +450,14 @@ class TadaReportController extends Controller
 
         $amountSort = $request->input('amount_sort');
         if ($amountSort === 'asc') {
-            usort($rows, static fn($left, $right) => $left[3] <=> $right[3]);
+            usort($rows, static fn ($left, $right) => $left[3] <=> $right[3]);
         } elseif ($amountSort === 'desc') {
-            usort($rows, static fn($left, $right) => $right[3] <=> $left[3]);
+            usort($rows, static fn ($left, $right) => $right[3] <=> $left[3]);
         }
 
-        $totalExpensesAmount = collect($rows)->sum(static fn($row) => (float) $row[3]);
+        $totalExpensesAmount = collect($rows)->sum(static fn ($row) => (float) $row[3]);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        $pdf = Pdf::loadView(
             'dashboards.visit-reports.expense_report_pdf',
             [
                 'rows' => $rows,
@@ -498,12 +507,12 @@ class TadaReportController extends Controller
                     $normalizedType === 'other'
                     || str_contains($normalizedType, 'other')
                     || str_contains($normalizedType, 'misc')
-                    || (!str_contains($normalizedType, 'travel')
-                        && !str_contains($normalizedType, 'food')
-                        && !str_contains($normalizedType, 'accommodation')
-                        && !str_contains($normalizedType, 'courier')
-                        && !str_contains($normalizedType, 'transport')
-                        && !str_contains($normalizedType, 'coureier'))
+                    || (! str_contains($normalizedType, 'travel')
+                        && ! str_contains($normalizedType, 'food')
+                        && ! str_contains($normalizedType, 'accommodation')
+                        && ! str_contains($normalizedType, 'courier')
+                        && ! str_contains($normalizedType, 'transport')
+                        && ! str_contains($normalizedType, 'coureier'))
                 ) {
                     return true;
                 }
@@ -519,7 +528,7 @@ class TadaReportController extends Controller
 
     private function isNepaliDateString(string $date): bool
     {
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             return false;
         }
 
@@ -534,10 +543,11 @@ class TadaReportController extends Controller
      */
     public function create()
     {
-        $users = \App\Models\Mobileuser::orderBy('name')->get();
-        $dealers = \App\Models\Dealer::orderBy('name')->get();
-        $authorizedUsers = \App\Models\TadaAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
-        $expenseAuthorizedUsers = \App\Models\TadaExpenseAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
+        $users = Mobileuser::orderBy('name')->get();
+        $dealers = Dealer::orderBy('name')->get();
+        $authorizedUsers = TadaAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
+        $expenseAuthorizedUsers = TadaExpenseAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
+
         return view('dashboards.visit-reports.tada_create', compact('users', 'dealers', 'authorizedUsers', 'expenseAuthorizedUsers'));
     }
 
@@ -559,12 +569,12 @@ class TadaReportController extends Controller
         ]);
 
         try {
-            \Illuminate\Support\Facades\DB::beginTransaction();
+            DB::beginTransaction();
 
             $entryDate = $request->entry_date ?? now()->toDateString();
-            $attendanceKm = \App\Models\TadaEntry::attendanceKilometersForUserDate($request->user_id, $entryDate);
+            $attendanceKm = TadaEntry::attendanceKilometersForUserDate($request->user_id, $entryDate);
 
-            $entry = \App\Models\TadaEntry::create([
+            $entry = TadaEntry::create([
                 'user_id' => $request->user_id,
                 'entry_date' => $entryDate,
                 'route' => $request->route,
@@ -585,7 +595,7 @@ class TadaReportController extends Controller
 
             if ($request->has('visits')) {
                 foreach ($request->visits as $visit) {
-                    if (!empty($visit['dealer_code'])) {
+                    if (! empty($visit['dealer_code'])) {
                         $entry->visits()->create([
                             'dealer_code' => $visit['dealer_code'],
                             'is_physical_visit' => $visit['is_physical_visit'] ?? null,
@@ -593,7 +603,7 @@ class TadaReportController extends Controller
                             'remarks' => $visit['remarks'] ?? null,
                         ]);
 
-                        if (!empty($visit['amount']) && $visit['amount'] > 0) {
+                        if (! empty($visit['amount']) && $visit['amount'] > 0) {
                             $de = $entry->dealerExpenses()->create([
                                 'dealer_code' => $visit['dealer_code'],
                                 'expense_type' => 'Dealer Visit',
@@ -606,10 +616,10 @@ class TadaReportController extends Controller
 
                             if (isset($visit['images']) && is_array($visit['images'])) {
                                 foreach ($visit['images'] as $img) {
-                                    \App\Models\TadaImage::create([
+                                    TadaImage::create([
                                         'tada_entry_id' => $entry->id,
                                         'tada_dealer_expense_id' => $de->id,
-                                        'receipt_image_path' => $img
+                                        'receipt_image_path' => $img,
                                     ]);
                                 }
                             }
@@ -620,7 +630,7 @@ class TadaReportController extends Controller
 
             if ($request->has('expenses')) {
                 foreach ($request->expenses as $expense) {
-                    if (!empty($expense['amount'])) {
+                    if (! empty($expense['amount'])) {
                         // Accept either `expense_type` (mobile) or `expense_details` and preserve casing
                         $expenseDetails = $expense['expense_type'] ?? $expense['expense_details'] ?? 'Miscellaneous';
                         $oe = $entry->otherExpenses()->create([
@@ -633,10 +643,10 @@ class TadaReportController extends Controller
 
                         if (isset($expense['images']) && is_array($expense['images'])) {
                             foreach ($expense['images'] as $img) {
-                                \App\Models\TadaImage::create([
+                                TadaImage::create([
                                     'tada_entry_id' => $entry->id,
                                     'tada_other_expense_id' => $oe->id,
-                                    'receipt_image_path' => $img
+                                    'receipt_image_path' => $img,
                                 ]);
                             }
                         }
@@ -653,12 +663,13 @@ class TadaReportController extends Controller
             //     'ip_address' => $request->ip(),
             // ]);
 
-            \Illuminate\Support\Facades\DB::commit();
+            DB::commit();
 
             return redirect()->route('tada-report.index')->with('success', 'TADA Entry saved successfully.');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\DB::rollBack();
-            return back()->withInput()->with('error', 'Error: ' . $e->getMessage());
+            DB::rollBack();
+
+            return back()->withInput()->with('error', 'Error: '.$e->getMessage());
         }
     }
 
@@ -667,7 +678,7 @@ class TadaReportController extends Controller
      */
     public function show(string $id)
     {
-        $report = \App\Models\TadaEntry::with(['visits.dealer', 'dealerExpenses.dealer', 'dealerExpenses.images', 'dealerExpenses.expenseAuthorizedUser', 'otherExpenses.images', 'otherExpenses.expenseAuthorizedUser', 'images', 'user', 'authorizedUser'])->findOrFail($id);
+        $report = TadaEntry::with(['visits.dealer', 'dealerExpenses.dealer', 'dealerExpenses.images', 'dealerExpenses.expenseAuthorizedUser', 'otherExpenses.images', 'otherExpenses.expenseAuthorizedUser', 'images', 'user', 'authorizedUser'])->findOrFail($id);
         $this->fillMissingAttendanceKilometers($report);
         // Provide Nepali date and totals for the view
         $report->entry_date_bs = $report->entry_date ? $this->custom_AD_to_BS($report->entry_date) : null;
@@ -696,11 +707,11 @@ class TadaReportController extends Controller
             return redirect()->route('tada-report.index')->with('error', 'Dashboard users can only review TADA reports. Editing report details is disabled.');
         }
 
-        $report = \App\Models\TadaEntry::with(['visits', 'dealerExpenses', 'otherExpenses', 'images'])->findOrFail($id);
-        $users = \App\Models\Mobileuser::orderBy('name')->get();
-        $dealers = \App\Models\Dealer::orderBy('name')->get();
-        $authorizedUsers = \App\Models\TadaAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
-        $expenseAuthorizedUsers = \App\Models\TadaExpenseAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
+        $report = TadaEntry::with(['visits', 'dealerExpenses', 'otherExpenses', 'images'])->findOrFail($id);
+        $users = Mobileuser::orderBy('name')->get();
+        $dealers = Dealer::orderBy('name')->get();
+        $authorizedUsers = TadaAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
+        $expenseAuthorizedUsers = TadaExpenseAuthorizedUser::where('status', 'ACTIVE')->orderBy('name')->get();
 
         return view('dashboards.visit-reports.tada_edit', compact('report', 'users', 'dealers', 'authorizedUsers', 'expenseAuthorizedUsers'));
     }
@@ -710,7 +721,7 @@ class TadaReportController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $entry = \App\Models\TadaEntry::findOrFail($id);
+        $entry = TadaEntry::findOrFail($id);
         $oldStatus = $entry->status;
         $dashboardUser = $this->isDashboardWebUser();
 
@@ -743,7 +754,7 @@ class TadaReportController extends Controller
         }
 
         try {
-            \Illuminate\Support\Facades\DB::beginTransaction();
+            DB::beginTransaction();
 
             // Capture original values BEFORE update (getOriginal() syncs after update)
             $oldValues = $entry->toArray();
@@ -777,7 +788,7 @@ class TadaReportController extends Controller
             } else {
                 $updatedUserId = $request->user_id ?? $entry->user_id;
                 $updatedEntryDate = $request->entry_date ?? $entry->entry_date;
-                $attendanceKm = \App\Models\TadaEntry::attendanceKilometersForUserDate($updatedUserId, $updatedEntryDate);
+                $attendanceKm = TadaEntry::attendanceKilometersForUserDate($updatedUserId, $updatedEntryDate);
 
                 $entry->update([
                     'user_id' => $updatedUserId,
@@ -805,7 +816,7 @@ class TadaReportController extends Controller
                 $entry->visits()->delete();
                 if ($request->has('visits')) {
                     foreach ($request->visits as $v) {
-                        if (!empty($v['dealer_code'])) {
+                        if (! empty($v['dealer_code'])) {
                             $entry->visits()->create([
                                 'dealer_code' => $v['dealer_code'],
                                 'is_physical_visit' => $v['is_physical_visit'] ?? null,
@@ -813,7 +824,7 @@ class TadaReportController extends Controller
                                 'remarks' => $v['remarks'] ?? null,
                             ]);
 
-                            if (!empty($v['amount']) && $v['amount'] > 0) {
+                            if (! empty($v['amount']) && $v['amount'] > 0) {
                                 $de = $entry->dealerExpenses()->create([
                                     'dealer_code' => $v['dealer_code'],
                                     'expense_type' => 'Dealer Visit',
@@ -826,10 +837,10 @@ class TadaReportController extends Controller
 
                                 if (isset($v['images']) && is_array($v['images'])) {
                                     foreach ($v['images'] as $img) {
-                                        \App\Models\TadaImage::create([
+                                        TadaImage::create([
                                             'tada_entry_id' => $entry->id,
                                             'tada_dealer_expense_id' => $de->id,
-                                            'receipt_image_path' => $img
+                                            'receipt_image_path' => $img,
                                         ]);
                                     }
                                 }
@@ -845,7 +856,7 @@ class TadaReportController extends Controller
                 }
                 if ($request->has('expenses')) {
                     foreach ($request->expenses as $ex) {
-                        if (!empty($ex['amount'])) {
+                        if (! empty($ex['amount'])) {
                             $expenseDetails = $ex['expense_type'] ?? $ex['expense_details'] ?? 'Miscellaneous';
                             $oe = $entry->otherExpenses()->create([
                                 'expense_details' => $expenseDetails,
@@ -857,10 +868,10 @@ class TadaReportController extends Controller
 
                             if (isset($ex['images']) && is_array($ex['images'])) {
                                 foreach ($ex['images'] as $img) {
-                                    \App\Models\TadaImage::create([
+                                    TadaImage::create([
                                         'tada_entry_id' => $entry->id,
                                         'tada_other_expense_id' => $oe->id,
-                                        'receipt_image_path' => $img
+                                        'receipt_image_path' => $img,
                                     ]);
                                 }
                             }
@@ -870,7 +881,7 @@ class TadaReportController extends Controller
             }
 
             // Commit the main update first - the activity log should not block the report update.
-            \Illuminate\Support\Facades\DB::commit();
+            DB::commit();
 
             // Trigger disabled: update audit log is commented out.
             // try {
@@ -889,38 +900,38 @@ class TadaReportController extends Controller
             // Notification: send FCM to mobile user when status changes (include admin remarks)
 
             if ($oldStatus !== $request->status) {
-                $mobileUser = \App\Models\Mobileuser::find($entry->user_id);
+                $mobileUser = Mobileuser::find($entry->user_id);
 
-                if ($mobileUser && !empty($mobileUser->fcm_id)) {
+                if ($mobileUser && ! empty($mobileUser->fcm_id)) {
                     $notifTitle = null;
                     $notifMessage = null;
 
-                    $adminRemarks = trim((string)$request->input('admin_remarks', ''));
+                    $adminRemarks = trim((string) $request->input('admin_remarks', ''));
 
                     if ($request->status === 'INREVIEW') {
-                        $notifTitle = "TADA Report Under Review";
+                        $notifTitle = 'TADA Report Under Review';
                         $notifMessage = "Your TADA report for {$entry->entry_date} is now under review.";
                     } elseif ($request->status === 'APPROVED') {
-                        $notifTitle = "TADA Report Approved";
+                        $notifTitle = 'TADA Report Approved';
                         $notifMessage = "Your TADA report for {$entry->entry_date} has been approved.";
                     } elseif ($request->status === 'REJECTED') {
-                        $notifTitle = "TADA Report Rejected";
+                        $notifTitle = 'TADA Report Rejected';
                         $notifMessage = "Your TADA report for {$entry->entry_date} has been rejected.";
                     } elseif ($request->status === 'PENDING') {
-                        $notifTitle = "TADA Report Reset to Pending";
+                        $notifTitle = 'TADA Report Reset to Pending';
                         $notifMessage = "Your TADA report for {$entry->entry_date} has been reset to Pending.";
                     }
 
-                    if (!empty($adminRemarks)) {
-                        $notifMessage .= " Remarks: " . $adminRemarks;
+                    if (! empty($adminRemarks)) {
+                        $notifMessage .= ' Remarks: '.$adminRemarks;
                     }
 
                     if ($notifTitle) {
                         try {
-                            $notification = new \App\Http\Controllers\NotificationController();
-                            $notification->individualNotificationSend($mobileUser->fcm_id, $notifTitle, "TADA_STATUS", [
+                            $notification = new NotificationController;
+                            $notification->individualNotificationSend($mobileUser->fcm_id, $notifTitle, 'TADA_STATUS', [
                                 'Message' => $notifMessage,
-                                'status' => $request->status === 'INREVIEW' ? 'In-Review' : strtolower($request->status)
+                                'status' => $request->status === 'INREVIEW' ? 'In-Review' : strtolower($request->status),
                             ]);
                         } catch (\Exception $ne) {
                             // Notification failure is intentionally not logged here.
@@ -936,8 +947,9 @@ class TadaReportController extends Controller
 
             return redirect()->route('tada-report.index')->with('success', $message);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\DB::rollBack();
-            return back()->withInput()->with('error', 'Error updating report: ' . $e->getMessage());
+            DB::rollBack();
+
+            return back()->withInput()->with('error', 'Error updating report: '.$e->getMessage());
         }
     }
 
@@ -946,7 +958,7 @@ class TadaReportController extends Controller
      */
     public function downloadPdf($id)
     {
-        $report = \App\Models\TadaEntry::with([
+        $report = TadaEntry::with([
             'user',
             'visits',
             'dealerExpenses.images',
@@ -954,7 +966,7 @@ class TadaReportController extends Controller
             'otherExpenses.images',
             'otherExpenses.expenseAuthorizedUser',
             'images',
-            'authorizedUser'
+            'authorizedUser',
         ])->findOrFail($id);
         $this->fillMissingAttendanceKilometers($report);
 
@@ -969,10 +981,10 @@ class TadaReportController extends Controller
 
         $fileNameDate = $report->entry_date_bs ?? str_replace('-', '', now()->toDateString());
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('dashboards.visit-reports.tada_pdf', compact('report', 'visitList', 'from', 'to'))
+        $pdf = Pdf::loadView('dashboards.visit-reports.tada_pdf', compact('report', 'visitList', 'from', 'to'))
             ->setOptions(['isRemoteEnabled' => true, 'chroot' => public_path()]);
 
-        return $pdf->download('Daily_Report_' . $fileNameDate . '.pdf');
+        return $pdf->download('Daily_Report_'.$fileNameDate.'.pdf');
     }
 
     /**
@@ -980,13 +992,13 @@ class TadaReportController extends Controller
      */
     public function export(Request $request)
     {
-        $query = \App\Models\TadaEntry::with(['user', 'visits.dealer', 'dealerExpenses', 'otherExpenses']);
+        $query = TadaEntry::with(['user', 'visits.dealer', 'dealerExpenses', 'otherExpenses']);
 
-        if ($request->has('user') && !empty($request->user)) {
+        if ($request->has('user') && ! empty($request->user)) {
             $query->where('user_id', $request->user);
         }
 
-        if ($request->has('start-date') && !empty($request->get('start-date'))) {
+        if ($request->has('start-date') && ! empty($request->get('start-date'))) {
             $startDate = $request->get('start-date');
             if ($this->isNepaliDateString($startDate)) {
                 $startDate = $this->custom_BS_to_AD($startDate);
@@ -994,7 +1006,7 @@ class TadaReportController extends Controller
             $query->where('entry_date', '>=', $startDate);
         }
 
-        if ($request->has('end-date') && !empty($request->get('end-date'))) {
+        if ($request->has('end-date') && ! empty($request->get('end-date'))) {
             $endDate = $request->get('end-date');
             if ($this->isNepaliDateString($endDate)) {
                 $endDate = $this->custom_BS_to_AD($endDate);
@@ -1036,7 +1048,7 @@ class TadaReportController extends Controller
                 $rows[] = array_merge($base, [
                     $visit->dealer->name ?? $visit->dealer_code,
                     $visitAmount,
-                    !empty($visitTypes) ? implode(', ', $visitTypes) : '-',
+                    ! empty($visitTypes) ? implode(', ', $visitTypes) : '-',
                     $entryTotal,
                     $visit->is_physical_visit === null ? 'N/A' : ($visit->is_physical_visit ? 'Yes' : 'No'),
                     $visit->remarks,
@@ -1056,7 +1068,7 @@ class TadaReportController extends Controller
             }
 
             // If there are no dealer visits and no other expenses, add a single row with base info only
-            if (!$hasDealerRows && $entry->otherExpenses->count() === 0) {
+            if (! $hasDealerRows && $entry->otherExpenses->count() === 0) {
                 $rows[] = array_merge($base, ['-', 0, '-', $entryTotal, '-', $entry->remarks]);
             }
         }
@@ -1075,7 +1087,7 @@ class TadaReportController extends Controller
      */
     public function adminExport(Request $request)
     {
-        $query = \App\Models\TadaEntry::with([
+        $query = TadaEntry::with([
             'user',
             'visits.dealer',
             'dealerExpenses.dealer',
@@ -1084,12 +1096,12 @@ class TadaReportController extends Controller
             'authorizedUser',
         ]);
 
-        if ($request->has('user') && !empty($request->user)) {
+        if ($request->has('user') && ! empty($request->user)) {
             $query->where('user_id', $request->user);
         }
 
-        $hasStart = $request->has('start-date') && !empty($request->get('start-date'));
-        $hasEnd   = $request->has('end-date')   && !empty($request->get('end-date'));
+        $hasStart = $request->has('start-date') && ! empty($request->get('start-date'));
+        $hasEnd = $request->has('end-date') && ! empty($request->get('end-date'));
 
         if ($hasStart) {
             $startDate = $request->get('start-date');
@@ -1107,11 +1119,11 @@ class TadaReportController extends Controller
             $query->where('entry_date', '<=', $endDate);
         }
 
-        if (!$hasStart && !$hasEnd) {
+        if (! $hasStart && ! $hasEnd) {
             $query->where('entry_date', '=', now()->toDateString());
         }
 
-        if ($request->has('status') && !empty($request->status)) {
+        if ($request->has('status') && ! empty($request->status)) {
             $query->where('status', strtoupper($request->status));
         }
 
@@ -1128,10 +1140,10 @@ class TadaReportController extends Controller
             $visitDealerCodes = $item->preview_visits
                 ->pluck('dealer_code')
                 ->filter()
-                ->map(static fn($code) => trim((string) $code));
+                ->map(static fn ($code) => trim((string) $code));
 
             $expenseOnlyRows = $item->dealerExpenses
-                ->filter(static fn($expense) => !$visitDealerCodes->contains(trim((string) $expense->dealer_code)))
+                ->filter(static fn ($expense) => ! $visitDealerCodes->contains(trim((string) $expense->dealer_code)))
                 ->map(static function ($expense) {
                     return (object) [
                         'dealer_code' => $expense->dealer_code,
@@ -1148,15 +1160,15 @@ class TadaReportController extends Controller
 
             $item->preview_visits = $item->preview_visits->concat($expenseOnlyRows);
 
-            $attendanceImages = \App\Models\AttendanceImage::where([
+            $attendanceImages = AttendanceImage::where([
                 'mobileuser_id' => $item->user_id,
                 'date' => $item->entry_date,
             ])->get()->keyBy('status');
 
             foreach (['checkin', 'checkout'] as $status) {
                 $image = $attendanceImages->get($status);
-                $item->{$status . '_photo_url'} = $image && $image->image
-                    ? url(\Illuminate\Support\Facades\Storage::disk('public')->url('attendance/' . $image->image))
+                $item->{$status.'_photo_url'} = $image && $image->image
+                    ? url(Storage::disk('public')->url('attendance/'.$image->image))
                     : null;
             }
 
@@ -1164,17 +1176,17 @@ class TadaReportController extends Controller
         });
 
         if ($hasStart && $hasEnd) {
-            $dateLabel = $request->get('start-date') . ' to ' . $request->get('end-date');
+            $dateLabel = $request->get('start-date').' to '.$request->get('end-date');
         } elseif ($hasStart) {
             $dateLabel = $request->get('start-date');
         } elseif ($hasEnd) {
             $dateLabel = $request->get('end-date');
         } else {
             $todayBs = $this->custom_AD_to_BS(now()->toDateString());
-            $dateLabel = $todayBs . ' (Today)';
+            $dateLabel = $todayBs.' (Today)';
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        $pdf = Pdf::loadView(
             'dashboards.visit-reports.tada_admin_pdf',
             compact('list', 'dateLabel')
         )->setPaper('a4', 'landscape')
@@ -1188,7 +1200,7 @@ class TadaReportController extends Controller
      */
     public function destroy(string $id)
     {
-        $entry = \App\Models\TadaEntry::findOrFail($id);
+        $entry = TadaEntry::findOrFail($id);
 
         $entry->delete();
 
@@ -1209,6 +1221,7 @@ class TadaReportController extends Controller
         foreach ($expense->images as $img) {
             if (empty($img->receipt_image_path)) {
                 $img->delete();
+
                 continue;
             }
 
@@ -1225,11 +1238,11 @@ class TadaReportController extends Controller
             }
 
             $storagePath = ltrim($storagePath, '/');
-            $hasOtherReferences = \App\Models\TadaImage::where('receipt_image_path', $img->receipt_image_path)
+            $hasOtherReferences = TadaImage::where('receipt_image_path', $img->receipt_image_path)
                 ->where('id', '!=', $img->id)
                 ->exists();
 
-            if (!$hasOtherReferences && Storage::disk('public')->exists($storagePath)) {
+            if (! $hasOtherReferences && Storage::disk('public')->exists($storagePath)) {
                 Storage::disk('public')->delete($storagePath);
             }
 

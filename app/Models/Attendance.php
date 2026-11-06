@@ -22,10 +22,12 @@ class Attendance extends Model
         'visit_method',
         'device_model',
     ];
+
     public function mobileuser()
     {
         return $this->belongsTo(Mobileuser::class);
     }
+
     public function attendance_status()
     {
         return $this->hasMany(AttendanceStatus::class, 'attendance_id');

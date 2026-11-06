@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('mobileusers')) {
-            if (!Schema::hasColumn('mobileusers', 'is_tracking_enabled')) {
+            if (! Schema::hasColumn('mobileusers', 'is_tracking_enabled')) {
                 Schema::table('mobileusers', function (Blueprint $table) {
                     $table->boolean('is_tracking_enabled')->default(true)->after('status');
                 });

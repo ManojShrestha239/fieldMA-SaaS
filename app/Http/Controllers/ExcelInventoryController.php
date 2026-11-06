@@ -11,10 +11,9 @@ class ExcelInventoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function export()
     {
-        return Excel::download(new InventoryExport, 'rawmaterials-inventory_' . date('Y-m-d') . '_' . time() . '.xlsx');
+        return Excel::download(new InventoryExport, 'rawmaterials-inventory_'.date('Y-m-d').'_'.time().'.xlsx');
     }
 
     public function index()

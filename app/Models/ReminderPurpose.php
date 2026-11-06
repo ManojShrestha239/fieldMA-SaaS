@@ -23,6 +23,7 @@ class ReminderPurpose extends Model
     {
         return $this->belongsTo(AlertReminder::class, 'alertreminder_id');
     }
+
     public function purpose()
     {
         return $this->belongsTo(Purpose::class, 'purpose_id');

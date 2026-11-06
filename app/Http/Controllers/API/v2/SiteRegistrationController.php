@@ -32,7 +32,9 @@ class SiteRegistrationController extends Controller
     use CustomNepaliCalendarConverter;
 
     private ?int $authId;
+
     private string $todayNepaliDate;
+
     private SiteRegistrationService $service;
 
     public function __construct(SiteRegistrationService $service)
@@ -86,6 +88,7 @@ class SiteRegistrationController extends Controller
                 'description' => $e->getMessage(),
             ], 500);
         }
+
         return response()->json([
             'code' => 201,
             'status' => true,
@@ -94,7 +97,7 @@ class SiteRegistrationController extends Controller
             'description' => 'A new site registration has been created.',
             'data' => [
                 'id' => $site->id,
-            ]
+            ],
         ], 201);
     }
 
@@ -121,9 +124,9 @@ class SiteRegistrationController extends Controller
             'code' => 200,
             'status' => true,
             'type' => 'success',
-            'message' => "Site Registration Detail API",
+            'message' => 'Site Registration Detail API',
             'description' => 'This endpoint is a placeholder to confirm that the Site Registration API v2 is set up and working correctly.',
-            'data' => $resource
+            'data' => $resource,
         ];
 
         // 5️⃣ Return JSON response (200 OK)
@@ -178,13 +181,14 @@ class SiteRegistrationController extends Controller
     public function getSiteProducts()
     {
         $data = $this->service->allSiteProducts(); // This is fine
+
         return response()->json([
             'code' => 200,
             'status' => true,
             'type' => 'success',
             'message' => 'Site Registration API v2 is working!',
             'description' => 'This endpoint is a placeholder to confirm that the Site Registration API v2 is set up and working correctly.',
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
@@ -225,16 +229,16 @@ class SiteRegistrationController extends Controller
                     ->where('site_product_id', $siteProduct->id)
                     ->first();
 
-                if (!$attachedProduct) {
-                    throw new \Exception("Failed to retrieve attached product details.");
+                if (! $attachedProduct) {
+                    throw new \Exception('Failed to retrieve attached product details.');
                 }
 
                 // Assuming $attachedProduct is your Eloquent model or array structure
                 $productDetails = [
-                    'id'   => $attachedProduct->id,
+                    'id' => $attachedProduct->id,
                     'name' => $attachedProduct->name,
                     'type' => $attachedProduct->types, // Maps 'types' to your preferred 'type' key
-                    'quantity'  => (int)$attachedProduct->pivot->quantity, // Coerces string '100' to integer
+                    'quantity' => (int) $attachedProduct->pivot->quantity, // Coerces string '100' to integer
                 ];
 
                 SiteActivityLog::create([
@@ -283,7 +287,7 @@ class SiteRegistrationController extends Controller
         $request->validate([
             'name' => 'required|string|max:100',
             'role' => 'required|string|max:60',
-            'contact_number' => 'required|string|max:20|unique:v2_site_contacts,phone'
+            'contact_number' => 'required|string|max:20|unique:v2_site_contacts,phone',
         ]);
 
         try {
@@ -306,7 +310,7 @@ class SiteRegistrationController extends Controller
                 'code' => 201,
                 'status' => true,
                 'type' => 'success',
-                'message' => "Site contact created successfully!",
+                'message' => 'Site contact created successfully!',
                 'description' => 'A new site contact created.',
                 'data' => $contact->only('id', 'name', 'role', 'phone'),
             ]);
@@ -345,11 +349,12 @@ class SiteRegistrationController extends Controller
             ]);
 
             $contact->delete();
+
             return response()->json([
                 'code' => 200,
                 'status' => true,
                 'type' => 'success',
-                'message' => "Site contact deleted successfully!",
+                'message' => 'Site contact deleted successfully!',
                 'description' => 'Site contact deleted.',
             ]);
         } catch (Throwable $e) {
@@ -390,12 +395,12 @@ class SiteRegistrationController extends Controller
                     'site_id' => $site->id,
                     'causer_id' => $this->authId,
                     'event' => 'Site Status Updated',
-                    'description' => 'The status of the site registration has been updated to "' . strtoupper($request->input('status')) . '" from "' . strtoupper($site->status) . '".',
+                    'description' => 'The status of the site registration has been updated to "'.strtoupper($request->input('status')).'" from "'.strtoupper($site->status).'".',
                     'properties' => json_encode($site->getOriginal()), // old values
                 ]);
 
                 $site->update(['status' => $request->input('status')]);
-                if (!empty($request->input('note'))) {
+                if (! empty($request->input('note'))) {
                     $site->notes()->insert([
                         'site_id' => $site->id,
                         'user_id' => $this->authId,
@@ -432,7 +437,7 @@ class SiteRegistrationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Contractors List',
-            'data' => $contractors
+            'data' => $contractors,
         ], 200);
     }
 
@@ -456,15 +461,15 @@ class SiteRegistrationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Contractor created successfully',
-                'data' => $data
+                'data' => $data,
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create contractor: ' . $e->getMessage(),
-                'data' => null
+                'message' => 'Failed to create contractor: '.$e->getMessage(),
+                'data' => null,
             ], 500);
         }
     }

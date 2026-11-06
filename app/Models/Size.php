@@ -11,7 +11,7 @@ class Size extends Model
 
     protected $fillable = [
         'size',
-        'status'
+        'status',
     ];
 
     public function product()
@@ -26,6 +26,7 @@ class Size extends Model
     {
         return $date->format('Y-m-d H:i:s');
     }
+
     public function productstock()
     {
         return $this->hasOne(ProductStock::class, 'size_id');

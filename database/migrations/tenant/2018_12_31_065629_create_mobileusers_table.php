@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateMobileusersTable extends Migration
 {
@@ -25,7 +25,7 @@ class CreateMobileusersTable extends Migration
             $table->foreign('role_id')->references('id')->on('roles');
             $table->string('device')->nullable();
             $table->text('fcm_id')->nullable();
-            $table->string('status')->default("Active");
+            $table->string('status')->default('Active');
             $table->timestamp('last_seen')->nullable();
             $table->text('remember_token');
             $table->timestamps();

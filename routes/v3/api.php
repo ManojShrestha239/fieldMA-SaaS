@@ -28,7 +28,7 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     // Route::post('/order', [OrderController::class, 'store']);
     // Route::get('/orderHistory', [OrderController::class, 'index']);
     // Route::get('/orderDetails/{id}', [OrderController::class, 'show']);
-    require __DIR__ . '/../tenants/api/dealer_orders.php';
+    require __DIR__.'/../tenants/api/dealer_orders.php';
 
     // [INACTIVE] Not used in Flutter (Ref: Api_Audit.md #36)
     // Route::get('/order/filter', [OrderController::class, 'filter']);

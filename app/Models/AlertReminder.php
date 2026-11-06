@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AlertReminder extends Model
 {
-    use HasFactory, Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, HasFactory, Nepali_Calendar;
 
     protected $fillable = [
         'dealer_code',
@@ -41,6 +41,7 @@ class AlertReminder extends Model
     {
         return $this->belongsTo(Dealer::class, 'dealer_code');
     }
+
     public function reminderpurposes()
     {
         return $this->hasMany(ReminderPurpose::class, 'alertreminder_id');

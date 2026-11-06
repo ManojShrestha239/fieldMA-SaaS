@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AlertReminder;
-use Illuminate\Http\Request;
 
 class AlertReminderController extends Controller
 {
@@ -16,15 +15,15 @@ class AlertReminderController extends Controller
                 $title = "Today's Reminder";
                 $flag = 'reminder';
                 $fcmid = $alert->mobileuser->fcm_id;
-                $content = array(
+                $content = [
                     'Title' => "Today's Reminder",
-                    'Message' => 'Visit Reminder of The Day'
-                );
-                $notification = new NotificationController();
+                    'Message' => 'Visit Reminder of The Day',
+                ];
+                $notification = new NotificationController;
                 $notification->individualNotificationSend($fcmid, $title, $flag, $content);
             }
 
-            return "OK";
+            return 'OK';
         }
     }
 }

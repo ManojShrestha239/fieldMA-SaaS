@@ -2,27 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Mobileuser;
-use App\Models\Payment;
+use App\Models\Area;
 use App\Models\Dealer;
 use App\Models\LogDetail;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use App\Http\Controllers\NotificationController;
-use App\Traits\FCM;
-use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Area;
+use App\Models\Mobileuser;
+use App\Models\Payment;
 use App\Models\ReceiptImage;
-use Illuminate\Support\Facades\Validator;
+use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Traits\HasRoles;
 
 class CollectionController extends Controller
 {
-    use CustomNepaliCalendarConverter, Nepali_Calendar, ValidatesRequests, HasRoles;
+    use CustomNepaliCalendarConverter, HasRoles, Nepali_Calendar, ValidatesRequests;
 
     public function index()
     {
@@ -30,7 +26,7 @@ class CollectionController extends Controller
         $engfrom = date('Y-m-d');
         $from = $this->custom_AD_to_BS($engfrom);
         $to = $this->custom_AD_to_BS(date('Y-m-d'));
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -77,19 +73,19 @@ class CollectionController extends Controller
         $cash = clone $payment;
         $token = clone $payment;
         $direct = clone $payment;
-        $cashcollection = $cash->whereIn('payments.payment_type', ["cash (regular)", "cash (against)"]);
+        $cashcollection = $cash->whereIn('payments.payment_type', ['cash (regular)', 'cash (against)']);
         $data['cash_coll'] = $cashcollection->sum('amount');
 
-        $chequecollection = $checqu->whereIn('payments.payment_type', ["PDC", "cheque (bearer)", "cheque (payee)", 'cheque', 'cash (account payee)']);
-        $data['cheque_amount'] = $chequecollection->sum("amount");
+        $chequecollection = $checqu->whereIn('payments.payment_type', ['PDC', 'cheque (bearer)', 'cheque (payee)', 'cheque', 'cash (account payee)']);
+        $data['cheque_amount'] = $chequecollection->sum('amount');
 
         $tokencollection = $token->where('payments.payment_type', '=', 'token');
-        $data['token_amount'] = $tokencollection->sum("amount");
+        $data['token_amount'] = $tokencollection->sum('amount');
 
         $directcollection = $direct->where('payments.payment_type', '=', 'direct');
-        $data['direct_amount'] = $directcollection->sum("amount");
+        $data['direct_amount'] = $directcollection->sum('amount');
         foreach ($data['payment'] as $pay) {
-            $pay->previous_amt = LogDetail::where(['ordercoll_id' => $pay->id, 'flag' => "collection"])->latest()->first();
+            $pay->previous_amt = LogDetail::where(['ordercoll_id' => $pay->id, 'flag' => 'collection'])->latest()->first();
             if ($pay->payment_date) {
                 $payment_date = $this->custom_AD_to_BS($pay->payment_date);
             } else {
@@ -106,6 +102,7 @@ class CollectionController extends Controller
         $data['status'] = '';
         $data['areas'] = $areas;
         $data['areacode'] = '';
+
         return view('dashboards.payments.all', $data);
     }
 
@@ -120,16 +117,15 @@ class CollectionController extends Controller
     {
         $valid = Validator::make($request->all(), [
             'status' => 'required',
-            'remark' => 'required|max:255'
+            'remark' => 'required|max:255',
         ]);
         if ($valid->fails()) {
             return back()->withErrors($valid);
         }
         $payment = Payment::findorFail($id);
 
-
         $date = date('Y-m-d');
-        $log = new LogDetail();
+        $log = new LogDetail;
         $log->flag = 'collection';
         $log->ordercoll_id = $payment->id;
         $log->cheque_no = $payment->cheque_num;
@@ -150,9 +146,9 @@ class CollectionController extends Controller
         $dealer = Dealer::where('code', $payment->dealer_code)->first();
         $dealer_name = $dealer->name;
 
-        if (!empty($otp = Mobileuser::where(['id' => $payment->user_id])->first())) {
+        if (! empty($otp = Mobileuser::where(['id' => $payment->user_id])->first())) {
             $fcmid = $otp->fcm_id;
-            $title = "Sales Tracker";
+            $title = 'Sales Tracker';
             $flag = 'collection';
             $detail = $payment->id;
             $status = $payment->status;
@@ -160,27 +156,28 @@ class CollectionController extends Controller
             if (empty($mess)) {
                 $mess = 'Collection Status Updated';
             }
-            $content = array('Title' => 'Collection Status Updated', 'Message' => $mess, 'payment_id' => $payment->id, 'dealer_name' => $dealer_name, 'dealer_code' => $dealer->code, 'dealer_address' => $dealer->address, 'Status' => request('status'));
-            if (!empty($fcmid)) {
-                $notice = new NotificationController();
+            $content = ['Title' => 'Collection Status Updated', 'Message' => $mess, 'payment_id' => $payment->id, 'dealer_name' => $dealer_name, 'dealer_code' => $dealer->code, 'dealer_address' => $dealer->address, 'Status' => request('status')];
+            if (! empty($fcmid)) {
+                $notice = new NotificationController;
                 // $notice->individualNotificationSend($fcmid, $title, $flag, $content);
             }
         }
+
         return back()->with('Status', 'Collection Status Updated.');
     }
 
     public function log(Request $request, $id)
     {
         $data['log'] = LogDetail::where('ordercoll_id', $id)->get();
-        if ($request->status == "token") {
+        if ($request->status == 'token') {
             return view('dashboards.tokens.log', $data);
-        } else if ($request->status == "collection") {
+        } elseif ($request->status == 'collection') {
             return view('dashboards.payments.list', $data);
-        } else if ($request->status == "direct") {
+        } elseif ($request->status == 'direct') {
             return view('dashboards.payments.list', $data);
-        } else if ($request->status == "token") {
+        } elseif ($request->status == 'token') {
             return view('dashboards.payments.list', $data);
-        } else if ($request->status == "all") {
+        } elseif ($request->status == 'all') {
             return view('dashboards.payments.list', $data);
         } else {
             // abort(404);
@@ -194,10 +191,10 @@ class CollectionController extends Controller
             'user' => 'nullable|exists:mobileusers,id',
             'collection_type' => 'nullable|in:cash,cheque,token,direct',
             'start_date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:end_date'],
-            'end_date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:start_date']
+            'end_date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:start_date'],
         ]);
 
-        //nepali date validation
+        // nepali date validation
         if ($request['start-date'] > $request['end-date']) {
             return back()->withInput($request->input())->withErrors(['end-date' => 'The end date must be after or equal to the start date.']);
         }
@@ -210,13 +207,13 @@ class CollectionController extends Controller
             'cheque' => ['cheque (bearer)', 'cash (account payee)', 'cheque (payee)', 'cheque', 'PDC'],
             'direct' => ['direct'],
             'token' => ['token'],
-            'all' => ['cash (against)', 'cash (regular)', 'cheque (bearer)', 'cash (account payee)', 'cheque (payee)', 'cheque', 'PDC', 'direct', 'token']
+            'all' => ['cash (against)', 'cash (regular)', 'cheque (bearer)', 'cash (account payee)', 'cheque (payee)', 'cheque', 'PDC', 'direct', 'token'],
         ];
         $summaryTypes = [
             'token' => ['token'],
             'direct' => ['direct'],
             'cheque' => ['cheque (bearer)', 'cheque (payee)', 'cheque', 'PDC'],
-            'cash' => ['cash (against)', 'cash (regular)']
+            'cash' => ['cash (against)', 'cash (regular)'],
         ];
         $collectionType = $request->collection_type;
         $payment_type = $paymentTypeMap[$collectionType] ?? $paymentTypeMap['all'];
@@ -226,39 +223,39 @@ class CollectionController extends Controller
                 ->whereIn('payments.payment_type', $payment_type)
                 ->whereBetween('collection_date', [$from, $to]);
             $data['payment'] = $payment->get();
-            $data['total'] = $payment->sum("amount");
-            $data['discount'] = $payment->sum("discount");
-            $data['TDS'] = $payment->sum("TDS");
+            $data['total'] = $payment->sum('amount');
+            $data['discount'] = $payment->sum('discount');
+            $data['TDS'] = $payment->sum('TDS');
 
             $collamt = Payment::where(['payments.user_id' => $request->user])->whereBetween('collection_date', [$from, $to]);
             foreach ($summaryTypes as $key => $types) {
-                $data[$key . '_amount'] = $collamt->whereIn('payment_type', $types)->sum('amount');
-                $data['discount_' . $key . '_amount'] = $collamt->whereIn('payment_type', $types)->sum('discount');
-                $data['tds_' . $key . '_amount'] = $collamt->whereIn('payment_type', $types)->sum('TDS');
+                $data[$key.'_amount'] = $collamt->whereIn('payment_type', $types)->sum('amount');
+                $data['discount_'.$key.'_amount'] = $collamt->whereIn('payment_type', $types)->sum('discount');
+                $data['tds_'.$key.'_amount'] = $collamt->whereIn('payment_type', $types)->sum('TDS');
             }
             $user = Mobileuser::findorFail($request->user);
             $data['header'] = "$collectionType Collection Of $user->name - ($request->start_date-$request->end_date)";
         } else {
             $payment = Payment::whereIn('payments.payment_type', $payment_type)->whereBetween('collection_date', [$from, $to]);
             $data['payment'] = $payment->get();
-            $data['total'] = $payment->sum("amount");
-            $data['discount'] = $payment->sum("discount");
-            $data['TDS'] = $payment->sum("TDS");
+            $data['total'] = $payment->sum('amount');
+            $data['discount'] = $payment->sum('discount');
+            $data['TDS'] = $payment->sum('TDS');
 
             $collamt = Payment::whereBetween('collection_date', [$from, $to]);
             foreach ($summaryTypes as $key => $types) {
-                $data[$key . '_amount'] = $collamt->whereIn('payment_type', $types)->sum('amount');
-                $data['discount_' . $key . '_amount'] = $collamt->whereIn('payment_type', $types)->sum('discount');
-                $data['tds_' . $key . '_amount'] = $collamt->whereIn('payment_type', $types)->sum('TDS');
+                $data[$key.'_amount'] = $collamt->whereIn('payment_type', $types)->sum('amount');
+                $data['discount_'.$key.'_amount'] = $collamt->whereIn('payment_type', $types)->sum('discount');
+                $data['tds_'.$key.'_amount'] = $collamt->whereIn('payment_type', $types)->sum('TDS');
             }
             $data['header'] = "$collectionType Collection ($request->start_date-$request->end_date)";
         }
 
         foreach ($data['payment'] as $value) {
-            $value->dealer_address = $value->dealer ? $value->dealer->address : "N/A";
-            $value->dealer = $value->dealer ? $value->dealer->name : "N/A";
-            $value->bank = $value->bank ? $value->bank->name : "N/A";
-            $value->user = $value->user ? $value->user->name : "N/A";
+            $value->dealer_address = $value->dealer ? $value->dealer->address : 'N/A';
+            $value->dealer = $value->dealer ? $value->dealer->name : 'N/A';
+            $value->bank = $value->bank ? $value->bank->name : 'N/A';
+            $value->user = $value->user ? $value->user->name : 'N/A';
         }
 
         $data['users'] = Mobileuser::all();
@@ -266,16 +263,16 @@ class CollectionController extends Controller
         $data['to'] = $request->end_date;
         $data['userid'] = $request->user;
         $data['status'] = $request->collection_type;
-        if ($request->page == "all") {
+        if ($request->page == 'all') {
             return view('dashboards.payments.all', $data);
         } else {
-            if ($request->collection_type == "cash") {
+            if ($request->collection_type == 'cash') {
                 return view('dashboards.payments.index', $data);
-            } else if ($request->collection_type == "cheque") {
+            } elseif ($request->collection_type == 'cheque') {
                 return view('dashboards.payments.cheque', $data);
-            } else if ($request->collection_type == "direct") {
+            } elseif ($request->collection_type == 'direct') {
                 return view('dashboards.payments.direct', $data);
-            } else if ($request->collection_type == "token") {
+            } elseif ($request->collection_type == 'token') {
                 return view('dashboards.tokens.view', $data);
             } else {
                 return view('dashboards.payments.all', $data);

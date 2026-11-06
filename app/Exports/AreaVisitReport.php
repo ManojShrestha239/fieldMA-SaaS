@@ -2,20 +2,27 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
-use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromView;
 
 class AreaVisitReport implements FromView
 {
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return Collection
+     */
     public function collection()
     {
         //
     }
-    protected $data, $area, $from, $to;
+
+    protected $data;
+
+    protected $area;
+
+    protected $from;
+
+    protected $to;
 
     public function __construct($data, $area, $from, $to)
     {
@@ -31,7 +38,7 @@ class AreaVisitReport implements FromView
             'list' => $this->data,
             'area' => $this->area,
             'from' => $this->from,
-            'to' => $this->to
+            'to' => $this->to,
         ]);
     }
 }

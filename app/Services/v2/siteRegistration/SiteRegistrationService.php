@@ -50,7 +50,7 @@ final class SiteRegistrationService
                 $query->whereIn('site_type_id', $dto->siteTypeId);
             }
             if ($dto->search !== null) {
-                $searchTerm = '%' . $dto->search . '%';
+                $searchTerm = '%'.$dto->search.'%';
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('name', 'like', $searchTerm)
                         ->orWhere('next_followup_at', 'like', $searchTerm);
@@ -95,7 +95,7 @@ final class SiteRegistrationService
             ]);
 
             // 2️⃣ Stakeholders (bulk insert)
-            $stakeholderRows = $dto->stakeholders->map(fn($s) => [
+            $stakeholderRows = $dto->stakeholders->map(fn ($s) => [
                 'site_id' => $site->id,
                 'name' => $s->name,
                 'role' => $s->role,
@@ -104,7 +104,7 @@ final class SiteRegistrationService
                 'updated_at' => now(),
             ])->all();
 
-            if (!empty($stakeholderRows)) {
+            if (! empty($stakeholderRows)) {
                 SiteContact::insert($stakeholderRows);
             }
 
@@ -123,18 +123,18 @@ final class SiteRegistrationService
             }
 
             // 4️⃣ Products pivot sync (quantity stored on pivot)
-            $pivotData = $dto->products->mapWithKeys(fn($p) => [
+            $pivotData = $dto->products->mapWithKeys(fn ($p) => [
                 $p->id => ['quantity' => $p->quantity],
             ])->all();
 
-            if (!empty($pivotData)) {
+            if (! empty($pivotData)) {
                 $site->products()->sync($pivotData);
             }
 
             // 5️⃣ Photo handling (single INSERT batch)
             $photoRows = [];
 
-            if (!empty($dto->sitePhotos)) {
+            if (! empty($dto->sitePhotos)) {
                 foreach ($dto->sitePhotos as $photo) {
                     $path = $photo->store('site_photos', 'public');
                     $photoRows[] = [
@@ -147,7 +147,7 @@ final class SiteRegistrationService
                 }
             }
 
-            if (!empty($dto->progressPhotos)) {
+            if (! empty($dto->progressPhotos)) {
                 foreach ($dto->progressPhotos as $photo) {
                     $path = $photo->store('progress_photos', 'public');
                     $photoRows[] = [
@@ -160,12 +160,12 @@ final class SiteRegistrationService
                 }
             }
 
-            if (!empty($photoRows)) {
+            if (! empty($photoRows)) {
                 SitePhotoV2::insert($photoRows);
             }
 
             // 6️⃣ Additional notes
-            if (!empty($dto->additionalNotes)) {
+            if (! empty($dto->additionalNotes)) {
                 SiteNote::create([
                     'site_id' => $site->id,
                     'note' => $dto->additionalNotes,
@@ -245,7 +245,7 @@ final class SiteRegistrationService
 
             $site->update([
                 'current_stage_id' => $dto->constructionStatusId,
-                'next_followup_at' => $dto->nextFollowUpAt ?? $site->next_followup_at
+                'next_followup_at' => $dto->nextFollowUpAt ?? $site->next_followup_at,
             ]);
 
             // Stage log
@@ -276,7 +276,7 @@ final class SiteRegistrationService
                 'site_id' => $site->id,
                 'causer_id' => $this->authId,
                 'event' => "{{$status}} Follow Up",
-                'description' => 'The follow‑up status has been updated to ' . $status . '. from ' . $oldFollow->status,
+                'description' => 'The follow‑up status has been updated to '.$status.'. from '.$oldFollow->status,
                 'properties' => json_encode($oldFollow->getOriginal()), // old values
                 'created_at' => $now,
             ];
@@ -300,7 +300,7 @@ final class SiteRegistrationService
                     'site_id' => $site->id,
                     'causer_id' => $this->authId,
                     'event' => 'Next Follow Up Scheduled',
-                    'description' => 'The next follow‑up has been scheduled for ' . $dto->nextFollowUpAt . '.',
+                    'description' => 'The next follow‑up has been scheduled for '.$dto->nextFollowUpAt.'.',
                     'properties' => json_encode($nowFollowUp->getOriginal()), // old values
                     'created_at' => $now,
                 ];
@@ -309,7 +309,7 @@ final class SiteRegistrationService
             // -----------------------------------------------------------------
             // 4️⃣ Store any uploaded photos (bulk insert)
             // -----------------------------------------------------------------
-            if (!empty($dto->sitePhotos)) {
+            if (! empty($dto->sitePhotos)) {
                 $photoRows = [];
                 foreach ($dto->sitePhotos as $photo) {
                     $path = $photo->store('site_photos', 'public');
@@ -323,7 +323,7 @@ final class SiteRegistrationService
                     ];
                 }
 
-                if (!empty($photoRows)) {
+                if (! empty($photoRows)) {
                     SitePhotoV2::insert($photoRows);
                 }
             }
@@ -331,7 +331,7 @@ final class SiteRegistrationService
             // -----------------------------------------------------------------
             // 5️⃣ Activity log – store *old* follow‑up state for audit
             // -----------------------------------------------------------------
-            if (!empty($bulkActivityLogs)) {
+            if (! empty($bulkActivityLogs)) {
                 SiteActivityLog::insert($bulkActivityLogs);
             }
 

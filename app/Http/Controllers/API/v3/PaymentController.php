@@ -4,28 +4,28 @@ namespace App\Http\Controllers\API\v3;
 
 use App\Http\Controllers\Controller;
 use App\Models\AlertReminder;
-use App\Models\Payment;
-use App\Models\Schedulevisit;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Denominationpoint;
-use Illuminate\Support\Facades\Validator;
-use App\Models\SchedulePurpose;
 use App\Models\Dealer;
 use App\Models\Denomination;
+use App\Models\Denominationpoint;
+use App\Models\Payment;
 use App\Models\Purpose;
 use App\Models\ReceiptImage;
 use App\Models\ReminderPurpose;
+use App\Models\SchedulePurpose;
+use App\Models\Schedulevisit;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Geocodable;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter, Geocodable;
+    use CustomNepaliCalendarConverter, Geocodable, Nepali_Calendar;
 
     public function store(Request $request)
     {
@@ -34,10 +34,10 @@ class PaymentController extends Controller
 
         $allowedStatuses = ['checkin', 'breakend'];
 
-        if (!in_array(strtolower($isUserCheckIn), $allowedStatuses)) {
+        if (! in_array(strtolower($isUserCheckIn), $allowedStatuses)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'You must check-in/break-end before placing an order.'
+                'message' => 'You must check-in/break-end before placing an order.',
             ], 403);
         }
 
@@ -99,7 +99,7 @@ class PaymentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $valid->errors()
+                'errors' => $valid->errors(),
             ], 422);
         }
 
@@ -126,18 +126,19 @@ class PaymentController extends Controller
                 }
             }
 
-            $areaCodes  = array_map('trim', explode('::', $authUser->areas));
-            $subAreas   = array_map('trim', explode('::', $authUser->sub_areas));
+            $areaCodes = array_map('trim', explode('::', $authUser->areas));
+            $subAreas = array_map('trim', explode('::', $authUser->sub_areas));
 
             $dealer = Dealer::where('code', $request->dealer_code)
                 ->where('active_status', 'Active')
                 ->first();
 
-            if (!$dealer) {
+            if (! $dealer) {
                 DB::rollBack();
+
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Dealer does not exist'
+                    'message' => 'Dealer does not exist',
                 ], 404);
             }
 
@@ -145,17 +146,18 @@ class PaymentController extends Controller
             $dealerSubAreaCode = trim($dealer->subarea);
 
             if (
-                !in_array($dealerAreaCode, $areaCodes) ||
-                !in_array($dealerSubAreaCode, $subAreas)
+                ! in_array($dealerAreaCode, $areaCodes) ||
+                ! in_array($dealerSubAreaCode, $subAreas)
             ) {
                 DB::rollBack();
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Your are not authorized to place collection for this dealer',
                 ], 400);
             }
 
-            $payment = new Payment();
+            $payment = new Payment;
             $payment->areacode = $dealer->area_code;
             $payment->payment_type = $request->payment_type;
             $payment->dealer_code = $request->dealer_code;
@@ -172,7 +174,7 @@ class PaymentController extends Controller
             $payment->payment_date = $request->payment_date ?? null;
             $payment->account_num = $request->account_num ?? null;
             $payment->status = 'Collected by MO';
-            $payment->lat_lng = $request->latitude . ',' . $request->longitude;
+            $payment->lat_lng = $request->latitude.','.$request->longitude;
             // $payment->location = $this->reverseGeocode($request->latitude, $request->longitude);
             $payment->save();
 
@@ -181,10 +183,10 @@ class PaymentController extends Controller
                     'dealer_code' => $request->dealer_code,
                     'date' => $request->payment_date,
                     'column_id' => $payment->id,
-                    'table_name' => $payment->getTable()
+                    'table_name' => $payment->getTable(),
                 ])->first();
-                if (!$alert) {
-                    $alert = new AlertReminder();
+                if (! $alert) {
+                    $alert = new AlertReminder;
                 }
 
                 $alert->dealer_code = $request->dealer_code;
@@ -192,7 +194,7 @@ class PaymentController extends Controller
                 $alert->column_id = $payment->id;
                 $alert->table_name = $payment->getTable();
                 $alert->remarks = $request->remarks;
-                if (!$request->remarks) {
+                if (! $request->remarks) {
                     $alert->remarks = 'Cheque Collection';
                 }
                 $alert->status = 'Pending';
@@ -208,8 +210,8 @@ class PaymentController extends Controller
                     'purpose_id' => $purpose->id,
                     'alertreminder_id' => $alert->id,
                 ])->first();
-                if (!$purposeAlert) {
-                    $purposeAlert = new ReminderPurpose();
+                if (! $purposeAlert) {
+                    $purposeAlert = new ReminderPurpose;
                 }
 
                 $purposeAlert->purpose_id = $purpose->id;
@@ -229,7 +231,7 @@ class PaymentController extends Controller
                         $token['denomination']
                     )->first();
 
-                    if (!$denomination) {
+                    if (! $denomination) {
                         $denomination = Denomination::create([
                             'denomination' => $token['denomination'],
                         ]);
@@ -252,9 +254,9 @@ class PaymentController extends Controller
             if (isset($request->image)) {
                 foreach ($request->image as $img) {
                     $filecontent = File::get($img);
-                    $filename = time() . $img->getClientOriginalName();
+                    $filename = time().$img->getClientOriginalName();
 
-                    $receiptimage = new ReceiptImage();
+                    $receiptimage = new ReceiptImage;
 
                     Storage::disk('public')->put(
                         "receiptimages/$filename",
@@ -279,6 +281,7 @@ class PaymentController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
+
             return response()->json(['error' => $e], 503);
         }
 
@@ -294,13 +297,14 @@ class PaymentController extends Controller
             ->select('payments.*', 'banks.name')
             ->first();
 
-        if (!$payment) {
-            return response()->json(['status' => 'error', 'message' => "Invalid Receipt number"], 422);
+        if (! $payment) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid Receipt number'], 422);
         }
 
         $payment->collection_date = $this->custom_AD_to_BS($payment->collection_date);
         $payment->payment_date = $payment->payment_date ? $this->custom_AD_to_BS($payment->payment_date) : '';
         $payment->bank_name = $payment->name;
+
         return response()->json($payment);
     }
 }

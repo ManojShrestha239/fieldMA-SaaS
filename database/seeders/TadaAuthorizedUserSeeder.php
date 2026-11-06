@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\TadaAuthorizedUser;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Seeder;
 
 class TadaAuthorizedUserSeeder extends Seeder
@@ -27,6 +28,7 @@ class TadaAuthorizedUserSeeder extends Seeder
             if (! $existing) {
                 TadaAuthorizedUser::create($row);
                 $created++;
+
                 continue;
             }
 
@@ -39,6 +41,7 @@ class TadaAuthorizedUserSeeder extends Seeder
 
             if (! $existing->isDirty()) {
                 $skipped++;
+
                 continue;
             }
 
@@ -57,7 +60,7 @@ class TadaAuthorizedUserSeeder extends Seeder
 
         // Include soft-deleted rows — a trashed row still occupies the unique phone slot
         if (method_exists(TadaAuthorizedUser::class, 'booted') && in_array(
-            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            SoftDeletes::class,
             class_uses_recursive(TadaAuthorizedUser::class)
         )) {
             $query->withTrashed();
@@ -69,7 +72,7 @@ class TadaAuthorizedUserSeeder extends Seeder
 
         // Empty/null phone — match on name
         return $query->where('name', $row['name'])
-            ->where(fn($q) => $q->whereNull('phone')->orWhere('phone', ''))
+            ->where(fn ($q) => $q->whereNull('phone')->orWhere('phone', ''))
             ->first();
     }
 }

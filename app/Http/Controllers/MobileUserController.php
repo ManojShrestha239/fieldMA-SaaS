@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use App\Models\Area;
 use App\Models\AreaMobileuser;
 use App\Models\Mobileuser;
-use App\Models\Subarea;
 use App\Models\Role;
+use App\Models\Subarea;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 
 class MobileUserController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -34,27 +34,28 @@ class MobileUserController extends Controller
             $area = null;
         }
         $data['mobileusers'] = $mobileusers;
+
         return view('dashboards.mobileusers.user-index', $data);
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
         $data['areas'] = Area::where('status', 'Published')->get();
         $data['mobileusers'] = Mobileuser::orderBy('name')->get();
         $data['roles'] = Role::orderBy('role')->get();
+
         return view('dashboards.mobileusers.user-register', $data);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -77,9 +78,9 @@ class MobileUserController extends Controller
         $tenant = function_exists('tenant') ? tenant() : null;
         if ($tenant && method_exists($tenant, 'canAddMobileUser')) {
             $currentCount = Mobileuser::count();
-            if (!$tenant->canAddMobileUser($currentCount)) {
+            if (! $tenant->canAddMobileUser($currentCount)) {
                 return back()->withInput()->withErrors([
-                    'email' => "Your subscription plan limit of {$tenant->plan->max_mobile_users} field users has been reached. Please contact your administrator to upgrade your plan."
+                    'email' => "Your subscription plan limit of {$tenant->plan->max_mobile_users} field users has been reached. Please contact your administrator to upgrade your plan.",
                 ]);
             }
         }
@@ -104,13 +105,13 @@ class MobileUserController extends Controller
                 'is_tracking_enabled' => $request->is_tracking_enabled ?? false,
                 'is_senior' => $request->is_senior === '1' ? true : false,
                 'is_super_senior' => $request->is_senior === '2' ? true : false,
-                'status' => 'Active'
+                'status' => 'Active',
             ]);
 
             $user->area()->attach($request->areas);
 
             // Attach team members if senior (manual selection)
-            if ($request->is_senior === '1' && $request->has('team_members') && !empty($request->team_members)) {
+            if ($request->is_senior === '1' && $request->has('team_members') && ! empty($request->team_members)) {
                 $user->teamMembers()->attach($request->team_members);
             }
 
@@ -139,6 +140,7 @@ class MobileUserController extends Controller
             DB::rollBack();
 
             Session::flash('Status', 'Cannot create User please try again later');
+
             return back();
         }
 
@@ -149,13 +151,14 @@ class MobileUserController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
         $mobileuser = Mobileuser::findorFail($id);
         $mobileuser->device = '';
         $mobileuser->save();
+
         return redirect('/user')->with('Status', 'Device Reset.');
     }
 
@@ -163,16 +166,16 @@ class MobileUserController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
         $mobileusers = Mobileuser::findorFail($id);
         $areas = Area::where('status', 'Published')->get();
-        $sarea = Area::whereIn('areacode', explode(" :: ", $mobileusers->areas))->get();
+        $sarea = Area::whereIn('areacode', explode(' :: ', $mobileusers->areas))->get();
 
-        $subarea = Subarea::whereIn('subarea', explode(" :: ", $mobileusers->sub_areas))->get();
-        $sub = DB::table('assignareas')->whereIn('areacode', explode(" :: ", $mobileusers->areas))->groupBy('subarea_id')->orderBy('id', 'Desc')->get();
+        $subarea = Subarea::whereIn('subarea', explode(' :: ', $mobileusers->sub_areas))->get();
+        $sub = DB::table('assignareas')->whereIn('areacode', explode(' :: ', $mobileusers->areas))->groupBy('subarea_id')->orderBy('id', 'Desc')->get();
 
         foreach ($sub as $d) {
             $su = Subarea::findorFail($d->subarea_id);
@@ -199,9 +202,8 @@ class MobileUserController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -280,19 +282,20 @@ class MobileUserController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
         $user = Mobileuser::findorFail($id);
-        if ($user->status == "Active") {
-            $user->status = "Inactive";
+        if ($user->status == 'Active') {
+            $user->status = 'Inactive';
             Session::flash('Status', 'USer Disabled Successfully');
         } else {
-            $user->status = "Active";
+            $user->status = 'Active';
             Session::flash('Status', 'USer Enabled Successfully');
         }
         $user->save();
+
         return back();
     }
 
@@ -301,8 +304,10 @@ class MobileUserController extends Controller
         $mobileuser = Mobileuser::findorFail($id);
         $mobileuser->device = '';
         $mobileuser->save();
+
         return redirect('/user')->with('Status', 'Device Reset.');
     }
+
     public function passwordView($id)
     {
         return view('dashboards.mobileusers.changePassword', ['id' => $id]);
@@ -311,12 +316,13 @@ class MobileUserController extends Controller
     public function changePassword(Request $request, $id)
     {
         $this->validate($request, [
-            'password' => 'required|min:6|max:255|same:con_password'
+            'password' => 'required|min:6|max:255|same:con_password',
         ]);
         $mobileuser = Mobileuser::findorFail($id);
         $mobileuser->password = Hash::make($request->password);
 
         $mobileuser->save();
+
         return redirect('/user')->with('Status', 'Password Updated.');
     }
 }

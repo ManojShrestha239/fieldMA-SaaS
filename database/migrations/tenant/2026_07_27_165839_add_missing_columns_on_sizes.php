@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sizes', function (Blueprint $table) {
-            if (!Schema::hasColumn('sizes', 'order_index')) {
+            if (! Schema::hasColumn('sizes', 'order_index')) {
                 $table->integer('order_index')->nullable()->after('status');
             }
-            if (!Schema::hasColumn('sizes', 'flag')) {
+            if (! Schema::hasColumn('sizes', 'flag')) {
                 $table->string('flag', 255)->default('normal')->after('order_index');
             }
         });

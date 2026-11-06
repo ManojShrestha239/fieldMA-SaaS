@@ -21,12 +21,11 @@ class MyTeamController extends Controller
         protected TeamMemberService $teamService
     ) {}
 
-
     public function index(Request $request)
     {
         $perPage = min((int) $request->input('per_page', 20), 100);
 
-        $result  = $this->teamService->getTeamMembers(
+        $result = $this->teamService->getTeamMembers(
             $request->user(),
             $perPage,
             $request->input('search'),
@@ -76,7 +75,7 @@ class MyTeamController extends Controller
             type: 'team_member',
             code: 200,
             meta: [
-                'date'        => $result['target_date'],
+                'date' => $result['target_date'],
                 'next_cursor' => null,
                 'prev_cursor' => null,
             ],

@@ -10,6 +10,7 @@ class Session extends Model
     use HasFactory;
 
     protected $table = 'visits';
+
     protected $fillable = [
         'dealer_code',
         'user_id',
@@ -45,14 +46,17 @@ class Session extends Model
     {
         return $this->belongsTo(Purpose::class);
     }
+
     public function visits()
     {
         return $this->hasMany(VisitPurpose::class, 'visit_id');
     }
+
     public function area()
     {
         return $this->belongsTo(Area::class, 'areacode');
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
@@ -75,7 +79,7 @@ class Session extends Model
         $purposes = Purpose::whereIn('id', $ids)->get()->keyBy('id');
 
         return collect($ids)
-            ->map(fn($id) => $purposes->get($id))
+            ->map(fn ($id) => $purposes->get($id))
             ->filter()
             ->values();
     }
@@ -87,7 +91,7 @@ class Session extends Model
         }
 
         return collect(explode('::', $this->purpose_id))
-            ->map(fn($id) => (int) trim($id))
+            ->map(fn ($id) => (int) trim($id))
             ->filter()
             ->unique()
             ->values()

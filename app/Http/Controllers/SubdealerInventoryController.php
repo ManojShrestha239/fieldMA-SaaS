@@ -17,8 +17,9 @@ class SubdealerInventoryController extends Controller
         $data['productSubDealers'] = SubdealerStock::with([
             'subdealer:code,name',
             'size:id,size',
-            'product:id,name'
+            'product:id,name',
         ])->get();
+
         return view('dashboards.subdealer-inventory.list', $data);
     }
 
@@ -86,7 +87,7 @@ class SubdealerInventoryController extends Controller
                 }
             }
 
-            if (!empty($logBuffer)) {
+            if (! empty($logBuffer)) {
                 SubdealerStockLog::insert($logBuffer);
             }
         });
@@ -100,8 +101,8 @@ class SubdealerInventoryController extends Controller
         $productSize = ProductSize::with('size')->where('product_id', $id)->get();
 
         return response()->json([
-            "status" => "success",
-            "data" => $productSize
+            'status' => 'success',
+            'data' => $productSize,
         ]);
     }
 
@@ -168,7 +169,7 @@ class SubdealerInventoryController extends Controller
                 }
             }
 
-            if (!empty($logBuffer)) {
+            if (! empty($logBuffer)) {
                 SubdealerStockLog::insert($logBuffer);
             }
         });

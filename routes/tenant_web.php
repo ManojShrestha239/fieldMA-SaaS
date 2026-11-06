@@ -1,40 +1,41 @@
 <?php
 
 use App\Http\Controllers\AccountController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\MobileUserController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AreaController;
-use App\Http\Controllers\SubareaController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DealerController;
 use App\Http\Controllers\DenominationController;
-use App\Http\Controllers\FinalProductController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\PurposeController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SizeController;
-use App\Http\Controllers\VisitController;
-use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\ExcelExportController;
 use App\Http\Controllers\ExcelInventoryController;
 use App\Http\Controllers\ExcelProductManufactureController;
 use App\Http\Controllers\ExcelRawProductController;
+use App\Http\Controllers\FinalProductController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MobileUserController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDealerController;
 use App\Http\Controllers\ProductInventoryController;
 use App\Http\Controllers\ProductInventorymanufController;
+use App\Http\Controllers\PurposeController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SizeController;
+use App\Http\Controllers\SubareaController;
 use App\Http\Controllers\SubdealerInventoryController;
+use App\Http\Controllers\Tenant\TenantSettingController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\VisitController;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,7 @@ Route::get('optimize', function () {
     Artisan::call('storage:link');
     Artisan::call('optimize:clear');
     Artisan::call('config:cache');
+
     return response()->json('Migrations run, Storage linked, Cache cleared and Config cached successfully.');
 });
 
@@ -60,7 +62,7 @@ Route::get('/', [DashboardController::class, 'index']);
 
 Auth::routes();
 
-//Forgetting Password Or Resetting Password
+// Forgetting Password Or Resetting Password
 Route::get('aforget-password', [ForgotPasswordController::class, 'showForgetPasswordForm'])->name('forget.password.get');
 Route::post('aforget-password', [ForgotPasswordController::class, 'submitForgetPasswordForm'])->name('forget.password.post');
 Route::get('areset-password/{token}', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('reset.password.get');
@@ -82,17 +84,17 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     Route::get('/userPassword/{id}/edit', [MobileUserController::class, 'passwordView']);
     Route::patch('/user/changePassword/{id}', [MobileUserController::class, 'changePassword']);
 
-    //Notice Routes
-    require __DIR__ . '/tenants/web/notices.php';
+    // Notice Routes
+    require __DIR__.'/tenants/web/notices.php';
 
-    //Order Routes
-    require __DIR__ . '/tenants/web/orders.php';
+    // Order Routes
+    require __DIR__.'/tenants/web/orders.php';
 
-    //Collection Routes
-    require __DIR__ . '/tenants/web/collections.php';
+    // Collection Routes
+    require __DIR__.'/tenants/web/collections.php';
 
     // Schedule Visit Routes
-    require __DIR__ . '/tenants/web/schedule_visits.php';
+    require __DIR__.'/tenants/web/schedule_visits.php';
 
     Route::group(['middleware' => ['permission:chat', 'feature:chats']], function () {
         // For Chat
@@ -104,9 +106,9 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     Route::resource('complaint', ComplaintController::class)
         ->middleware(['permission:complaint', 'feature:complaints']);
 
-    //Reports Routes
-    require __DIR__ . '/tenants/web/reports/core.php';
-    require __DIR__ . '/tenants/web/reports/daily_reports.php';
+    // Reports Routes
+    require __DIR__.'/tenants/web/reports/core.php';
+    require __DIR__.'/tenants/web/reports/daily_reports.php';
 
     Route::group(['middleware' => ['permission:user']], function () {
         Route::resource('role-permission', PermissionController::class);
@@ -123,15 +125,15 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     });
 
     Route::group(['middleware' => ['permission:area']], function () {
-        //for Area CRUD
+        // for Area CRUD
         Route::resource('area', AreaController::class);
     });
 
     // For Product Inventory
-    require __DIR__ . '/tenants/web/product_inventory.php';
+    require __DIR__.'/tenants/web/product_inventory.php';
 
     Route::group(['middleware' => ['permission:productinventory', 'feature:inventory']], function () {
-        ///begin for product inventory///
+        // /begin for product inventory///
         Route::resource('productmanufac', ProductInventorymanufController::class);
         Route::get('/get-size/{product_id}', [ProductInventorymanufController::class, 'getSize']);
 
@@ -162,13 +164,13 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
         // For Final Product
         Route::resource('final-product', FinalProductController::class);
 
-        //Final Product Export
+        // Final Product Export
         Route::get('/exportproduct', [ExcelExportController::class, 'export']);
 
-        //Raw Materials Inventory
+        // Raw Materials Inventory
         Route::get('/exportinventory', [ExcelInventoryController::class, 'export']);
 
-        //Raw Product Inventory
+        // Raw Product Inventory
         Route::get('/exportrawproduct', [ExcelRawProductController::class, 'export']);
         Route::get('/exportproductmanufacture', [ExcelProductManufactureController::class, 'export']);
         Route::post('/products/excel', [ProductController::class, 'excelProduct']);
@@ -177,7 +179,7 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     Route::post('/bank/excel', [BankController::class, 'bankexcel'])->middleware('permission:bank');
     Route::resource('bank', BankController::class)->middleware('permission:bank');
 
-    //For Upload ledger file
+    // For Upload ledger file
     Route::resource('uploadfile', AccountController::class)->only(['index', 'store', 'create'])->middleware('permission:upload-due');
 
     // Distance Setting
@@ -202,20 +204,19 @@ Route::group(['middleware' => ['auth', 'user.status']], function () {
     Route::get('/getsubarea', [SubareaController::class, 'getsubarea']);
     Route::resource('subarea', SubareaController::class)->only(['store', 'show', 'update', 'edit']);
 
-    //User Location View
+    // User Location View
     Route::post('/user-location/{id}', [LocationController::class, 'userLocation'])->name('user.location');
     Route::post('/origin/{id}', [OrderController::class, 'getOrderLocationDetails'])->name('origin');
     Route::post('visit/origin/{id}', [VisitController::class, 'getVisitLocationDetails'])->name('visit.origin');
 
-
     // Site Registration
-    require __DIR__ . '/tenants/web/site_registration.php';
+    require __DIR__.'/tenants/web/site_registration.php';
 });
 
 // Route::get('notification/reminder/3jR4GUzghGFTrpy2', [AlertReminderController::class, 'index']);
-Route::get('privacy_policy', [PrivacyPolicyController::class, 'privacypolicy']); //privacy-policy page
+Route::get('privacy_policy', [PrivacyPolicyController::class, 'privacypolicy']); // privacy-policy page
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/tenant/settings/branding', [App\Http\Controllers\Tenant\TenantSettingController::class, 'edit'])->name('tenant.settings.branding');
-    Route::put('/tenant/settings/branding', [App\Http\Controllers\Tenant\TenantSettingController::class, 'update'])->name('tenant.settings.branding.update');
+    Route::get('/tenant/settings/branding', [TenantSettingController::class, 'edit'])->name('tenant.settings.branding');
+    Route::put('/tenant/settings/branding', [TenantSettingController::class, 'update'])->name('tenant.settings.branding.update');
 });

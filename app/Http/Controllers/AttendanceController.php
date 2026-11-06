@@ -2,25 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\AttendanceImage;
+use App\Models\Location;
 use App\Models\Mobileuser;
-use Illuminate\Support\Facades\DB;
+use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\FCM;
 use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
-use App\Models\Location;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
+    use CustomNepaliCalendarConverter;
     use FCM;
     use Nepali_Calendar;
-    use CustomNepaliCalendarConverter;
 
-    function index()
+    public function index()
     {
-        $date = Date('Y-m-d');
+        $date = date('Y-m-d');
         $user = Mobileuser::with(['daily_attendance' => function ($query) {
             $query->where('date', date('Y-m-d'));
         }])->where('status', 'Active')->get();
@@ -31,7 +31,7 @@ class AttendanceController extends Controller
             if ($l->daily_attendance) {
                 // return $l->daily_attendance;
                 $location = Location::where(['user_id' => $l->id, 'day' => $date])->first();
-                if (!$location) {
+                if (! $location) {
                     $l->distace = '';
                 } else {
                     $coordinates = $location->coordinates;
@@ -46,7 +46,7 @@ class AttendanceController extends Controller
                             $lon1 = $coordinates[$key - 1]['longitude'];
                             $lat2 = $coordinate['latitude'];
                             $lon2 = $coordinate['longitude'];
-                            $unit = "K";
+                            $unit = 'K';
                             // $distance = $distance + $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                             $c_d = $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                             if (is_nan($c_d)) {
@@ -54,7 +54,7 @@ class AttendanceController extends Controller
                             }
                             $distance = $distance + $c_d;
                         }
-                        $l->distance = number_format($distance, 4) . " KM";
+                        $l->distance = number_format($distance, 4).' KM';
                     }
                 }
             } else {
@@ -69,29 +69,32 @@ class AttendanceController extends Controller
         $data['date'] = $today;
         $data['name'] = '';
         $data['today'] = $today;
+
         return view('dashboards.attendance.list', $data);
     }
+
     private function calculate_distance($lat1, $lon1, $lat2, $lon2, $unit)
     {
 
         $theta = $lon1 - $lon2;
-        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
         $dist = acos($dist);
         $dist = rad2deg($dist);
         $miles = $dist * 60 * 1.1515;
         $unit = strtoupper($unit);
 
-        if ($unit == "K") { //Kilometers
-            return ($miles * 1.609344);
-        } else if ($unit == "N") { //Nautical Miles
-            return ($miles * 0.8684);
-        } else if ($unit == "MT") { //Meter
-            return ($miles * 1.609344 * 1000);
-        } else { //Miles
+        if ($unit == 'K') { // Kilometers
+            return $miles * 1.609344;
+        } elseif ($unit == 'N') { // Nautical Miles
+            return $miles * 0.8684;
+        } elseif ($unit == 'MT') { // Meter
+            return $miles * 1.609344 * 1000;
+        } else { // Miles
             return $miles;
         }
     }
-    function view($id)
+
+    public function view($id)
     {
         $list = Attendance::where('mobileuser_id', $id)
             ->select('id', 'mobileuser_id', 'date', 'checkin_date', DB::raw('MAX(status) AS status'), 'created_at', 'updated_at')
@@ -102,6 +105,7 @@ class AttendanceController extends Controller
 
         return view('dashboards.attendance.view', ['lists' => $list, 'mo' => $mo]);
     }
+
     public function show($id, Request $request)
     {
         $this->validate($request, [
@@ -111,7 +115,7 @@ class AttendanceController extends Controller
         $date = $this->custom_BS_to_AD($request->date);
         $location = Location::where(['user_id' => $data['attendances']->mobileuser_id, 'day' => $date])->first();
 
-        if (!empty($location)) {
+        if (! empty($location)) {
             $coordinates = $location->coordinates;
             $distance = 0;
             if (count($coordinates) > 1) {
@@ -123,7 +127,7 @@ class AttendanceController extends Controller
                     $lon1 = $coordinates[$key - 1]['longitude'];
                     $lat2 = $coordinate['latitude'];
                     $lon2 = $coordinate['longitude'];
-                    $unit = "K";
+                    $unit = 'K';
 
                     $c_d = $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                     if (is_nan($c_d)) {
@@ -134,9 +138,11 @@ class AttendanceController extends Controller
             }
         }
 
-        $data['distance'] = number_format($distance ?? 0, 4) . " KM";
+        $data['distance'] = number_format($distance ?? 0, 4).' KM';
+
         return view('dashboards.attendance.daily', $data);
     }
+
     public function filter(Request $request)
     {
         $this->validate($request, [
@@ -145,7 +151,7 @@ class AttendanceController extends Controller
             // 'end_date'=>['nullable','required_with:date','regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/'],
         ]);
         // $mobileuser = Mobileuser::findorFail($id);
-        if (!$request->user && !$request->date) {
+        if (! $request->user && ! $request->date) {
             return back()->with('status', 'Both field cannot be empty.');
         }
         $list = '';
@@ -175,8 +181,10 @@ class AttendanceController extends Controller
         $data['userid'] = $request->user;
         $data['name'] = '';
         $data['today'] = $request->date;
+
         return view('dashboards.attendance.list', $data);
     }
+
     public function attendanceimageshow(Request $request, $id)
     {
         // return $request->all();
@@ -193,6 +201,7 @@ class AttendanceController extends Controller
     {
         // return $request->all();
         $data['attendance'] = Attendance::findorfail($id);
+
         return view('dashboards.attendance.updatekm', $data);
     }
 
@@ -206,6 +215,6 @@ class AttendanceController extends Controller
 
         $attendacne->save();
 
-        return back()->with('Status', "Update Kilometer.");
+        return back()->with('Status', 'Update Kilometer.');
     }
 }

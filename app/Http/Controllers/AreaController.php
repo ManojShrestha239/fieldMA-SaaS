@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Area;
-use App\Models\Subarea;
 use App\Models\Assignarea;
+use App\Models\Subarea;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
 class AreaController extends Controller
@@ -14,12 +14,14 @@ class AreaController extends Controller
     {
         $data['subareas'] = Subarea::all();
         $data['areas'] = Area::all();
+
         return view('dashboards.areas.index', $data);
     }
 
     public function create()
     {
         $data['subareas'] = Subarea::all();
+
         return view('dashboards.areas.create', $data);
     }
 
@@ -29,7 +31,7 @@ class AreaController extends Controller
             'areacode' => 'required|unique:areas|string',
             'area' => 'required|unique:areas',
             'subarea' => 'required|array',
-            'subarea.*' => 'nullable|string:255'
+            'subarea.*' => 'nullable|string:255',
         ]);
 
         $area = new Area;
@@ -41,14 +43,14 @@ class AreaController extends Controller
         if ($request->subarea) {
             if (count($request->subarea) == 0) {
                 $this->validate($request, [
-                    'subarea.*' => 'nullable|integer'
+                    'subarea.*' => 'nullable|integer',
                 ]);
             }
             foreach ($request->subarea as $sub) {
-                $data[] = array(
+                $data[] = [
                     'areacode' => $area->areacode,
-                    'subarea_id' => $sub
-                );
+                    'subarea_id' => $sub,
+                ];
             }
             Assignarea::insert($data);
         }
@@ -61,6 +63,7 @@ class AreaController extends Controller
         $data['area'] = Area::findorFail($areacode);
         $data['subareas'] = Subarea::all();
         $data['assigns'] = Assignarea::where('areacode', $areacode)->get();
+
         return view('dashboards.areas.edit', $data);
     }
 
@@ -69,7 +72,7 @@ class AreaController extends Controller
         $this->validate($request, [
             'area' => 'required',
             'subarea' => 'required|array',
-            'subarea.*' => 'exists:subareas,id'
+            'subarea.*' => 'exists:subareas,id',
         ]);
         // return $request->subarea;
         $area = Area::findorFail($areacode);
@@ -79,27 +82,29 @@ class AreaController extends Controller
         $area->save();
         Assignarea::where(['areacode' => $areacode])->delete();
         foreach ($request->subarea as $subarea) {
-            $assignedarea = new Assignarea();
+            $assignedarea = new Assignarea;
 
             $assignedarea->subarea_id = $subarea;
             $assignedarea->areacode = $areacode;
 
             $assignedarea->save();
         }
+
         return redirect('/area')->with('Status', 'Area Updated.');
     }
 
     public function destroy($id)
     {
         $user = Area::findorFail($id);
-        if ($user->status == "Published") {
-            $user->status = "Deleted";
+        if ($user->status == 'Published') {
+            $user->status = 'Deleted';
             Session::flash('Status', 'USer Disabled Successfully');
         } else {
-            $user->status = "Published";
+            $user->status = 'Published';
             Session::flash('Status', 'USer Enabled Successfully');
         }
         $user->save();
+
         return back();
     }
 

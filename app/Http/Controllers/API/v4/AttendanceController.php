@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API\v4;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\AttendanceImage;
@@ -10,39 +9,40 @@ use App\Models\AttendanceStatus;
 use App\Models\Location;
 use App\Models\Mobileuser;
 use App\Traits\FCM;
+use App\Traits\Nepali_Calendar;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use App\Traits\Nepali_Calendar;
-use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
-    use Nepali_Calendar, FCM;
+    use FCM, Nepali_Calendar;
 
-    function online(Request $request)
+    public function online(Request $request)
     {
-        $rules = array(
+        $rules = [
             'latitude' => 'required_if:flag,==,checkin|required_if:flag,==,checkout',
             'longitude' => 'required_if:flag,==,checkin|required_if:flag,==,checkout',
             'flag' => 'required|in:checkin,breakstart,breakend,checkout',
             'date' => 'required|date_format:Y-m-d',
             'time' => 'required|date_format:H:i:s',
             'images' => 'required_if:flag,==,checkin|required_if:flag,==,checkout|mimes:jpg,jpeg,png',
-        );
+        ];
         $valid = Validator::make($request->all(), $rules);
 
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
         }
         try {
-            $user = Mobileuser::where('remember_token', substr($request->header("Authorization"), 7))->first();
+            $user = Mobileuser::where('remember_token', substr($request->header('Authorization'), 7))->first();
             $date = $request->date;
             $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $date])->first();
 
-            if (!$attendance) {
+            if (! $attendance) {
                 $attendance = Attendance::create([
                     'mobileuser_id' => $user->id,
                     'checkin_date' => $request->time,
@@ -51,7 +51,7 @@ class AttendanceController extends Controller
                     'address' => null,
                 ]);
             }
-            $attendance_status = new AttendanceStatus();
+            $attendance_status = new AttendanceStatus;
 
             $attendance_status->attendance_id = $attendance->id;
             $attendance_status->mobileuser_id = $attendance->mobileuser_id;
@@ -62,14 +62,14 @@ class AttendanceController extends Controller
 
             $attendance_status->save();
 
-            //Attendance Image
+            // Attendance Image
             if (isset($request->images)) {
 
                 $file = File::get($request->images);
-                $filename = time() . '_' . $request->images->getClientOriginalName();
-                Storage::disk('public')->put('attendance/' . $filename, $file);
+                $filename = time().'_'.$request->images->getClientOriginalName();
+                Storage::disk('public')->put('attendance/'.$filename, $file);
 
-                $attendance_image = new AttendanceImage();
+                $attendance_image = new AttendanceImage;
 
                 $attendance_image->attendance_id = $attendance->id;
                 $attendance_image->attendancestatus_id = $attendance_status->id;
@@ -81,17 +81,17 @@ class AttendanceController extends Controller
 
                 $attendance_image->save();
             }
-            if ($request->flag == "checkin" || $request->flag == "checkout") {
+            if ($request->flag == 'checkin' || $request->flag == 'checkout') {
                 $location = Location::where(['day' => date('Y-m-d'), 'user_id' => $user->id])->first();
 
-                if (!$location) {
-                    $cordinates[] = array(
+                if (! $location) {
+                    $cordinates[] = [
                         'latitude' => $request->latitude,
                         'longitude' => $request->longitude,
-                        'time' => date('H:i:s')
-                    );
+                        'time' => date('H:i:s'),
+                    ];
 
-                    $location = new Location();
+                    $location = new Location;
 
                     $location->user_id = $user->id;
                     $location->day = date('Y-m-d');
@@ -101,11 +101,11 @@ class AttendanceController extends Controller
 
                     $location->save();
                 } else {
-                    $cordinates[] = array(
+                    $cordinates[] = [
                         'latitude' => $request->latitude,
                         'longitude' => $request->longitude,
-                        'time' => date('H:i:s')
-                    );
+                        'time' => date('H:i:s'),
+                    ];
                     $location->coordinates = array_merge($location->coordinates, $cordinates);
 
                     $location->save();
@@ -133,14 +133,14 @@ class AttendanceController extends Controller
         }
 
         try {
-            $date = Date('Y-m-d');
-            $time = Date('H:i:s');
-            $user = Mobileuser::where('remember_token', substr($request->header("Authorization"), 7))->first();
+            $date = date('Y-m-d');
+            $time = date('H:i:s');
+            $user = Mobileuser::where('remember_token', substr($request->header('Authorization'), 7))->first();
 
             foreach ($data as $key => $d) {
                 if ($d['flag'] == 'checkin' || $d['flag'] == 'checkout') {
                     $imagevalidation = Validator::make($request->all(), [
-                        "image.$key" => 'nullable|mimes:jpg,jpeg,png,webp'
+                        "image.$key" => 'nullable|mimes:jpg,jpeg,png,webp',
                     ]);
                     if ($imagevalidation->fails()) {
                         return response()->json(
@@ -150,7 +150,7 @@ class AttendanceController extends Controller
                     }
                 }
                 $attendance = Attendance::where(['mobileuser_id' => $user->id, 'date' => $d['date']])->first();
-                if (!$attendance) {
+                if (! $attendance) {
                     $attendance = Attendance::create([
                         'status' => $d['flag'],
                         'mobileuser_id' => $user->id,
@@ -159,7 +159,7 @@ class AttendanceController extends Controller
                         'address' => (isset($d['address']) ? $d['address'] : ''),
                     ]);
                 }
-                $attendance_status = new AttendanceStatus();
+                $attendance_status = new AttendanceStatus;
 
                 $attendance_status->attendance_id = $attendance->id;
                 $attendance_status->mobileuser_id = $attendance->mobileuser_id;
@@ -170,15 +170,14 @@ class AttendanceController extends Controller
 
                 $attendance_status->save();
 
-
-                //Attendance Image
+                // Attendance Image
                 if (isset($request->image[$key])) {
 
                     $file = File::get($request->image[$key]);
-                    $filename = time() . '_' . $request->image[$key]->getClientOriginalName();
-                    Storage::disk('public')->put('attendance/' . $filename, $file);
+                    $filename = time().'_'.$request->image[$key]->getClientOriginalName();
+                    Storage::disk('public')->put('attendance/'.$filename, $file);
 
-                    $attendance_image = new AttendanceImage();
+                    $attendance_image = new AttendanceImage;
 
                     $attendance_image->attendance_id = $attendance->id;
                     $attendance_image->attendancestatus_id = $attendance_status->id;
@@ -192,27 +191,26 @@ class AttendanceController extends Controller
                     // }
                 }
 
-
-                $new[] = array(
+                $new[] = [
                     'status' => $d['flag'],
                     'mobileuser_id' => $user->id,
                     'date' => $d['date'],
                     'checkin_date' => $d['time'],
                     'address' => (isset($d['address']) ? $d['address'] : ''),
-                    'created_at' => Date('Y-m-d H:s:i'),
-                    'created_at' => Date('Y-m-d H:s:i'),
-                );
+                    'created_at' => date('Y-m-d H:s:i'),
+                    'created_at' => date('Y-m-d H:s:i'),
+                ];
                 if ((isset($d['address']) ? $d['address'] : '')) {
                     $location = Location::where(['user_id' => $user->id, 'day' => $d['date']])->first();
 
-                    if (!$location) {
-                        $cordinates[] = array(
+                    if (! $location) {
+                        $cordinates[] = [
                             'latitude' => $d['latitude'],
                             'longitude' => $d['longitude'],
-                            'time' => $d['time']
-                        );
+                            'time' => $d['time'],
+                        ];
 
-                        $location = new Location();
+                        $location = new Location;
 
                         $location->user_id = $user->id;
                         $location->day = $d['date'];
@@ -223,11 +221,11 @@ class AttendanceController extends Controller
                         $location->save();
                         $cordinates = [];
                     } else {
-                        $cordinates[] = array(
+                        $cordinates[] = [
                             'latitude' => $d['latitude'],
                             'longitude' => $d['longitude'],
-                            'time' => $d['time']
-                        );
+                            'time' => $d['time'],
+                        ];
                         $location->coordinates = array_merge($location->coordinates, $cordinates);
 
                         $location->save();
@@ -236,6 +234,7 @@ class AttendanceController extends Controller
                 }
             }
             Attendance::insert($new);
+
             return response()->json(['status' => 'success', 'message' => 'Thank You.']);
         } catch (Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
@@ -245,7 +244,7 @@ class AttendanceController extends Controller
     // adding fcm to senior
     public function onlinewithkm(Request $request)
     {
-        $rules = array(
+        $rules = [
             'flag' => 'required|in:checkin,breakstart,breakend,checkout',
             'date' => 'required|date_format:Y-m-d',
             'time' => 'required|date_format:H:i:s',
@@ -255,7 +254,7 @@ class AttendanceController extends Controller
             'device_model' => 'nullable|string|max:255',
             'remarks' => 'nullable|string|max:500',
 
-        );
+        ];
         $valid = Validator::make($request->all(), $rules);
 
         if ($valid->fails()) {
@@ -271,24 +270,25 @@ class AttendanceController extends Controller
             $currentFlag = strtolower($request->flag);
 
             $errorMessageForSameStatus = [
-                'checkin'    => 'You are already checked in. Please check out before attempting to check in again.',
-                'checkout'   => 'You are not currently checked in. Please check in before attempting to check out.',
+                'checkin' => 'You are already checked in. Please check out before attempting to check in again.',
+                'checkout' => 'You are not currently checked in. Please check in before attempting to check out.',
                 'breakstart' => 'You are already on a break. Please end your current break before starting a new one.',
-                'breakend'   => 'You are not currently on a break. Please start a break before attempting to end it.'
+                'breakend' => 'You are not currently on a break. Please start a break before attempting to end it.',
             ];
 
             if ($lastStatus === $currentFlag) {
                 DB::rollBack();
+
                 return response()->json([
                     'status' => 'error',
-                    'message' => $errorMessageForSameStatus[$currentFlag] ?? 'Invalid status.'
+                    'message' => $errorMessageForSameStatus[$currentFlag] ?? 'Invalid status.',
                 ], 400);
             }
 
             if ($lastStatus === 'breakstart' && $currentFlag !== 'breakend') {
                 return response()->json([
                     'status' => 'error',
-                    'message' => "You are currently on a break. Please end the ongoing break before proceeding with a new {$request->flag}."
+                    'message' => "You are currently on a break. Please end the ongoing break before proceeding with a new {$request->flag}.",
                 ], 400);
             }
 
@@ -297,7 +297,7 @@ class AttendanceController extends Controller
 
             $lastStatus = $attendance ? $attendance->lastStatus : null;
 
-            if (!$attendance) {
+            if (! $attendance) {
                 $attendance = Attendance::create([
                     'mobileuser_id' => $user->id,
                     'checkin_date' => $request->time,
@@ -318,7 +318,7 @@ class AttendanceController extends Controller
                 $attendance->remarks = $request->remarks;
                 $attendance->save();
             }
-            $attendance_status = new AttendanceStatus();
+            $attendance_status = new AttendanceStatus;
 
             $attendance_status->attendance_id = $attendance->id;
             $attendance_status->mobileuser_id = $attendance->mobileuser_id;
@@ -331,16 +331,15 @@ class AttendanceController extends Controller
             $attendance_status->device_model = $request->device_model;
             $attendance_status->remarks = $request->remarks;
 
-
             $attendance_status->save();
 
-            //Attendance Image
+            // Attendance Image
             if (isset($request->images)) {
                 $file = File::get($request->images);
-                $filename = time() . '_' . $request->images->getClientOriginalName();
-                Storage::disk('public')->put('attendance/' . $filename, $file);
+                $filename = time().'_'.$request->images->getClientOriginalName();
+                Storage::disk('public')->put('attendance/'.$filename, $file);
 
-                $attendance_image = new AttendanceImage();
+                $attendance_image = new AttendanceImage;
 
                 $attendance_image->attendance_id = $attendance->id;
                 $attendance_image->attendancestatus_id = $attendance_status->id;
@@ -353,17 +352,17 @@ class AttendanceController extends Controller
                 $attendance_image->save();
                 // }
             }
-            if ($currentFlag == "checkin" || $currentFlag == "checkout") {
+            if ($currentFlag == 'checkin' || $currentFlag == 'checkout') {
                 $location = Location::where(['day' => date('Y-m-d'), 'user_id' => $user->id])->first();
 
-                if (!$location) {
-                    $cordinates[] = array(
+                if (! $location) {
+                    $cordinates[] = [
                         'latitude' => $request->latitude,
                         'longitude' => $request->longitude,
-                        'time' => date('H:i:s')
-                    );
+                        'time' => date('H:i:s'),
+                    ];
 
-                    $location = new Location();
+                    $location = new Location;
 
                     $location->user_id = $user->id;
                     $location->day = date('Y-m-d');
@@ -373,11 +372,11 @@ class AttendanceController extends Controller
 
                     $location->save();
                 } else {
-                    $cordinates[] = array(
+                    $cordinates[] = [
                         'latitude' => $request->latitude,
                         'longitude' => $request->longitude,
-                        'time' => date('H:i:s')
-                    );
+                        'time' => date('H:i:s'),
+                    ];
                     $location->coordinates = array_merge($location->coordinates, $cordinates);
 
                     $location->save();
@@ -389,9 +388,11 @@ class AttendanceController extends Controller
             }
 
             DB::commit();
+
             return response()->json(['status' => 'success', 'message' => 'Thank You.', 'flag' => $currentFlag]);
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
@@ -421,6 +422,7 @@ class AttendanceController extends Controller
                     ->where('mobileuser_id', $auth->id)
                     ->orderBy('id', 'desc')->get();
             }
+
             return response()->json(['status' => 'success', 'data' => $attendance]);
         } catch (Exception $e) {
             return response()->json(['status' => 'Error', 'message' => $e->getMessage()], 500);
@@ -445,10 +447,10 @@ class AttendanceController extends Controller
         $dateTime = date('g:i A', strtotime($time));
 
         $title = 'Team Attendance Update';
-        $body  = "{$user->name} just {$status} at {$dateTime}";
-        $data  = [
+        $body = "{$user->name} just {$status} at {$dateTime}";
+        $data = [
             'route_channel' => 'my-team',
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ];
 
         // One OAuth fetch, N device sends, aggregated report

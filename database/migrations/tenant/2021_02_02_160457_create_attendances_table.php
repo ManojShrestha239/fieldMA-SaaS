@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateAttendancesTable extends Migration
 {
@@ -19,7 +19,7 @@ class CreateAttendancesTable extends Migration
             $table->string('date');
             $table->time('checkin_date');
             $table->string('address')->nullable();
-            $table->enum('status',['checkin','breakstart','breakend','checkout']);
+            $table->enum('status', ['checkin', 'breakstart', 'breakend', 'checkout']);
             $table->timestamps();
         });
     }

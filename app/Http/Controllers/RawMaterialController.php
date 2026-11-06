@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RawInventory;
 use App\Models\RawMaterial;
-use App\Models\RawMaterials;
 use App\Models\RawSize;
-use App\Models\Size;
 use Illuminate\Http\Request;
 
 class RawMaterialController extends Controller
@@ -18,6 +15,7 @@ class RawMaterialController extends Controller
     {
 
         $rawMaterials = RawMaterial::with('rawSize', 'rawStock')->get();
+
         return view('dashboards.rawmaterials.index', compact('rawMaterials'));
     }
 
@@ -27,9 +25,9 @@ class RawMaterialController extends Controller
     public function create()
     {
         $data['sizes'] = RawSize::all();
+
         return view('dashboards.rawmaterials.create', $data);
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -41,14 +39,11 @@ class RawMaterialController extends Controller
             'name' => 'required|unique:raw_materials',
             'rawsize_id' => 'required|exists:raw_sizes,id',
 
-
         ]);
         $raw = new RawMaterial;
 
-
         $raw->name = $request['name'];
         $raw->rawsize_id = $request->input('rawsize_id');
-
 
         $raw->save();
 
@@ -77,7 +72,6 @@ class RawMaterialController extends Controller
 
         return view('dashboards.rawmaterials.edit', compact('rawmaterial'));
     }
-
 
     /**
      * Update the specified resource in storage.

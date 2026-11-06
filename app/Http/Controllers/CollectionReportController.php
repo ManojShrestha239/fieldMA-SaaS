@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Exports\CollectionReport;
 use App\Exports\CollectionSummaryReport;
 use App\Exports\ZeroReport;
 use App\Models\Mobileuser;
 use App\Models\Payment;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CollectionReportController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index(Request $request)
     {
@@ -36,7 +36,7 @@ class CollectionReportController extends Controller
             $to = $this->custom_BS_to_AD($request->to);
         }
 
-        if ($request->status == "cheque") {
+        if ($request->status == 'cheque') {
             $status = ['cheque (bearer)', 'cheque (payee)', 'cheque', 'cash (account payee)'];
         }
         if ($request->status == 'cash') {
@@ -70,19 +70,19 @@ class CollectionReportController extends Controller
                 'payments.remarks'
             );
 
-        if (!empty($status) && !empty($user) && !empty($from)) {
+        if (! empty($status) && ! empty($user) && ! empty($from)) {
             $payments = $payment->where(['payments.user_id' => $user])
                 ->whereBetween('collection_date', [$from, $this->to])
                 ->whereIn('payment_type', $status)
                 ->get();
-        } else if (empty($this->status) && !empty($this->user) && !empty($this->from) && !empty($this->to)) {
+        } elseif (empty($this->status) && ! empty($this->user) && ! empty($this->from) && ! empty($this->to)) {
             $payments = $payment->where(['payments.user_id' => $this->user])
                 ->whereBetween('collection_date', [$this->from, $this->to])
                 ->get();
-        } else if (empty($this->status) && empty($this->user) && !empty($this->from) && !empty($this->to)) {
+        } elseif (empty($this->status) && empty($this->user) && ! empty($this->from) && ! empty($this->to)) {
             $payments = $payment->whereBetween('collection_date', [$this->from, $this->to])
                 ->get();
-        } else if (!empty($this->status) && empty($this->user) && !empty($this->from) && !empty($this->to)) {
+        } elseif (! empty($this->status) && empty($this->user) && ! empty($this->from) && ! empty($this->to)) {
             $payments = $payment->whereBetween('collection_date', [$this->from, $this->to])
                 ->whereIn('payment_type', $status)
                 ->get();
@@ -94,14 +94,14 @@ class CollectionReportController extends Controller
             $currentNepaliDay = $this->AD_to_BS($date[0], $date[1], $date[2]);
             $nepaliDay = $currentNepaliDay['date'];
             if (strlen($nepaliDay) == 1) {
-                $nepaliDay = '0' . $nepaliDay;
+                $nepaliDay = '0'.$nepaliDay;
             }
             $nepaliMth = $currentNepaliDay['month'];
             if (strlen($nepaliMth) == 1) {
-                $nepaliMth = '0' . $nepaliMth;
+                $nepaliMth = '0'.$nepaliMth;
             }
             $nepaliYr = $currentNepaliDay['year'];
-            $date = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+            $date = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
             $payment->collection_date = $date;
         }
 
@@ -124,7 +124,7 @@ class CollectionReportController extends Controller
             'user' => 'nullable|exists:mobileusers,id',
             'collection_type' => 'nullable|in:cash,cheque,token,direct',
             'from' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:to'],
-            'to' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:from']
+            'to' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:from'],
         ]);
         if ($request['from'] > $request['to']) {
             return back()->withInput($request->input())->withErrors(['to' => 'end date must be after or equal with start date']);
@@ -143,7 +143,7 @@ class CollectionReportController extends Controller
             $to = $this->custom_BS_to_AD($request->to);
         }
 
-        if ($request->status == "cheque") {
+        if ($request->status == 'cheque') {
             $status = ['cheque (bearer)', 'cheque (payee)', 'cheque', 'cash (account payee)'];
         }
         if ($request->status == 'cash') {
@@ -185,11 +185,11 @@ class CollectionReportController extends Controller
                 ->whereBetween('collection_date', [$from, $to])
                 ->whereIn('payment_type', $status)
                 ->get();
-        } else if (!$request->status && $user) {
+        } elseif (! $request->status && $user) {
             $payments = $payment->where(['payments.user_id' => $user])
                 ->whereBetween('collection_date', [$from, $to])
                 ->get();
-        } else if ($request->status && !$user) {
+        } elseif ($request->status && ! $user) {
             $payments = $payment->whereBetween('collection_date', [$from, $to])
                 ->whereIn('payment_type', $status)
                 ->get();
@@ -216,7 +216,7 @@ class CollectionReportController extends Controller
             'user' => 'nullable|exists:mobileusers,id',
             // 'collection_type' => 'nullable|in:cash,cheque,token',
             'from' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:to'],
-            'to' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:from', 'after_or_equal:from']
+            'to' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with_all:from', 'after_or_equal:from'],
         ]);
 
         $dateNepali = explode('-', $request->to);
@@ -226,9 +226,11 @@ class CollectionReportController extends Controller
         ob_start();
         if (isset($request->user)) {
             $userName = Mobileuser::findorfail($request->user)->name;
-            return Excel::download(new ZeroReport($request->from, $request->to, $month, $request->user), '' . $userName . '_' . $month .  '_zeroReport_' . time() . '.xlsx');
+
+            return Excel::download(new ZeroReport($request->from, $request->to, $month, $request->user), ''.$userName.'_'.$month.'_zeroReport_'.time().'.xlsx');
         }
-        return Excel::download(new ZeroReport($request->from, $request->to, $month, $request->user), '' . $month .  '_zeroReport_' . time() . '.xlsx');
+
+        return Excel::download(new ZeroReport($request->from, $request->to, $month, $request->user), ''.$month.'_zeroReport_'.time().'.xlsx');
     }
 
     public function collectionSummaryReport(Request $request)
@@ -237,7 +239,7 @@ class CollectionReportController extends Controller
             'user' => 'nullable|exists:mobileusers,id',
             'collection_type' => 'nullable|in:cash,cheque,token,direct',
             'from' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:to'],
-            'to' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:from']
+            'to' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:from'],
         ]);
         if ($request['from'] > $request['to']) {
             return back()->withInput($request->input())->withErrors(['to' => 'end date must be after or equal with start date']);
@@ -252,7 +254,7 @@ class CollectionReportController extends Controller
         $from = $this->custom_BS_to_AD($request->from);
         $to = $this->custom_BS_to_AD($request->to);
 
-        if ($request->status == "cheque") {
+        if ($request->status == 'cheque') {
             $status = ['cheque (bearer)', 'cheque (payee)', 'cheque', 'cash (account payee)'];
         }
         if ($request->status == 'cash') {
@@ -272,11 +274,11 @@ class CollectionReportController extends Controller
                 ->whereBetween('collection_date', [$from, $to])
                 ->whereIn('payment_type', $status)
                 ->get();
-        } else if (!$request->status && $user) {
+        } elseif (! $request->status && $user) {
             $payments = $payment->where(['payments.user_id' => $user])
                 ->whereBetween('collection_date', [$from, $to])
                 ->get();
-        } else if ($request->status && !$user) {
+        } elseif ($request->status && ! $user) {
             $payments = $payment->whereBetween('collection_date', [$from, $to])
                 ->whereIn('payment_type', $status)
                 ->get();
@@ -286,22 +288,22 @@ class CollectionReportController extends Controller
         }
 
         foreach ($payments as $payment) {
-            if ($request->status == "cash") {
+            if ($request->status == 'cash') {
                 $payment->cashamt = Payment::where(['user_id' => $payment->user_id, 'dealer_code' => $payment->dealer_code])->whereIn('payment_type', ['cash (regular)', 'cash (against)'])->sum('amount');
                 $payment->chequeamt = 0;
                 $payment->directamt = 0;
                 $payment->tokenamt = 0;
-            } else if ($request->status == "cheque") {
+            } elseif ($request->status == 'cheque') {
                 $payment->cashamt = 0;
                 $payment->chequeamt = Payment::where(['user_id' => $payment->user_id, 'dealer_code' => $payment->dealer_code])->whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)', 'cheque', 'cash (account payee)'])->sum('amount');
                 $payment->directamt = 0;
                 $payment->tokenamt = 0;
-            } else if ($request->status == "direct") {
+            } elseif ($request->status == 'direct') {
                 $payment->cashamt = 0;
                 $payment->chequeamt = 0;
                 $payment->directamt = Payment::where(['user_id' => $payment->user_id, 'dealer_code' => $payment->dealer_code])->whereIn('payment_type', ['direct'])->sum('amount');
                 $payment->tokenamt = 0;
-            } else if ($request->status == "token") {
+            } elseif ($request->status == 'token') {
                 $payment->cashamt = 0;
                 $payment->chequeamt = 0;
                 $payment->directamt = 0;
@@ -314,6 +316,6 @@ class CollectionReportController extends Controller
             }
         }
 
-        return Excel::download(new collectionSummaryReport($payments, $request->status, $userinfo, $from, $to), "$request->status" . "_Collection report_" . "$user" . "_" . time() . ".xlsx");
+        return Excel::download(new CollectionSummaryReport($payments, $request->status, $userinfo, $from, $to), "$request->status".'_Collection report_'."$user".'_'.time().'.xlsx');
     }
 }

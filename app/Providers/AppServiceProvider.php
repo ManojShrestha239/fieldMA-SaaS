@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\EnsureFeatureEnabled;
+use App\Utilities\Helpers;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Routing\UrlGenerator;
-
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,8 +23,8 @@ class AppServiceProvider extends ServiceProvider
         require_once app_path('helpers.php');
 
         // IoC container bindings for feature middleware aliases
-        $this->app->bind('feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
-        $this->app->bind('tenant.feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
+        $this->app->bind('feature', EnsureFeatureEnabled::class);
+        $this->app->bind('tenant.feature', EnsureFeatureEnabled::class);
     }
 
     /**
@@ -29,37 +32,37 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        /** @var \Illuminate\Routing\Router $router */
+        /** @var Router $router */
         $router = $this->app->make('router');
-        $router->aliasMiddleware('feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
-        $router->aliasMiddleware('tenant.feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
+        $router->aliasMiddleware('feature', EnsureFeatureEnabled::class);
+        $router->aliasMiddleware('tenant.feature', EnsureFeatureEnabled::class);
 
         Blade::if('super', function () {
-            return auth()->check() && (auth()->user()->user_type == "super" || Auth::user()->user_type == 'ASM');
+            return auth()->check() && (auth()->user()->user_type == 'super' || Auth::user()->user_type == 'ASM');
         });
         Blade::if('tenantFeature', function (string $feature) {
-            return \App\Utilities\Helpers::hasFeature($feature);
+            return Helpers::hasFeature($feature);
         });
         Blade::if('feature', function (string $feature) {
-            return \App\Utilities\Helpers::hasFeature($feature);
+            return Helpers::hasFeature($feature);
         });
         Blade::if('account', function () {
-            return auth()->check() && auth()->user()->user_type == "account";
+            return auth()->check() && auth()->user()->user_type == 'account';
         });
         Blade::if('marketing', function () {
-            return auth()->check() && auth()->user()->user_type == "marketing";
+            return auth()->check() && auth()->user()->user_type == 'marketing';
         });
         Blade::if('dispatch', function () {
-            return auth()->check() && auth()->user()->user_type == "dispatch";
+            return auth()->check() && auth()->user()->user_type == 'dispatch';
         });
         Blade::if('super_market', function () {
-            return auth()->check() && (auth()->user()->user_type == "super" || auth()->user()->user_type == "marketing" || Auth::user()->user_type == 'ASM');
+            return auth()->check() && (auth()->user()->user_type == 'super' || auth()->user()->user_type == 'marketing' || Auth::user()->user_type == 'ASM');
         });
         Blade::if('super_market_dispatch', function () {
-            return auth()->check() && (auth()->user()->user_type == "super" || auth()->user()->user_type == "marketing" || auth()->user()->user_type == "dispatch" || Auth::user()->user_type == 'ASM');
+            return auth()->check() && (auth()->user()->user_type == 'super' || auth()->user()->user_type == 'marketing' || auth()->user()->user_type == 'dispatch' || Auth::user()->user_type == 'ASM');
         });
         Blade::if('super_market_account', function () {
-            return auth()->check() && (auth()->user()->user_type == "super" || auth()->user()->user_type == "marketing" || auth()->user()->user_type == "account" || Auth::user()->user_type == 'ASM');
+            return auth()->check() && (auth()->user()->user_type == 'super' || auth()->user()->user_type == 'marketing' || auth()->user()->user_type == 'account' || Auth::user()->user_type == 'ASM');
         });
 
         Schema::defaultStringLength(191);
@@ -68,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
         if (! UrlGenerator::hasMacro('setAssetRoot')) {
             UrlGenerator::macro('setAssetRoot', function ($root) {
                 $this->assetRoot = $root;
+
                 return $this;
             });
         }
@@ -79,7 +83,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $isHttps = false;
-            if ($request instanceof \Illuminate\Http\Request) {
+            if ($request instanceof Request) {
                 $isHttps = $request->isSecure() || strtolower((string) $request->header('x-forwarded-proto')) === 'https';
             } elseif (! $this->app->runningInConsole()) {
                 $isHttps = request()->isSecure() || strtolower((string) request()->header('x-forwarded-proto')) === 'https';

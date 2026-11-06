@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class Mobileuser extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
-    protected $table = "mobileusers";
+
+    protected $table = 'mobileusers';
 
     protected $fillable = [
         'name',
@@ -47,6 +48,7 @@ class Mobileuser extends Authenticatable implements JWTSubject
         'is_senior' => 'boolean',
         'is_super_senior' => 'boolean',
     ];
+
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
@@ -68,6 +70,7 @@ class Mobileuser extends Authenticatable implements JWTSubject
             'tenant_id' => tenant('id'),
         ];
     }
+
     public function role()
     {
         return $this->belongsTo(Role::class);
@@ -167,7 +170,7 @@ class Mobileuser extends Authenticatable implements JWTSubject
             ->toArray();
 
         foreach ($directMembers as $memberId) {
-            if (!in_array($memberId, $memberIds)) {
+            if (! in_array($memberId, $memberIds)) {
                 $memberIds[] = $memberId;
                 // Recursively get members of this member (if they are also a senior)
                 $this->collectTeamMembersRecursive($memberId, $memberIds);

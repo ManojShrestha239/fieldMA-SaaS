@@ -33,7 +33,7 @@ class Order extends Model
         'is_need_correction',
         'risk_zone',
         'lat_lng',
-        'location'
+        'location',
     ];
 
     public function dealer()

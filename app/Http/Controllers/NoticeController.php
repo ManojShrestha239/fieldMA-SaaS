@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Mobileuser;
-use Illuminate\Http\Request;
-use App\Models\Notice;
-use App\Traits\CustomNepaliCalendarConverter;
-use App\Traits\Nepali_Calendar;
 use App\Models\Area;
+use App\Models\Mobileuser;
+use App\Models\Notice;
 use App\Models\NoticeImage;
-use Illuminate\Support\Facades\Auth;
+use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\FCM;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 class NoticeController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter, FCM;
+    use CustomNepaliCalendarConverter, FCM, Nepali_Calendar;
 
     public function index()
     {
         $data['notices'] = Notice::orderBy('created_at', 'desc')->get();
         $data['users'] = Mobileuser::where('status', 'Active')->get();
+
         return view('dashboards.messaging.list', $data);
     }
 
@@ -42,7 +43,7 @@ class NoticeController extends Controller
             'expiry_date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
             'user' => 'nullable|exists:mobileusers,id',
             'file' => 'nullable|array|max:5',
-            'file.*' => 'required|mimes:pdf,jpg,jpeg,png,webp,svg|max:4096'
+            'file.*' => 'required|mimes:pdf,jpg,jpeg,png,webp,svg|max:4096',
         ]);
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
         if ($request['expiry_date'] < $today) {
@@ -51,10 +52,10 @@ class NoticeController extends Controller
         }
         $dates = $this->custom_BS_to_AD($request->expiry_date);
 
-        $notice = new Notice();
+        $notice = new Notice;
 
         $notice->user_id = $request->user;
-        $notice->title =  $request->title;
+        $notice->title = $request->title;
         $notice->notice = $request->notice;
         $notice->date = date('Y-m-d');
         $notice->expiry_date = $dates;
@@ -62,11 +63,11 @@ class NoticeController extends Controller
         if ($request->file) {
             foreach ($request->file as $file) {
                 $filecontent = File::get($file);
-                $filename = time() . '_' . $file->getClientOriginalName();
+                $filename = time().'_'.$file->getClientOriginalName();
 
                 Storage::disk('public')->put("notice/$filename", $filecontent);
 
-                $noticeImage = new NoticeImage();
+                $noticeImage = new NoticeImage;
 
                 $noticeImage->notice_id = $notice->id;
                 $noticeImage->file = $filename;
@@ -74,6 +75,7 @@ class NoticeController extends Controller
                 $noticeImage->save();
             }
         }
+
         return redirect('/notice')->with('Status', 'New Notice Created.');
     }
 
@@ -92,6 +94,7 @@ class NoticeController extends Controller
 
         $data['notice'] = $notice;
         $data['users'] = Mobileuser::all();
+
         return view('dashboards.messaging.edit', $data);
     }
 
@@ -103,7 +106,7 @@ class NoticeController extends Controller
             'expiry_date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
             'user' => 'nullable|exists:mobileusers,id',
             'file' => 'nullable|array|max:5',
-            'file.*' => 'required|mimes:pdf,jpg,jpeg,png,webp,svg|max:4096'
+            'file.*' => 'required|mimes:pdf,jpg,jpeg,png,webp,svg|max:4096',
         ]);
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
 
@@ -118,11 +121,11 @@ class NoticeController extends Controller
         if ($request->file) {
             foreach ($request->file as $file) {
                 $filecontent = File::get($file);
-                $filename = time() . '_' . $file->getClientOriginalName();
+                $filename = time().'_'.$file->getClientOriginalName();
 
                 Storage::disk('public')->put("notice/$filename", $filecontent);
 
-                $noticeImage = new NoticeImage();
+                $noticeImage = new NoticeImage;
 
                 $noticeImage->notice_id = $notice->id;
                 $noticeImage->file = $filename;
@@ -136,6 +139,7 @@ class NoticeController extends Controller
         $notice->expiry_date = $dates;
         $notice->user_id = $request->user;
         $notice->save();
+
         return redirect('/notice')->with('Status', 'Notice Edited.');
     }
 
@@ -149,6 +153,7 @@ class NoticeController extends Controller
             NoticeImage::findorFail($file->id)->delete();
         }
         $notice->delete();
+
         return redirect('/notice')->with('Status', 'Notice Deleted.');
     }
 
@@ -162,7 +167,7 @@ class NoticeController extends Controller
         if ($notice->user_id == '') {
             // Cache::flush();
             $title = $notice->title;
-            $body  = $notice->notice;
+            $body = $notice->notice;
             $topic = strtolower(config('app.env')) === 'production' ? config('app.prod-topic') : config('app.dev-topic');
 
             $data = [
@@ -176,7 +181,7 @@ class NoticeController extends Controller
 
             if ($user && $user->fcm_id) {
                 $title = $notice->title;
-                $body  = $notice->notice;
+                $body = $notice->notice;
 
                 $data = [
                     'route_channel' => 'notice',
@@ -185,6 +190,7 @@ class NoticeController extends Controller
                 $this->runFirebaseNotification($user->fcm_id, null, $title, $body, $data);
             }
         }
+
         return redirect('/notice')->with('Status', 'Notice Sent.');
     }
 
@@ -192,7 +198,7 @@ class NoticeController extends Controller
     {
         $this->validate($request, [
             'date' => ['nullable', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'user' => 'nullable|exists:mobileusers,id'
+            'user' => 'nullable|exists:mobileusers,id',
         ]);
         $mr = '';
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
@@ -200,10 +206,9 @@ class NoticeController extends Controller
             return redirect('dashboard/collection-cheque')->with('status', 'The start-date must be a date before or equal to today');
         }
 
-
         $id = $request->user;
         $date_req = $request->date;
-        if (!empty($date_req)) {
+        if (! empty($date_req)) {
             $dates = $this->custom_BS_to_AD($request->date);
         }
         if (Auth::user()->hasRole('ASM')) {
@@ -225,13 +230,13 @@ class NoticeController extends Controller
             } else {
                 $notices = Notice::orderBy('date', 'ASC')->get();
             }
-        } elseif (empty($id) && !empty($date_req)) {
+        } elseif (empty($id) && ! empty($date_req)) {
             if (Auth::user()->hasRole('ASM')) {
                 $notices = Notice::whereNull('user_id')->orWhereIn('user_id', $mobileuser)->where('date', $dates)->orderBy('date', 'ASC')->get();
             } else {
                 $notices = Notice::orderBy('date', 'ASC')->where('date', $dates)->get();
             }
-        } elseif (!empty($id) && empty($date_req)) {
+        } elseif (! empty($id) && empty($date_req)) {
             $officer = Mobileuser::where('id', $id)->first();
             $mr = $officer->name;
             if (Auth::user()->hasRole('ASM')) {
@@ -251,7 +256,7 @@ class NoticeController extends Controller
         $data['notices'] = $notices;
         $data['users'] = $users;
         $data['from'] = $date_req;
-        $data['start'] = "";
+        $data['start'] = '';
         $data['mr'] = $mr;
         $data['userid'] = $request->user;
 

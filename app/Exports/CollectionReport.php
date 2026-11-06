@@ -3,21 +3,30 @@
 namespace App\Exports;
 
 use App\Payment;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\AfterSheet;
-use Illuminate\Support\Facades\DB;
 use App\Traits\Nepali_Calendar;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
 
 class CollectionReport implements FromView
-// class CollectionReport implements FromCollection,WithHeadings,WithEvents
+    // class CollectionReport implements FromCollection,WithHeadings,WithEvents
 {
     use Nepali_Calendar;
 
-    protected $payments, $status, $from, $to, $user;
+    protected $payments;
+
+    protected $status;
+
+    protected $from;
+
+    protected $to;
+
+    protected $user;
 
     public function __construct($payments, $status, $user, $from, $to)
     {
@@ -35,12 +44,12 @@ class CollectionReport implements FromView
             'payments' => $this->payments,
             'from' => $this->from,
             'to' => $this->to,
-            'user' => $this->user
+            'user' => $this->user,
         ]);
     }
 
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     // public function collection()
     // {

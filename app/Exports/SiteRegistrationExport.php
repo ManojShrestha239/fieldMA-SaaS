@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\SiteRegistration;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -10,7 +11,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class SiteRegistrationExport implements FromCollection, WithHeadings, WithMapping
 {
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function collection()
     {
@@ -33,7 +34,7 @@ class SiteRegistrationExport implements FromCollection, WithHeadings, WithMappin
             $siteRegistration->house_hold_address,
             $siteRegistration->house_hold_contact,
             $siteRegistration->floor_of_house,
-            $siteRegistration->dealer ? $siteRegistration->dealer->name . ' (' . $siteRegistration->dealer->code . ')' : '',
+            $siteRegistration->dealer ? $siteRegistration->dealer->name.' ('.$siteRegistration->dealer->code.')' : '',
             $siteRegistration->under_coat_exterior,
             $siteRegistration->under_coat_interior,
             $siteRegistration->under_coat_total,

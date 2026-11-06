@@ -18,7 +18,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class UnlistedExportController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function unlisted_visit_Report(Request $request)
     {
@@ -26,12 +26,12 @@ class UnlistedExportController extends Controller
         $valid = Validator::make($request->all(), [
             // 'user' => 'nullable|exists:mobileusers,id',
             'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
         if ($valid->fails()) {
             return redirect('/dashboard/visithistory')->withInput()->withErrors($valid);
         }
-        if (!($request->from || $request->to)) {
+        if (! ($request->from || $request->to)) {
             $from = '';
             $to = '';
         } else {
@@ -81,19 +81,21 @@ class UnlistedExportController extends Controller
 
             // $visit->collection = Payment::where('user_id', $visit->user_id)->sum('amount');
         }
+
         // return $session[0];
         // return $session[0];
         // if (count($session) > 0) {
         return Excel::download(new UnlistedReport($session, $request->from, $request->to), 'Visit report.xlsx');
         // }
     }
+
     public function unlisted_visit_Detailed_Report(Request $request)
     {
         // return $request->all();
         $valid = Validator::make($request->all(), [
             'user' => 'required|exists:mobileusers,id',
             'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
         if ($valid->fails()) {
             return redirect('/dashboard/visithistory')->withInput()->withErrors($valid);
@@ -112,8 +114,9 @@ class UnlistedExportController extends Controller
         } else {
             $session = Session::where('user_id', $request->user)->where('status', 'Unlisted')->orderBy('date', 'DESC')->get();
         }
+
         // return $session[0]->visits;
         // return "$user->name"."_".$user->id.$from ."_". $to."_report_".".xlsx";
-        return Excel::download(new UnlistedDetailedReport($session, $request->from, $request->to, $user), "$user->name" . "_" . $user->id . $from . "_" . $to . "_report" . ".xlsx");
+        return Excel::download(new UnlistedDetailedReport($session, $request->from, $request->to, $user), "$user->name".'_'.$user->id.$from.'_'.$to.'_report'.'.xlsx');
     }
 }

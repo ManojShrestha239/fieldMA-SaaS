@@ -15,6 +15,7 @@ class SiteNote extends Model
         'web_user_id',
         'note',
     ];
+
     protected $casts = [
         'id' => 'integer',
         'site_id' => 'integer',
@@ -22,6 +23,7 @@ class SiteNote extends Model
         'web_user_id' => 'integer',
         'note' => 'string',
     ];
+
     protected $hidden = [
         'created_at',
         'updated_at',

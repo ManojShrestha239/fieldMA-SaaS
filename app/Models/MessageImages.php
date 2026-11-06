@@ -11,7 +11,7 @@ class MessageImages extends Model
 
     protected $fillable = [
         'chat_id',
-        'image'
+        'image',
     ];
 
     public function message()

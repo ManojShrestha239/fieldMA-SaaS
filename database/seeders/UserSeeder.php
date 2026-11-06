@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
         $super->syncPermissions($allPermissions);
 
         // Only create default test user in legacy single-tenant environment, not in tenant DBs
-        if (!function_exists('tenant') || !tenant()) {
+        if (! function_exists('tenant') || ! tenant()) {
             $user = User::firstOrCreate(
                 ['email' => 'test@test.com'],
                 [
@@ -45,7 +45,7 @@ class UserSeeder extends Seeder
 
         $users = User::where(['user_type' => 'super', 'app' => 'SOA'])->get();
         foreach ($users as $u) {
-            if (!$u->hasRole($super->name)) {
+            if (! $u->hasRole($super->name)) {
                 $u->assignRole($super);
             }
         }

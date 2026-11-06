@@ -18,20 +18,24 @@ class Message extends Model
         'from',
         'to',
         'message',
-        'is_read'
+        'is_read',
     ];
+
     public function messageImages()
     {
         return $this->hasMany('App\Models\MessageImages', 'chat_id');
     }
+
     public function mobileuser()
     {
         return $this->belongsTo('App\Models\Mobileuser', 'from');
     }
+
     public function user()
     {
         return $this->belongsTo('App\Models\User', 'admin');
     }
+
     public function group()
     {
         return $this->belongsTo('App\Models\MessageGroup');

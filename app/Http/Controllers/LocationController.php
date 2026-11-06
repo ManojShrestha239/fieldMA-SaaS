@@ -2,29 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Location;
 use App\Models\Area;
+use App\Models\Attendance;
 use App\Models\Dealer;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\DeviceLog;
+use App\Models\Location;
 use App\Models\Mobileuser;
-use App\Traits\Nepali_Calendar;
-use App\Traits\CustomNepaliCalendarConverter;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\ProductSize;
 use App\Models\Session;
-use App\Models\Attendance;
-use App\Models\DeviceLog;
+use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LocationController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -33,7 +35,7 @@ class LocationController extends Controller
         $ldate = date('Y-m-d');
         $dates = $this->custom_AD_to_BS($ldate);
         $rol = DB::table('roles')->get();
-        $arr = array();
+        $arr = [];
         if (Auth::user()->hasRole('ASM')) {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
@@ -59,14 +61,14 @@ class LocationController extends Controller
                 ->where('active_status', 'Active')
                 ->get();
         }
-        if (!empty($currentLoc)) {
+        if (! empty($currentLoc)) {
             foreach ($currentLoc as $loc) {
                 $mouser = Mobileuser::findorFail($loc->user_id);
                 $new = $loc['coordinates'];
-                if (!empty($new)) {
+                if (! empty($new)) {
                     foreach ($new as $latData) {
                     }
-                    $newArr = array('name' => $mouser->name, 'lat' => $latData['latitude'], 'lng' => $latData['longitude'], 'is_exact' => 'true');
+                    $newArr = ['name' => $mouser->name, 'lat' => $latData['latitude'], 'lng' => $latData['longitude'], 'is_exact' => 'true'];
                     $arr[] = ((object) $newArr);
                 }
             }
@@ -77,7 +79,7 @@ class LocationController extends Controller
         // $data['cancelled'] = Order::where('status', 'Declined')->sum('total_price');
         $data['today_order'] = Order::where('date', date('Y-m-d'))->sum('total_price');
         $unlisted = Session::where('status', 'Unlisted')->count();
-        $total_onlinevisit =  Session::where('status', '!=', 'Unlisted')->count();
+        $total_onlinevisit = Session::where('status', '!=', 'Unlisted')->count();
         $data['today_onlinevisit'] = Session::where('date', date('Y-m-d'))->where('status', '!=', 'Unlisted')->count();
         $data['today_unlisted'] = Session::where('date', date('Y-m-d'))->where('status', 'Unlisted')->count();
         $data['unlisted'] = $unlisted;
@@ -92,6 +94,7 @@ class LocationController extends Controller
         $data['collection'] = Payment::sum('amount');
         $data['today_collection'] = Payment::where('collection_date', date('Y-m-d'))->sum('amount');
         $data['present'] = Attendance::where('date', date('Y-m-d'))->distinct()->count('mobileuser_id');
+
         return view('dashboards.map.representatives', $data);
     }
 
@@ -102,17 +105,15 @@ class LocationController extends Controller
             'date' => ['regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
 
-
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
         if ($request['date'] > $today) {
-
 
             return redirect('dashboard')->with('status', 'Date must be a date before or equal to today');
         }
         $dates = $this->custom_BS_to_AD($request->date);
 
         $rol = DB::table('roles')->get();
-        $arr = array();
+        $arr = [];
 
         // $currentLoc = Location::where('day', $dates)->where('role_id', '=', '1')->get();
         if (Auth::user()->hasRole('ASM')) {
@@ -141,19 +142,19 @@ class LocationController extends Controller
                 ->get();
         }
 
-        if (!empty($currentLoc)) {
+        if (! empty($currentLoc)) {
             foreach ($currentLoc as $loc) {
                 $new = $loc['coordinates'];
                 $mouser = Mobileuser::findorFail($loc->user_id);
 
                 //                $data = json_decode($new, TRUE);
-                if (!empty($new)) {
+                if (! empty($new)) {
                     foreach ($new as $latData) {
 
                         // $newArr = $x = end($latData->coordinates);
                         //  $arr[] = ((object) $newArr);
                     }
-                    $newArr = array('name' => $mouser->name, 'lat' => $latData['latitude'], 'lng' => $latData['longitude'], 'is_exact' => 'true');
+                    $newArr = ['name' => $mouser->name, 'lat' => $latData['latitude'], 'lng' => $latData['longitude'], 'is_exact' => 'true'];
                     $arr[] = ((object) $newArr);
                 }
             }
@@ -161,7 +162,7 @@ class LocationController extends Controller
         $array_final = json_encode($arr, JSON_NUMERIC_CHECK);
         $d = $request['date'];
         // $dealers = Dealer::where('active_status', 'Active')->get();
-        //$locations = DB::table('dealers')->where('status', 'approved')->get();
+        // $locations = DB::table('dealers')->where('status', 'approved')->get();
 
         $data['total_order'] = Order::sum('total_price');
         // $data['pending'] = Order::where('status', 'Pending')->sum('total_price');
@@ -185,6 +186,7 @@ class LocationController extends Controller
         $data['present'] = Attendance::where('date', $dates)->distinct()->count('mobileuser_id');
 
         $data['currentLoc'] = json_encode($arr, JSON_NUMERIC_CHECK);
+
         return view('dashboards.map.representatives', $data);
     }
 
@@ -193,7 +195,7 @@ class LocationController extends Controller
         // 1. Determine the date string to use
         if ($date !== null) {
             // Validate the URL date parameter (expects YYYY-MM-DD)
-            if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/", $date)) {
+            if (! preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', $date)) {
                 return redirect('/dashboard');
             }
             $dateInput = $date;           // use URL date
@@ -298,19 +300,19 @@ class LocationController extends Controller
 
         // 9. Prepare view data
         $data = [
-            'userinfo'        => $userinfo,
-            'currentLoc'      => $array_final,
-            'rol'             => $rol,
-            'areas'           => $areasList,
-            'date'            => $dateInput,          // original input date (for display)
-            'count'           => $count,
-            'dealers'         => $dealers,
-            'visits'          => $visits,
-            'checkinaddress'  => $checkinaddress,
-            'lastlocation'    => $lastlocation,
-            'last_synced_on'  => $last_synced_on,
-            'attendance'      => $attendance,
-            'deviceLogs'      => $deviceLogs,
+            'userinfo' => $userinfo,
+            'currentLoc' => $array_final,
+            'rol' => $rol,
+            'areas' => $areasList,
+            'date' => $dateInput,          // original input date (for display)
+            'count' => $count,
+            'dealers' => $dealers,
+            'visits' => $visits,
+            'checkinaddress' => $checkinaddress,
+            'lastlocation' => $lastlocation,
+            'last_synced_on' => $last_synced_on,
+            'attendance' => $attendance,
+            'deviceLogs' => $deviceLogs,
             'gps_distance_km' => $attendance ? $attendance->totalkm_gps : null,
         ];
 
@@ -375,7 +377,6 @@ class LocationController extends Controller
     //         }
     //     }
 
-
     //     if (isset($maxTimeData)) {
     //         $last_synced_on = $maxTimeData['time'];
     //         $data['maxTimeData'] = $maxTimeData;
@@ -398,7 +399,6 @@ class LocationController extends Controller
     //     });
     //     $count = count($arr);
     //     $array_final = json_encode($arr, JSON_NUMERIC_CHECK);
-
 
     //     $history = DB::table('visits')->where('user_id', $id)->where('date', $dat)->get();
 
@@ -435,7 +435,7 @@ class LocationController extends Controller
     //     return view('dashboards.map.singleRepresentative', $data);
     // }
 
-    /////////////////////////////////
+    // ///////////////////////////////
     private function calculateGpsDistanceKm($currentLoc): float
     {
         $jitterThresholdMeters = 8;   // ignore GPS noise while stationary
@@ -446,13 +446,14 @@ class LocationController extends Controller
             if (is_string($coords)) {
                 $coords = json_decode($coords, true) ?? [];
             }
+
             return $coords ?? [];
         });
 
         $clean = $allPoints
-            ->filter(fn($p) => isset($p['latitude'], $p['longitude'], $p['time']))
-            ->unique(fn($p) => $p['latitude'] . ',' . $p['longitude'] . ',' . $p['time']) // drops exact dupes
-            ->sortBy(fn($p) => strtotime($p['time']))
+            ->filter(fn ($p) => isset($p['latitude'], $p['longitude'], $p['time']))
+            ->unique(fn ($p) => $p['latitude'].','.$p['longitude'].','.$p['time']) // drops exact dupes
+            ->sortBy(fn ($p) => strtotime($p['time']))
             ->values();
 
         $totalMeters = 0.0;
@@ -486,9 +487,10 @@ class LocationController extends Controller
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
         $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
+
         return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
-    ////////////////////////////////
+    // //////////////////////////////
 
     public function ind(Request $request, $id)
     {
@@ -497,13 +499,13 @@ class LocationController extends Controller
         $nepaliDay = $currentNepaliDay['date'];
         $nepaliMth = $currentNepaliDay['month'];
         if (strlen($nepaliDay) == 1) {
-            $nepaliDay = '0' . $nepaliDay;
+            $nepaliDay = '0'.$nepaliDay;
         }
         if (strlen($nepaliMth) == 1) {
-            $nepaliMth = '0' . $nepaliMth;
+            $nepaliMth = '0'.$nepaliMth;
         }
         $nepaliYr = $currentNepaliDay['year'];
-        $today = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+        $today = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
 
         $dat = $request->date;
         $d = explode('-', $dat);
@@ -512,15 +514,13 @@ class LocationController extends Controller
         $nepaliDay = $engDay['date'];
         $nepaliMth = $engDay['month'];
         if (strlen($nepaliDay) == 1) {
-            $nepaliDay = '0' . $nepaliDay;
+            $nepaliDay = '0'.$nepaliDay;
         }
         if (strlen($nepaliMth) == 1) {
-            $nepaliMth = '0' . $nepaliMth;
+            $nepaliMth = '0'.$nepaliMth;
         }
         $nepaliYr = $engDay['year'];
-        $dates = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
-
-
+        $dates = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
 
         $rol = DB::table('roles')->get();
         $userinfo = Mobileuser::find($id);
@@ -531,14 +531,14 @@ class LocationController extends Controller
             // $area[] = json_decode(Area::where('areacode', $pur)->pluck('area'),true)[0];
         }
 
-        $list[] = array(
-            "areas" => $area,
-        );
+        $list[] = [
+            'areas' => $area,
+        ];
         $area = null;
 
         $dat = $request['date'];
 
-        $arr = array();
+        $arr = [];
 
         $currentLoc = Location::where('day', $dates)->where('user_id', $id)->get();
         $lastlocation = '';
@@ -550,9 +550,9 @@ class LocationController extends Controller
             foreach ($currentLoc as $loc) {
                 $new = $loc['coordinates'];
 
-                if (!empty($new)) {
+                if (! empty($new)) {
                     foreach ($new as $latData) {
-                        $newArr = array("address" => array("lat" => $latData['latitude'], "lng" => $latData['longitude'],), 'title' => $latData['time']);
+                        $newArr = ['address' => ['lat' => $latData['latitude'], 'lng' => $latData['longitude']], 'title' => $latData['time']];
                         $arr[] = ((object) $newArr);
 
                         $lastdata = $latData;
@@ -582,7 +582,7 @@ class LocationController extends Controller
         $dealers = Dealer::whereIn('area_code', $areas)->where('active_status', 'Active')->get();
         $visits = Session::where(['user_id' => $id, 'date' => $dates, ['status', '!=', 'Unlisted']])->get();
         $devicelogModel = DeviceLog::where('mobileuser_id', $id)->whereDate('created_at', $dates)->first();
-        if (isset($devicelogModel) && !empty($devicelogModel)) {
+        if (isset($devicelogModel) && ! empty($devicelogModel)) {
             $deviceLogs = json_decode($devicelogModel->device_info, true);
         }
 
@@ -599,7 +599,7 @@ class LocationController extends Controller
             'lastlocation' => $lastlocation,
             'last_synced_on' => $last_synced_on,
             'attendance' => $attendance,
-            'deviceLogs' => $deviceLogs ?? null
+            'deviceLogs' => $deviceLogs ?? null,
         ]);
         // return view('dashboards.map.singleRepresentative', ['userinfo' => $userinfo, 'currentLoc' => $array_final, 'rol' => $rol, 'areas' => $list, 'date' => $request['date'], 'dealers' => $dealers, 'visits' => $visits]);
     }
@@ -631,7 +631,7 @@ class LocationController extends Controller
         $output = json_decode($response);
         // return response()->json($output);
         foreach ($output->results as $result) {
-            if ($result->types[0] == "route") {
+            if ($result->types[0] == 'route') {
                 // dd($result);
                 return $result->formatted_address;
             }

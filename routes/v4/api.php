@@ -1,10 +1,9 @@
 <?php
 
-use App\Http\Controllers\API\v4\AttendanceController;
 use App\Http\Controllers\API\v4\AlertReminderController;
+use App\Http\Controllers\API\v4\AttendanceController;
 use App\Http\Controllers\API\v4\ComplaintController;
 use App\Http\Controllers\API\v4\SessionController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,14 +28,14 @@ Route::group(['middleware' => ['auth:api', 'token.api', 'user.status']], functio
     Route::apiResource('reminder', AlertReminderController::class);
 
     // [ACTIVE] Field Complaints & Issue Types (Ref: Api_Audit.md #47, #48)
-    Route::apiResource('complaint', ComplaintController::class, ["as" => "api"]);
-    Route::get('issue_type', [ComplaintController::class, 'issue_type'], ["as" => "api"]);
+    Route::apiResource('complaint', ComplaintController::class, ['as' => 'api']);
+    Route::get('issue_type', [ComplaintController::class, 'issue_type'], ['as' => 'api']);
 
     // [INACTIVE] Flutter uses /api/v3/locations (Ref: Api_Audit.md #41)
     // Route::post('/location', [SessionController::class, 'loctaion'], ["as" => "api"]);
 
     // [ACTIVE] GPS Attendance + KM (Ref: Api_Audit.md #44)
-    Route::post('attendancewithkm', [AttendanceController::class, 'onlinewithkm'], ["as" => "api"]);
+    Route::post('attendancewithkm', [AttendanceController::class, 'onlinewithkm'], ['as' => 'api']);
 
     // [INACTIVE] Flutter uses /api/v4/attendancewithkm (Ref: Api_Audit.md #42)
     // Route::post('attendance', [AttendanceController::class, 'online'], ["as" => "api"]);

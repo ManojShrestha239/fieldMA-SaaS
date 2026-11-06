@@ -60,7 +60,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasTable('subdealer_stocks')) {
+        if (! Schema::hasTable('subdealer_stocks')) {
             Schema::create('subdealer_stocks', function (Blueprint $table) {
                 $table->id();
                 $table->string('subdealer_code');
@@ -72,7 +72,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('subdealer_stock_logs')) {
+        if (! Schema::hasTable('subdealer_stock_logs')) {
             Schema::create('subdealer_stock_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('subdealer_stock_id')->constrained('subdealer_stocks')->onDelete('cascade');
@@ -85,7 +85,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('stocks')) {
+        if (! Schema::hasTable('stocks')) {
             Schema::create('stocks', function (Blueprint $table) {
                 $table->id();
                 $table->string('dealer_code');
@@ -98,7 +98,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('stock_logs')) {
+        if (! Schema::hasTable('stock_logs')) {
             Schema::create('stock_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('to_dealer_code')->nullable();
@@ -121,7 +121,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('stock_transactions')) {
+        if (! Schema::hasTable('stock_transactions')) {
             Schema::create('stock_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->date('date')->index();
@@ -135,7 +135,7 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('stock_logs')) {
-            if (!Schema::hasColumn('stock_logs', 'stock_transaction_id')) {
+            if (! Schema::hasColumn('stock_logs', 'stock_transaction_id')) {
                 Schema::table('stock_logs', function (Blueprint $table) {
                     $table->foreignId('stock_transaction_id')
                         ->nullable()
@@ -145,7 +145,7 @@ return new class extends Migration
             }
         }
 
-        if (!Schema::hasTable('stock_audit_logs')) {
+        if (! Schema::hasTable('stock_audit_logs')) {
             Schema::create('stock_audit_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('stock_log_id')

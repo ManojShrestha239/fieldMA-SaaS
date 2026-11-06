@@ -3,27 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Exports\OrderCollectionExport;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OrderReport;
 use App\Exports\OrderTrackingExport;
 use App\Models\Area;
 use App\Models\Dealer;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderReportController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -40,7 +42,7 @@ class OrderReportController extends Controller
         if ($request->to) {
             $to = $this->custom_BS_to_AD($request->to);
         }
-        $title = "Test title";
+        $title = 'Test title';
         $user = $request->user;
         $from = $from;
         $to = $to;
@@ -48,13 +50,13 @@ class OrderReportController extends Controller
         $order = Order::join('dealers', 'dealers.code', 'orders.dealer_code')
             ->join('areas', 'areas.areacode', 'dealers.area_code')
             ->join('mobileusers', 'orders.user_id', 'mobileusers.id')
-            ->select('orders.date', 'orders.id', 'dealers.code', 'dealers.name', 'dealers.address', 'areas.area', DB::raw("0.0 as sales"), DB::raw("0.0 as outstanding"), DB::raw("0.0 as od"), DB::raw("0.0 as ageing"), "orders.total_price", "mobileusers.name as orderBy", DB::raw("'n-a' as payment_date"), "dealers.order_limit", "orders.remarks");
+            ->select('orders.date', 'orders.id', 'dealers.code', 'dealers.name', 'dealers.address', 'areas.area', DB::raw('0.0 as sales'), DB::raw('0.0 as outstanding'), DB::raw('0.0 as od'), DB::raw('0.0 as ageing'), 'orders.total_price', 'mobileusers.name as orderBy', DB::raw("'n-a' as payment_date"), 'dealers.order_limit', 'orders.remarks');
         if (empty($user) && empty($from) && empty($to)) {
             $order = $order->get();
-        } else if (!empty($user) && empty($from) && empty($to)) {
+        } elseif (! empty($user) && empty($from) && empty($to)) {
             $order = $order->where('orders.dealer_code', $user)
                 ->get();
-        } elseif (empty($user) && !empty($from) && !empty($to)) {
+        } elseif (empty($user) && ! empty($from) && ! empty($to)) {
             $order = $order->whereBetween('orders.date', [$from, $to])
                 ->get();
         } else {
@@ -71,7 +73,7 @@ class OrderReportController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -81,8 +83,7 @@ class OrderReportController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -96,21 +97,21 @@ class OrderReportController extends Controller
         $from = '';
         $to = '';
         if ($request->status) {
-            if ($request->status == "Pending" || $request->status == "pending") {
+            if ($request->status == 'Pending' || $request->status == 'pending') {
                 $status = $request->status;
-            } else if ($request->status == "ongoing" || $request->status == "Ongoing") {
+            } elseif ($request->status == 'ongoing' || $request->status == 'Ongoing') {
                 $status = 'Sent to Dispatch';
-            } else if ($request->status == 'cancelled' || $request->status == "Cancelled") {
+            } elseif ($request->status == 'cancelled' || $request->status == 'Cancelled') {
                 $status = 'Declined';
-            } else if ($request->status == 'completed' || $request->status == "Completed") {
+            } elseif ($request->status == 'completed' || $request->status == 'Completed') {
                 $status = 'Dispatched';
-            } else if ($request->status == 'approved' || $request->status == "Approved") {
-                $status = "Approved";
+            } elseif ($request->status == 'approved' || $request->status == 'Approved') {
+                $status = 'Approved';
             } else {
-                $status = "";
+                $status = '';
             }
         } else {
-            $status = "";
+            $status = '';
         }
         // return $status;
         if ($request->from) {
@@ -125,7 +126,7 @@ class OrderReportController extends Controller
         } else {
             $admin_area = Area::pluck('areacode');
         }
-        $title = "Test title";
+        $title = 'Test title';
         $user = $request->user;
         // $from = $request->from;
         // $to = $request->to;
@@ -140,16 +141,16 @@ class OrderReportController extends Controller
                     'dealers.name',
                     'dealers.address',
                     'areas.area',
-                    DB::raw("0.0 as sales"),
-                    DB::raw("0.0 as outstanding"),
-                    DB::raw("0.0 as od"),
-                    DB::raw("0.0 as ageing"),
-                    "orders.total_price",
-                    "mobileusers.name as orderBy",
+                    DB::raw('0.0 as sales'),
+                    DB::raw('0.0 as outstanding'),
+                    DB::raw('0.0 as od'),
+                    DB::raw('0.0 as ageing'),
+                    'orders.total_price',
+                    'mobileusers.name as orderBy',
                     DB::raw("'n-a' as payment_date"),
-                    "dealers.order_limit",
-                    "orders.remarks",
-                    "orders.status"
+                    'dealers.order_limit',
+                    'orders.remarks',
+                    'orders.status'
                 )
                 ->whereIn('orders.areacode', $admin_area)
                 ->where('orders.status', $status);
@@ -164,25 +165,25 @@ class OrderReportController extends Controller
                     'dealers.name',
                     'dealers.address',
                     'areas.area',
-                    DB::raw("0.0 as sales"),
-                    DB::raw("0.0 as outstanding"),
-                    DB::raw("0.0 as od"),
-                    DB::raw("0.0 as ageing"),
-                    "orders.total_price",
-                    "mobileusers.name as orderBy",
+                    DB::raw('0.0 as sales'),
+                    DB::raw('0.0 as outstanding'),
+                    DB::raw('0.0 as od'),
+                    DB::raw('0.0 as ageing'),
+                    'orders.total_price',
+                    'mobileusers.name as orderBy',
                     DB::raw("'n-a' as payment_date"),
-                    "dealers.order_limit",
-                    "orders.remarks",
-                    "orders.status"
+                    'dealers.order_limit',
+                    'orders.remarks',
+                    'orders.status'
                 )
                 ->whereIn('orders.areacode', $admin_area);
         }
         if (empty($user) && empty($from)) {
             $order = $order->get();
-        } else if (!empty($user) && empty($from)) {
+        } elseif (! empty($user) && empty($from)) {
             $order = $order->where('orders.dealer_code', $user)
                 ->get();
-        } elseif (empty($user) && !empty($from)) {
+        } elseif (empty($user) && ! empty($from)) {
             $order = $order->whereBetween('orders.date', [$from, $to])
                 ->get();
         } else {
@@ -192,6 +193,7 @@ class OrderReportController extends Controller
         }
         // return $order[2];
         $user = Dealer::where('code', $user)->first();
+
         // ob_end_clean();
         // ob_start();
         return Excel::download(new OrderReport($order, $title, $user, $request->from, $request->to), 'Order Report.xlsx');
@@ -201,7 +203,7 @@ class OrderReportController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -212,16 +214,15 @@ class OrderReportController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id) {}
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -232,7 +233,7 @@ class OrderReportController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -261,19 +262,19 @@ class OrderReportController extends Controller
             'status' => 'nullable|in:order,Pending,approved,ongoing,completed,cancelled,draft',
             'user' => 'nullable|exists:dealers,code',
             'from' => ['required', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['required', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['required', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ])->validate();
 
         $filterType = strtolower(trim($request->status));
 
         $statusMap = [
-            'pending'       => ['Pending', 'Sent to Account'],
-            'approved'      => ['Approved', 'Account'],
-            'ongoing'       => ['Sent to Dispatch', 'Dispatched'],
-            'cancelled'     => ['Declined'],
-            'completed'     => ['Delivered'],
-            'urgent order'  => ['Urgent Order'],
-            'draft'         => ['Draft'],
+            'pending' => ['Pending', 'Sent to Account'],
+            'approved' => ['Approved', 'Account'],
+            'ongoing' => ['Sent to Dispatch', 'Dispatched'],
+            'cancelled' => ['Declined'],
+            'completed' => ['Delivered'],
+            'urgent order' => ['Urgent Order'],
+            'draft' => ['Draft'],
         ];
 
         $status = $statusMap[$filterType] ?? '';
@@ -282,13 +283,12 @@ class OrderReportController extends Controller
 
         if ($request->from || $request->to) {
             $from = $this->custom_BS_to_AD($request->from);
-            $to   = $this->custom_BS_to_AD($request->to);
+            $to = $this->custom_BS_to_AD($request->to);
         }
 
         $admin_area = Auth::user()->hasRole('ASM')
             ? collect(Auth::user()->area)->pluck('areacode')
             : Area::pluck('areacode');
-
 
         $dealer = $request->user;
         if ($status) {
@@ -298,14 +298,14 @@ class OrderReportController extends Controller
                 ->where('orders.status', $status)
                 ->whereIn('areacode', $admin_area)
                 ->groupBy('dealer_code', 'date')
-                ->orderBy('date', "asc");
+                ->orderBy('date', 'asc');
         } else {
             $order = Order::with(['dealer', 'area', 'user'])
                 ->select('orders.*', DB::raw('sum(total_price)as total_collection'))
                 ->whereBetween('orders.date', [$from, $to])
                 ->whereIn('areacode', $admin_area)
                 ->groupBy('dealer_code', 'date')
-                ->orderBy('date', "asc");
+                ->orderBy('date', 'asc');
         }
 
         $query = Order::with(['dealer', 'area', 'user'])
@@ -334,7 +334,7 @@ class OrderReportController extends Controller
             ->select('dealer_code', 'collection_date', DB::raw('sum(amount) as amount'))
             ->groupBy('dealer_code', 'collection_date')
             ->get()
-            ->keyBy(fn($p) => "{$p->dealer_code}_{$p->collection_date}");
+            ->keyBy(fn ($p) => "{$p->dealer_code}_{$p->collection_date}");
 
         $approvedRemarks = Order::whereIn('dealer_code', $dealers)
             ->whereIn('date', $dates)
@@ -342,7 +342,7 @@ class OrderReportController extends Controller
             ->whereNotNull('remarks')
             ->select('dealer_code', 'date', 'remarks')
             ->get()
-            ->keyBy(fn($o) => "{$o->dealer_code}_{$o->date}");
+            ->keyBy(fn ($o) => "{$o->dealer_code}_{$o->date}");
 
         foreach ($order as $odr) {
             $key = "{$odr->dealer_code}_{$odr->date}";
@@ -356,9 +356,8 @@ class OrderReportController extends Controller
         $to = $request->to;
         $date = explode('-', $request->to);
 
-        return Excel::download(new OrderTrackingExport($order, $dealer, $from, $to, $this->get_nepali_month($date[1])), $this->get_nepali_month($date[1]) . '_' . 'OrderTrackingExcel_' . time() . '.xlsx');
+        return Excel::download(new OrderTrackingExport($order, $dealer, $from, $to, $this->get_nepali_month($date[1])), $this->get_nepali_month($date[1]).'_'.'OrderTrackingExcel_'.time().'.xlsx');
     }
-
 
     public function ordercollection(Request $request)
     {
@@ -367,27 +366,27 @@ class OrderReportController extends Controller
             'status' => 'nullable|in:Pending,pending,approved,Approved,ongoing,Sent to Dispatch,completed,Dispatched,cancelled,Declined,order',
             'user' => 'nullable|exists:dealers,code',
             'from' => ['required', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['required', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['required', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ])->validate();
         if ($request->status) {
-            if ($request->status == "Pending") {
+            if ($request->status == 'Pending') {
                 $status = $request->status;
-            } else if ($request->status == "approved") {
+            } elseif ($request->status == 'approved') {
                 $status = 'Approved';
-            } else if ($request->status == "cancelled") {
+            } elseif ($request->status == 'cancelled') {
                 $status = 'Declined';
-            } else if ($request->status == "ongoing") {
-                $status = "Sent to Dispatch";
-            } else if ($request->status == "completed") {
-                $status = "Dispatched";
+            } elseif ($request->status == 'ongoing') {
+                $status = 'Sent to Dispatch';
+            } elseif ($request->status == 'completed') {
+                $status = 'Dispatched';
             } else {
-                $status = "";
+                $status = '';
             }
         } else {
-            $status = "";
+            $status = '';
         }
 
-        if (!($request->from || $request->to)) {
+        if (! ($request->from || $request->to)) {
             $from = '';
             $to = '';
         } else {
@@ -419,7 +418,7 @@ class OrderReportController extends Controller
                 ->groupBy('dealer_code')
                 ->orderBy('areacode');
         }
-        if (!$dealer) {
+        if (! $dealer) {
             $order = $order->get();
         } else {
             $order = $order->where('dealer_code', $dealer)
@@ -437,8 +436,10 @@ class OrderReportController extends Controller
 
         if (isset($dealer)) {
             $dealerName = Dealer::where('code', $dealer)->first()->name;
-            return Excel::download(new OrderCollectionExport($order, $dealer, $from, $to, $this->get_nepali_month($currentMonth), $currentYear), $dealerName . '_' . $this->get_nepali_month($currentMonth) . '_' . 'OrderCollection Report_' . time() . '.xlsx');
+
+            return Excel::download(new OrderCollectionExport($order, $dealer, $from, $to, $this->get_nepali_month($currentMonth), $currentYear), $dealerName.'_'.$this->get_nepali_month($currentMonth).'_'.'OrderCollection Report_'.time().'.xlsx');
         }
-        return Excel::download(new OrderCollectionExport($order, $dealer, $from, $to, $this->get_nepali_month($currentMonth), $currentYear),  $this->get_nepali_month($currentMonth) . '_' . 'OrderCollection Report_' . time() . '.xlsx');
+
+        return Excel::download(new OrderCollectionExport($order, $dealer, $from, $to, $this->get_nepali_month($currentMonth), $currentYear), $this->get_nepali_month($currentMonth).'_'.'OrderCollection Report_'.time().'.xlsx');
     }
 }

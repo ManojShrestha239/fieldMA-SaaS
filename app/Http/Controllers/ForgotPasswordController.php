@@ -5,14 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
 {
-
     public function showForgetPasswordForm()
     {
         return view('resetpassword.forgetPassword');
@@ -27,20 +26,20 @@ class ForgotPasswordController extends Controller
         //     return back()->withInput()->with($valid->errors());
         // }
         $request->validate([
-            'email' => 'required|email|exists:users'
+            'email' => 'required|email|exists:users',
         ]);
 
-        //create random token
+        // create random token
         $token = Str::random(64);
 
-        //storing in database send token of user emails
+        // storing in database send token of user emails
         DB::table('password_resets')->insert([
             'email' => $request->email,
             'token' => $token,
-            'created_at' => Carbon::now()
+            'created_at' => Carbon::now(),
         ]);
 
-        //Send mail to user email
+        // Send mail to user email
         Mail::send('resetpassword.emails.forgetPassword', ['token' => $token], function ($message) use ($request) {
             $message->to($request->email);
             $message->subject('Reset Password');
@@ -60,17 +59,18 @@ class ForgotPasswordController extends Controller
         $updatePassword = DB::table('password_resets')
             ->where([
                 // 'email' => $request->email,
-                'token' => $token
+                'token' => $token,
             ])->first();
 
-        //if Password update is fails
-        if (!$updatePassword) {
+        // if Password update is fails
+        if (! $updatePassword) {
             return redirect('/login')->with('message', 'Invalid token!');
         }
         $a = Carbon::parse($updatePassword->created_at)->addMinutes(5);
         $b = $a->toDateTimeString();
         if (Carbon::now()->toDateTimeString() > $b) {
             DB::table('password_resets')->where('email', $updatePassword->email)->delete();
+
             return redirect('/login')->with('message', 'Token expired');
         }
         // else{
@@ -78,6 +78,7 @@ class ForgotPasswordController extends Controller
         // }
 
         $email = DB::table('password_resets')->first();
+
         return view('resetpassword.forgetPasswordLink', ['token' => $token, 'email' => $email]);
     }
 
@@ -92,7 +93,7 @@ class ForgotPasswordController extends Controller
         $request->validate([
             'email' => 'required|email|exists:users',
             'password' => 'required|min:8',
-            'password_confirmation' => 'required|same:password'
+            'password_confirmation' => 'required|same:password',
         ]);
         // return $request->all();
         //         $updatePassword = DB::table('password_resets')
@@ -120,7 +121,7 @@ class ForgotPasswordController extends Controller
         $user = User::where('email', $request->email)
             ->update(['password' => Hash::make($request->password)]);
 
-        //Checkinig condition where password updated token is deleted
+        // Checkinig condition where password updated token is deleted
         if ($user) {
             DB::table('password_resets')->where('email', $request->email)->delete();
             // DB::table('password_resets')->where('email', $updatePassword->email)->delete();

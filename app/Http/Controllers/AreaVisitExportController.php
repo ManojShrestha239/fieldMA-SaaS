@@ -20,7 +20,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class AreaVisitExportController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function area_visit_Report(Request $request)
     {
@@ -28,7 +28,7 @@ class AreaVisitExportController extends Controller
         $valid = Validator::make($request->all(), [
             'area' => 'nullable|exists:areas,areacode',
             'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
         if ($valid->fails()) {
             // return response()->json(['status' => 'success', 'message' => '']);
@@ -40,8 +40,8 @@ class AreaVisitExportController extends Controller
             $areas = Area::whereIn('areacode', $admin_area)->get();
 
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
-            ->join('mobileusers', 'mobileusers.id', 'area_mobileuser.mobileuser_id')
-            ->whereIn('area_code', $admin_area)
+                ->join('mobileusers', 'mobileusers.id', 'area_mobileuser.mobileuser_id')
+                ->whereIn('area_code', $admin_area)
                 ->groupBy('mobileusers.id')
                 ->pluck('mobileusers.id');
         } else {
@@ -54,25 +54,25 @@ class AreaVisitExportController extends Controller
             $from = '';
             $to = '';
         }
-        if (!$from && !$request->area) {
+        if (! $from && ! $request->area) {
             $session = Session::whereIn('user_id', $mobileuser)
                 ->groupBy('areacode')
                 ->select('visits.*', DB::raw('count(*)as visit_count'))
                 ->get();
-        } else if ($from && !$request->area) {
+        } elseif ($from && ! $request->area) {
             $session = Session::whereIn('user_id', $mobileuser)
                 ->groupBy('areacode')
                 ->whereBetween('date', [$from, $to])
                 ->select('visits.*', DB::raw('count(*)as visit_count'))
                 ->get();
-        } else if (!$from && $request->area) {
+        } elseif (! $from && $request->area) {
             $session = Session::groupBy('areacode')
-            ->where('areacode', $request->area)
+                ->where('areacode', $request->area)
                 ->select('visits.*', DB::raw('count(*)as visit_count'))
                 ->get();
         } else {
             $session = Session::groupBy('areacode')
-            ->where('areacode', $request->area)
+                ->where('areacode', $request->area)
                 ->whereBetween('date', [$from, $to])
                 ->select('visits.*', DB::raw('count(*)as visit_count'))
                 ->get();
@@ -100,25 +100,27 @@ class AreaVisitExportController extends Controller
         if ($request->area) {
             $area = Area::findorFail($request->area);
         } else {
-            $area = "";
+            $area = '';
         }
+
         // return $session;
         return Excel::download(new AreaVisitReport($session, $area, $request->from, $request->to), 'Area visit report.xlsx');
     }
+
     public function Area_visit_Detailed_Report(Request $request)
     {
         // return $request->all();
-        if ($request->area == "Unlisted_dealer_visit") {
+        if ($request->area == 'Unlisted_dealer_visit') {
             $valid = Validator::make($request->all(), [
                 'area' => 'required',
                 'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-                'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+                'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
             ]);
         } else {
             $valid = Validator::make($request->all(), [
                 'area' => 'required|exists:areas,areacode',
                 'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-                'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+                'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
             ]);
         }
         if ($valid->fails()) {
@@ -133,8 +135,8 @@ class AreaVisitExportController extends Controller
             $from = '';
             $to = '';
         }
-        if ($request->area == "Unlisted_dealer_visit") {
-            $area = new \stdClass();
+        if ($request->area == 'Unlisted_dealer_visit') {
+            $area = new \stdClass;
 
             $area->id = '';
             $area->areacode = 'Unlisted_dealer_visit';
@@ -142,18 +144,18 @@ class AreaVisitExportController extends Controller
         } else {
             $area = Area::findorFail($request->area);
         }
-        if (!$from) {
-            if ($request->area == "Unlisted_dealer_visit") {
+        if (! $from) {
+            if ($request->area == 'Unlisted_dealer_visit') {
                 $session = Session::select('visits.*')
-                ->whereNull('areacode')
-                ->get();
+                    ->whereNull('areacode')
+                    ->get();
             } else {
                 $session = Session::where('areacode', $request->area)
                     ->select('visits.*')
                     ->get();
             }
         } else {
-            if ($request->area == "Unlisted_dealer_visit") {
+            if ($request->area == 'Unlisted_dealer_visit') {
                 $session = Session::whereBetween('date', [$from, $to])
                     ->whereNull('areacode')
                     ->select('visits.*')
@@ -185,6 +187,7 @@ class AreaVisitExportController extends Controller
                 $visit->dealer_count = Dealer::where('area_code', $visit->areacode)->count();
             }
         }
+
         // return $session;
         return Excel::download(new AreaVisitDetailedReport($session, $area, $request->from, $request->to), "Area visit of $area->areacode _$from _$to _report.xlsx");
     }

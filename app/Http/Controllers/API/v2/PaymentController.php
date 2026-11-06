@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\API\v2;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Payment;
 use App\Models\LogDetail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Payment;
 use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function collectionHistory(Request $request)
     {
@@ -112,13 +112,13 @@ class PaymentController extends Controller
             'subarea' => 'nullable|string|max:191',
             'to' => 'nullable|required_with:from|date|date_format:Y-m-d',
             'sorting' => 'nullable|string|max:191|in:ASC,DESC',
-            'payment_type' => 'nullable|in:cheque (bearer),cheque (payee),cash (regular),cash (against),cash (account payee)'
+            'payment_type' => 'nullable|in:cheque (bearer),cheque (payee),cash (regular),cash (against),cash (account payee)',
         ]);
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
         }
         $sort = $request->sorting;
-        if (!$sort) {
+        if (! $sort) {
             $sort = 'DESC';
         }
         $user = Auth::user();
@@ -134,7 +134,7 @@ class PaymentController extends Controller
         }
         if ($request->from) {
             $valid = Validator::make($request->all(), [
-                'to' => 'required'
+                'to' => 'required',
             ]);
             if ($valid->fails()) {
                 return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);
@@ -145,7 +145,7 @@ class PaymentController extends Controller
             $payments = DB::table('payments')
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->leftJoin('banks', 'banks.id', 'payments.bank_id')
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->wherebetween('payments.collection_date', [$request->from, $request->to])
                 ->where('payments.user_id', $user->id)
                 ->orderBy('payments.created_at', $sort)
@@ -155,35 +155,35 @@ class PaymentController extends Controller
             $cash = number_format(Payment::whereIn('payments.payment_type', ['cash (against)', 'cash (regular)'])
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->wherebetween('payments.collection_date', [$request->from, $request->to])
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->where('user_id', $user->id)
                 ->sum('amount'), 2, '.', '');
 
             $cashdiscount = number_format(Payment::whereIn('payments.payment_type', ['cash (against)', 'cash (regular)'])
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->wherebetween('payments.collection_date', [$request->from, $request->to])
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->where('user_id', $user->id)
                 ->sum('discount'), 2, '.', '');
 
             $cheque = number_format(Payment::where('user_id', $user->id)
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->wherebetween('payments.collection_date', [$request->from, $request->to])
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)'])
                 ->sum('amount'), 2, '.', '');
 
             $chequediscount = number_format(Payment::where('user_id', $user->id)
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->wherebetween('payments.collection_date', [$request->from, $request->to])
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)'])
                 ->sum('discount'), 2, '.', '');
-        } else if ($request->dealer && !$request->from) {
+        } elseif ($request->dealer && ! $request->from) {
             $payments = DB::table('payments')
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->leftJoin('banks', 'banks.id', 'payments.bank_id')
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->where('payments.user_id', $user->id)
                 ->orderBy('payments.created_at', $sort)
                 ->select('payments.id', 'payments.payment_type', 'payments.dealer_code', 'payments.token', 'payments.collection_date', 'payments.amount', 'payments.discount', 'payments.payment_date', 'payments.cheque_num', 'payments.receipt_num', 'banks.name as bank_name', 'payments.status', 'payments.mRemarks', 'payments.remarks')
@@ -191,28 +191,28 @@ class PaymentController extends Controller
 
             $cash = number_format(Payment::whereIn('payments.payment_type', ['cash (against)', 'cash (regular)'])
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->where('user_id', $user->id)
                 ->sum('amount'), 2, '.', '');
 
             $cashdiscount = number_format(Payment::whereIn('payments.payment_type', ['cash (against)', 'cash (regular)'])
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->where('user_id', $user->id)
                 ->sum('discount'), 2, '.', '');
 
             $cheque = number_format(Payment::where('user_id', $user->id)
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)'])
                 ->sum('amount'), 2, '.', '');
 
             $chequediscount = number_format(Payment::where('user_id', $user->id)
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
-                ->Where('dealers.name', 'like', '%' . $request->dealer . '%')
+                ->Where('dealers.name', 'like', '%'.$request->dealer.'%')
                 ->whereIn('payment_type', ['cheque (bearer)', 'cheque (payee)'])
                 ->sum('discount'), 2, '.', '');
-        } else if (!$request->dealer && $request->from) {
+        } elseif (! $request->dealer && $request->from) {
             $payments = DB::table('payments')
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
                 ->leftJoin('banks', 'banks.id', 'payments.bank_id')
@@ -272,10 +272,12 @@ class PaymentController extends Controller
         }
         foreach ($payments as $d) {
             $d->collection_date = $this->custom_AD_to_BS($d->collection_date);
-            $d->payment_date = $d->payment_date ? $this->custom_AD_to_BS($d->payment_date) : "";
+            $d->payment_date = $d->payment_date ? $this->custom_AD_to_BS($d->payment_date) : '';
         }
+
         return response()->json(['data' => $payments, 'cheque' => $cheque, 'cash' => $cash, 'cashdiscount' => $cashdiscount, 'chequediscount' => $chequediscount]);
     }
+
     public function updatestatus($id, Request $request)
     {
         $valid = Validator::make($request->all(), [
@@ -287,8 +289,8 @@ class PaymentController extends Controller
         }
         $mo = Auth::user();
         $payment = Payment::where('id', $id)->first();
-        if (!$payment) {
-            return response()->json(['status' => 'error', 'message' => "data not found"], 404);
+        if (! $payment) {
+            return response()->json(['status' => 'error', 'message' => 'data not found'], 404);
         }
 
         $payment->status = $request->status;
@@ -296,7 +298,7 @@ class PaymentController extends Controller
 
         $payment->save();
 
-        $log = new LogDetail();
+        $log = new LogDetail;
         $date = date('Y-m-d');
 
         $log->ordercoll_id = $id;

@@ -12,9 +12,9 @@ use App\Models\SiteContact;
 use App\Models\SiteFollowUp;
 use App\Models\SiteNote;
 use App\Models\SitePhotoV2;
+use App\Models\SiteProduct;
 use App\Models\SiteRegistrationV2;
 use App\Models\SiteStageLog;
-use App\Models\SiteProduct;
 use App\Models\SiteType;
 use App\Traits\CustomNepaliCalendarConverter;
 use Illuminate\Http\Request;
@@ -37,12 +37,12 @@ class SiteRegistrationControllerV2 extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'stage_id'   => 'nullable|exists:v2_site_construction_stages,id',
-            'type_id'    => 'nullable|exists:v2_site_types,id',
-            'status'     => 'nullable|in:new_registration,active,inactive,lost,completed,cancelled',
+            'stage_id' => 'nullable|exists:v2_site_construction_stages,id',
+            'type_id' => 'nullable|exists:v2_site_types,id',
+            'status' => 'nullable|in:new_registration,active,inactive,lost,completed,cancelled',
             'start_date' => 'nullable|date_format:Y-m-d',
-            'end_date'   => 'nullable',
-            'search'     => 'nullable|string|max:255',
+            'end_date' => 'nullable',
+            'search' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -106,33 +106,33 @@ class SiteRegistrationControllerV2 extends Controller
 
             if ($request->wantsJson()) {
                 return response()->json([
-                    'data'  => $paginatedSites->items(),
+                    'data' => $paginatedSites->items(),
                     'links' => [
                         'first' => $paginatedSites->url(1),
-                        'last'  => $paginatedSites->url($paginatedSites->lastPage()),
-                        'prev'  => $paginatedSites->previousPageUrl(),
-                        'next'  => $paginatedSites->nextPageUrl(),
+                        'last' => $paginatedSites->url($paginatedSites->lastPage()),
+                        'prev' => $paginatedSites->previousPageUrl(),
+                        'next' => $paginatedSites->nextPageUrl(),
                     ],
                     'meta' => [
                         'current_page' => $paginatedSites->currentPage(),
-                        'from'         => $paginatedSites->firstItem(),
-                        'to'           => $paginatedSites->lastItem(),
-                        'total'        => $paginatedSites->total(),
-                        'per_page'     => $paginatedSites->perPage(),
-                        'last_page'    => $paginatedSites->lastPage(),
+                        'from' => $paginatedSites->firstItem(),
+                        'to' => $paginatedSites->lastItem(),
+                        'total' => $paginatedSites->total(),
+                        'per_page' => $paginatedSites->perPage(),
+                        'last_page' => $paginatedSites->lastPage(),
                     ],
                 ]);
             }
 
-            $data['sites']     = $paginatedSites;
+            $data['sites'] = $paginatedSites;
             $data['siteTypes'] = SiteType::select('id', 'name')->orderBy('sort_order')->get();
-            $data['stages']    = ConstructionStage::select('id', 'name')->orderBy('sort_order')->get();
+            $data['stages'] = ConstructionStage::select('id', 'name')->orderBy('sort_order')->get();
 
             return view('dashboards.new-site.sites', $data);
         } catch (\Exception $e) {
             if ($request->wantsJson()) {
                 return response()->json([
-                    'error'   => 'Server error occurred',
+                    'error' => 'Server error occurred',
                     'message' => $e->getMessage(),
                 ], 500);
             }
@@ -142,7 +142,7 @@ class SiteRegistrationControllerV2 extends Controller
 
     public function export()
     {
-        return Excel::download(new SiteRegistrationV2Export, 'site_registrations_' . time() . '.xlsx');
+        return Excel::download(new SiteRegistrationV2Export, 'site_registrations_'.time().'.xlsx');
     }
 
     public function create()
@@ -229,7 +229,7 @@ class SiteRegistrationControllerV2 extends Controller
         foreach ((array) $request->input('stakeholders', []) as $index => $stakeholder) {
             $uniqueRule = Rule::unique('v2_site_contacts', 'phone')->whereNull('deleted_at');
 
-            if ($site && !empty($stakeholder['id'])) {
+            if ($site && ! empty($stakeholder['id'])) {
                 $uniqueRule->ignore($stakeholder['id']);
             }
 
@@ -248,7 +248,7 @@ class SiteRegistrationControllerV2 extends Controller
 
         $validator->after(function ($validator) use ($request) {
             $next = $request->input('next_followup_at');
-            if ($next && !$this->isFutureNepaliDate($next)) {
+            if ($next && ! $this->isFutureNepaliDate($next)) {
                 $validator->errors()->add('next_followup_at', 'The next follow-up date must be in the future.');
             }
         });
@@ -283,8 +283,8 @@ class SiteRegistrationControllerV2 extends Controller
                 'next_followup_at' => $validated['next_followup_at'] ?? null,
             ]);
 
-            if (!empty($validated['stakeholders'])) {
-                $stakeholderRows = collect($validated['stakeholders'])->map(fn($s) => [
+            if (! empty($validated['stakeholders'])) {
+                $stakeholderRows = collect($validated['stakeholders'])->map(fn ($s) => [
                     'site_id' => $site->id,
                     'name' => $s['name'],
                     'role' => $s['role'],
@@ -293,12 +293,12 @@ class SiteRegistrationControllerV2 extends Controller
                     'updated_at' => now(),
                 ])->all();
 
-                if (!empty($stakeholderRows)) {
+                if (! empty($stakeholderRows)) {
                     SiteContact::insert($stakeholderRows);
                 }
             }
 
-            if (!empty($validated['next_followup_at'])) {
+            if (! empty($validated['next_followup_at'])) {
                 SiteFollowUp::create([
                     'site_id' => $site->id,
                     'follow_up_date' => $validated['next_followup_at'],
@@ -311,19 +311,19 @@ class SiteRegistrationControllerV2 extends Controller
                 ]);
             }
 
-            if (!empty($validated['products'])) {
-                $pivotData = collect($validated['products'])->mapWithKeys(fn($p) => [
+            if (! empty($validated['products'])) {
+                $pivotData = collect($validated['products'])->mapWithKeys(fn ($p) => [
                     $p['id'] => ['quantity' => $p['quantity']],
                 ])->all();
 
-                if (!empty($pivotData)) {
+                if (! empty($pivotData)) {
                     $site->products()->sync($pivotData);
                 }
             }
 
             $photoRows = [];
 
-            if (!empty($request->site_photos)) {
+            if (! empty($request->site_photos)) {
                 foreach ($request->site_photos as $photo) {
                     $path = $photo->store('site_photos', 'public');
                     $photoRows[] = [
@@ -336,7 +336,7 @@ class SiteRegistrationControllerV2 extends Controller
                 }
             }
 
-            if (!empty($request->progress_photos)) {
+            if (! empty($request->progress_photos)) {
                 foreach ($request->progress_photos as $photo) {
                     $path = $photo->store('progress_photos', 'public');
                     $photoRows[] = [
@@ -349,11 +349,11 @@ class SiteRegistrationControllerV2 extends Controller
                 }
             }
 
-            if (!empty($photoRows)) {
+            if (! empty($photoRows)) {
                 SitePhotoV2::insert($photoRows);
             }
 
-            if (!empty($validated['additional_notes'])) {
+            if (! empty($validated['additional_notes'])) {
                 SiteNote::create([
                     'site_id' => $site->id,
                     'note' => $validated['additional_notes'],
@@ -437,7 +437,7 @@ class SiteRegistrationControllerV2 extends Controller
                     'phone' => $contactData['contact_number'],
                 ];
 
-                if (!empty($contactData['id'])) {
+                if (! empty($contactData['id'])) {
                     $contact = SiteContact::where('site_id', $site->id)
                         ->where('id', $contactData['id'])
                         ->first();
@@ -445,6 +445,7 @@ class SiteRegistrationControllerV2 extends Controller
                     if ($contact) {
                         $contact->update($payload);
                         $keptContactIds[] = $contact->id;
+
                         continue;
                     }
                 }
@@ -453,7 +454,7 @@ class SiteRegistrationControllerV2 extends Controller
                 $keptContactIds[] = $contact->id;
             }
 
-            if (!empty($keptContactIds)) {
+            if (! empty($keptContactIds)) {
                 SiteContact::where('site_id', $site->id)
                     ->whereNotIn('id', $keptContactIds)
                     ->delete();
@@ -461,8 +462,8 @@ class SiteRegistrationControllerV2 extends Controller
                 SiteContact::where('site_id', $site->id)->delete();
             }
 
-            if (!empty($validated['products'])) {
-                $pivotData = collect($validated['products'])->mapWithKeys(fn($p) => [
+            if (! empty($validated['products'])) {
+                $pivotData = collect($validated['products'])->mapWithKeys(fn ($p) => [
                     $p['id'] => ['quantity' => $p['quantity']],
                 ])->all();
 
@@ -471,7 +472,7 @@ class SiteRegistrationControllerV2 extends Controller
                 $site->products()->sync([]);
             }
 
-            if (!empty($validated['next_followup_at'])) {
+            if (! empty($validated['next_followup_at'])) {
                 $followUpData = [
                     'follow_up_date' => $validated['next_followup_at'],
                     'follow_up_type' => $validated['follow_up_type'] ?? null,
@@ -492,7 +493,7 @@ class SiteRegistrationControllerV2 extends Controller
 
             $photoRows = [];
 
-            if (!empty($request->site_photos)) {
+            if (! empty($request->site_photos)) {
                 foreach ($request->site_photos as $photo) {
                     $path = $photo->store('site_photos', 'public');
                     $photoRows[] = [
@@ -505,7 +506,7 @@ class SiteRegistrationControllerV2 extends Controller
                 }
             }
 
-            if (!empty($request->progress_photos)) {
+            if (! empty($request->progress_photos)) {
                 foreach ($request->progress_photos as $photo) {
                     $path = $photo->store('progress_photos', 'public');
                     $photoRows[] = [
@@ -518,7 +519,7 @@ class SiteRegistrationControllerV2 extends Controller
                 }
             }
 
-            if (!empty($photoRows)) {
+            if (! empty($photoRows)) {
                 SitePhotoV2::insert($photoRows);
             }
 
@@ -614,8 +615,8 @@ class SiteRegistrationControllerV2 extends Controller
             'photos' => function ($query) {
                 $query->select('id', 'site_id', 'file_path', 'photo_type')
                     ->where('photo_type', 'site_photo')
-                    ->limit(1); //site_photo or progress_photo
-            }
+                    ->limit(1); // site_photo or progress_photo
+            },
         ])
             ->whereNotNull('lat')
             ->whereNotNull('lng');
@@ -659,10 +660,11 @@ class SiteRegistrationControllerV2 extends Controller
         // For AJAX requests, return partial view
         if ($request->ajax()) {
             $html = view('dashboards.new-site.map-partials.site-discovery', $data)->render();
+
             return response()->json([
                 'html' => $html,
                 'hasMore' => $data['hasMore'],
-                'lastId' => $data['lastId']
+                'lastId' => $data['lastId'],
             ]);
         }
 

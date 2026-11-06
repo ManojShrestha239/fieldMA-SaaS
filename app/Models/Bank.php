@@ -9,11 +9,12 @@ class Bank extends Model
 {
     use HasFactory;
 
-    protected  $fillable = [
-        'name','status'
-      ];
-      protected function serializeDate(\DateTimeInterface $date)
-      {
-          return $date->format('Y-m-d H:i:s');
-      }
+    protected $fillable = [
+        'name', 'status',
+    ];
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }

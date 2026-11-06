@@ -3,20 +3,21 @@
 namespace App\Exports;
 
 use App\Models\RawInventory;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class InventoryExport implements FromCollection, WithHeadings
 {
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function collection()
     {
         // Fetch the data with relationships
         $rawInventories = RawInventory::with([
             'rawmaterial.size',
-            'productManufactured.product'
+            'productManufactured.product',
         ])->get();
 
         $mapped = $rawInventories->values()->map(function ($inventory, $index) {
@@ -35,8 +36,6 @@ class InventoryExport implements FromCollection, WithHeadings
 
     /**
      * Define the headings for the Excel export
-     *
-     * @return array
      */
     public function headings(): array
     {

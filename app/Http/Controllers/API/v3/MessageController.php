@@ -35,8 +35,8 @@ class MessageController extends Controller
             'id' => 0,
             'group_name' => env('ADMIN', 'Admin User'),
             'type' => 'individual',
-            'created_at' => $individual ? (string)$individual->created_at : (string)now(),
-            'message' => $individual ? [$individual] : []
+            'created_at' => $individual ? (string) $individual->created_at : (string) now(),
+            'message' => $individual ? [$individual] : [],
         ];
         $messages = MessageGroup::select('message_groups.id', 'message_groups.group_name', 'message_groups.created_at', DB::raw("'group' as type"), 'latest_messages.latest_created_at')
             ->join('message_group_users', function ($join) use ($my_id) {
@@ -57,10 +57,11 @@ class MessageController extends Controller
                 $group->created_at = $group->latest_created_at ?? $group->created_at;
                 unset($group->latest_created_at);
                 $group->message = [];
+
                 return $group;
             });
 
-        $messages->push((object)$admin);
+        $messages->push((object) $admin);
         $messages = $messages->sortByDesc('created_at')->values();
 
         return response()->json(['status' => 'success', 'users' => $messages]);
@@ -71,8 +72,8 @@ class MessageController extends Controller
         $request->validate([
             'user_id' => 'required|numeric',
             'message' => 'required_without:files|string|nullable',
-            'files'   => 'nullable|array|max:5',
-            'files.*' => 'file|mimes:jpg,jpeg,png,tiff|max:10280'
+            'files' => 'nullable|array|max:5',
+            'files.*' => 'file|mimes:jpg,jpeg,png,tiff|max:10280',
         ]);
 
         DB::beginTransaction();
@@ -81,34 +82,34 @@ class MessageController extends Controller
             $userId = $user->id;
             $isIndividual = ($request->user_id == 0);
 
-            if (!$isIndividual) {
+            if (! $isIndividual) {
                 $userExist = MessageGroupUser::where('message_group_id', $request->user_id)
                     ->where('user_type', 'user')
                     ->where('status', 'added')
                     ->where('user_id', $userId)
                     ->first();
 
-                if (!$userExist) {
+                if (! $userExist) {
                     return response()->json(['status' => 'error', 'message' => 'You are not a member of this group.'], 403);
                 }
             }
 
             $message = Message::create([
-                'from'    => $userId,
-                'to'      => $isIndividual ? 0 : null,
+                'from' => $userId,
+                'to' => $isIndividual ? 0 : null,
                 'groupid' => $isIndividual ? null : $request->user_id,
-                'type'    => $isIndividual ? 'individual' : 'group',
+                'type' => $isIndividual ? 'individual' : 'group',
                 'message' => $request->message ?? '',
                 'is_read' => 0,
             ]);
 
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $filename = 'messageimg/' . Str::uuid() . '.' . $file->getClientOriginalExtension();
+                    $filename = 'messageimg/'.Str::uuid().'.'.$file->getClientOriginalExtension();
                     $file->storeAs('public', $filename);
 
                     MessageImages::create([
-                        'image'   => $filename,
+                        'image' => $filename,
                         'chat_id' => $message->id,
                     ]);
                 }
@@ -131,7 +132,7 @@ class MessageController extends Controller
             } else {
                 $data = [
                     'route_channel' => 'chat',
-                    'file_path'     => null,
+                    'file_path' => null,
                 ];
 
                 $helpers = new Helpers;
@@ -144,11 +145,11 @@ class MessageController extends Controller
                     ->get()
                     ->reverse()
                     ->values();
-                $groupId   = $message->groupid;
+                $groupId = $message->groupid;
                 $groupName = MessageGroup::where('id', $groupId)->value('group_name');
 
                 $title = "{$user->full_name} - {$groupName}";
-                $body  = $request->message ?? 'You have a new message';
+                $body = $request->message ?? 'You have a new message';
 
                 $groupUserIds = MessageGroupUser::where('message_group_id', $groupId)
                     ->where('user_type', 'user')
@@ -156,7 +157,6 @@ class MessageController extends Controller
                     ->pluck('user_id');
 
                 $exceptUserIds = array_diff($groupUserIds->toArray(), [$userId]);
-
 
                 $fcmIds = Mobileuser::whereNotNull('fcm_id')
                     ->whereIn('id', $exceptUserIds)
@@ -168,19 +168,20 @@ class MessageController extends Controller
             }
 
             DB::commit();
+
             return response()->json(['messages' => $messages]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['status' => 'error', 'message' => 'Failed to send message.' . $e->getMessage()], 500);
+
+            return response()->json(['status' => 'error', 'message' => 'Failed to send message.'.$e->getMessage()], 500);
         }
     }
-
 
     public function index(Request $request)
     {
         $valid = Validator::make($request->all(), [
             'type' => 'required|in:individual,group',
-            'id' => 'required_if:type,group'
+            'id' => 'required_if:type,group',
         ]);
         if ($valid->fails()) {
             return response()->json(['status' => 'error', 'message' => $valid->errors()], 422);

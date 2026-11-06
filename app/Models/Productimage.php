@@ -9,7 +9,8 @@ class Productimage extends Model
 {
     use HasFactory;
 
-    protected $fillable =['product_id','image','thumbnail'];
+    protected $fillable = ['product_id', 'image', 'thumbnail'];
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

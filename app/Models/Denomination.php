@@ -10,8 +10,9 @@ class Denomination extends Model
     use HasFactory;
 
     protected $fillable = [
-        'denomination','status','denomination_id'
+        'denomination', 'status', 'denomination_id',
     ];
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

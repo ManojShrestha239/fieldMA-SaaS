@@ -24,6 +24,7 @@ foreach ($centralDomains as $domain) {
             if (Auth::guard('super_admin')->check()) {
                 return redirect()->route('super-admin.dashboard');
             }
+
             return redirect()->route('super-admin.login');
         });
     });
@@ -42,7 +43,7 @@ Route::prefix('super-admin')->group(function () {
 
         // Tenants Management
         Route::resource('tenants', SuperAdminTenants::class, [
-            'as' => 'super-admin'
+            'as' => 'super-admin',
         ]);
         Route::post('tenants/{tenant}/toggle-status', [SuperAdminTenants::class, 'toggleStatus'])->name('super-admin.tenants.toggle-status');
         Route::post('tenants/{tenant}/migrate', [SuperAdminTenants::class, 'migrate'])->name('super-admin.tenants.migrate');
@@ -52,7 +53,7 @@ Route::prefix('super-admin')->group(function () {
 
         // Subscription Plans Management
         Route::resource('plans', SuperAdminPlans::class, [
-            'as' => 'super-admin'
+            'as' => 'super-admin',
         ]);
     });
 });

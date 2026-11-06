@@ -24,7 +24,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class VisitExportController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function visit_Report(Request $request)
     {
@@ -32,12 +32,12 @@ class VisitExportController extends Controller
         $valid = Validator::make($request->all(), [
             'user' => 'nullable|exists:mobileusers,id',
             'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
         if ($valid->fails()) {
             return redirect('/visithistory')->withInput()->withErrors($valid);
         }
-        if (!($request->from || $request->to)) {
+        if (! ($request->from || $request->to)) {
             $from = '';
             $to = '';
         } else {
@@ -56,12 +56,12 @@ class VisitExportController extends Controller
         } else {
             $mobileuser = Mobileuser::pluck('id');
         }
-        if (!$request->user && $from) {
+        if (! $request->user && $from) {
             // $session = Session::groupBy('user_id')->whereBetween('date', [$from, $to])->orderBy('created_at', 'DESC')->get();
             $session = Session::groupBy('user_id')->whereIn('user_id', $mobileuser)->whereBetween('date', [$from, $to])->orderBy('created_at', 'DESC')->select('visits.*', DB::raw('count(*)as visit_count'))->get();
-        } else if ($request->user && $from) {
+        } elseif ($request->user && $from) {
             $session = Session::groupBy('user_id')->where('user_id', $request->user)->whereBetween('date', [$from, $to])->select('visits.*', DB::raw('count(*)as visit_count'))->orderBy('created_at', 'DESC')->get();
-        } else if ($request->user && !$from) {
+        } elseif ($request->user && ! $from) {
             $session = Session::groupBy('user_id')->where('user_id', $request->user)->select('visits.*', DB::raw('count(*)as visit_count'))->orderBy('created_at', 'DESC')->get();
         } else {
             $session = Session::groupBy('user_id')->whereIn('user_id', $mobileuser)->select('visits.*', DB::raw('count(*)as visit_count'))->orderBy('created_at', 'DESC')->get();
@@ -72,18 +72,20 @@ class VisitExportController extends Controller
 
             $visit->collection = Payment::where('user_id', $visit->user_id)->sum('amount');
         }
+
         // return $session[0];
         // if (count($session) > 0) {
         return Excel::download(new VisitReport($session, $request->from, $request->to), 'Visit report.xlsx');
         // }
     }
+
     public function visit_Detailed_Report(Request $request)
     {
         // return $request->all();
         $valid = Validator::make($request->all(), [
             'user' => 'required|exists:mobileusers,id',
             'from' => ['nullable', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['nullable', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
         if ($valid->fails()) {
             return redirect('/visithistory')->withInput()->withErrors($valid);
@@ -118,7 +120,7 @@ class VisitExportController extends Controller
                         $lon1 = $coordinates[$key - 1]['longitude'];
                         $lat2 = $coordinate['latitude'];
                         $lon2 = $coordinate['longitude'];
-                        $unit = "K";
+                        $unit = 'K';
                         // $distance = $distance + $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                         $c_d = $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                         if (is_nan($c_d)) {
@@ -130,17 +132,19 @@ class VisitExportController extends Controller
             }
             $attendance->distance = $distance;
         }
+
         // return $session[0]->visits;
         // return "$user->name"."_".$user->id.$from ."_". $to."_report_".".xlsx";
-        return Excel::download(new VisitDetailedReport($session, $request->from, $request->to, $user), "$user->name" . "_" . $user->id . $from . "_" . $to . "_report" . ".xlsx");
+        return Excel::download(new VisitDetailedReport($session, $request->from, $request->to, $user), "$user->name".'_'.$user->id.$from.'_'.$to.'_report'.'.xlsx');
     }
+
     public function MIS_Report(Request $request)
     {
         // return $request->all();
         $valid = Validator::make($request->all(), [
             'user' => 'nullable|exists:mobileusers,id',
             'from' => ['required', 'required_with:to', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'to' => ['required', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'to' => ['required', 'required_with:from', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
         if ($valid->fails()) {
             return redirect('/dashboard/visithistory')->withInput()->withErrors($valid);
@@ -178,7 +182,7 @@ class VisitExportController extends Controller
                         $lon1 = $coordinates[$key - 1]['longitude'];
                         $lat2 = $coordinate['latitude'];
                         $lon2 = $coordinate['longitude'];
-                        $unit = "K";
+                        $unit = 'K';
                         // $distance = $distance + $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                         $c_d = $this->calculate_distance($lat1, $lon1, $lat2, $lon2, $unit);
                         if (is_nan($c_d)) {
@@ -193,9 +197,10 @@ class VisitExportController extends Controller
         // return $attendances[0]->checkout;
         if ($request->user) {
             $user = Mobileuser::findorFail($request->user);
-            return Excel::download(new VisitMISReport($attendances, $request->from, $request->to), "$user->name" . "_" . $user->id . $from . "_" . $to . "_report" . ".xlsx");
+
+            return Excel::download(new VisitMISReport($attendances, $request->from, $request->to), "$user->name".'_'.$user->id.$from.'_'.$to.'_report'.'.xlsx');
         } else {
-            return Excel::download(new VisitMISReport($attendances, $request->from, $request->to), "All_report" . ".xlsx");
+            return Excel::download(new VisitMISReport($attendances, $request->from, $request->to), 'All_report'.'.xlsx');
         }
     }
 
@@ -203,19 +208,19 @@ class VisitExportController extends Controller
     {
 
         $theta = $lon1 - $lon2;
-        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
         $dist = acos($dist);
         $dist = rad2deg($dist);
         $miles = $dist * 60 * 1.1515;
         $unit = strtoupper($unit);
 
-        if ($unit == "K") { //Kilometers
-            return ($miles * 1.609344);
-        } else if ($unit == "N") { //Nautical Miles
-            return ($miles * 0.8684);
-        } else if ($unit == "MT") { //Meter
-            return ($miles * 1.609344 * 1000);
-        } else { //Miles
+        if ($unit == 'K') { // Kilometers
+            return $miles * 1.609344;
+        } elseif ($unit == 'N') { // Nautical Miles
+            return $miles * 0.8684;
+        } elseif ($unit == 'MT') { // Meter
+            return $miles * 1.609344 * 1000;
+        } else { // Miles
             return $miles;
         }
     }

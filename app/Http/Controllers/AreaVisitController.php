@@ -7,15 +7,15 @@ use App\Models\Dealer;
 use App\Models\Payment;
 use App\Models\Session;
 use App\Models\VisitPurpose;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Traits\Nepali_Calendar;
 use App\Traits\CustomNepaliCalendarConverter;
+use App\Traits\Nepali_Calendar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AreaVisitController extends Controller
 {
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
 
     public function index()
     {
@@ -120,10 +120,10 @@ class AreaVisitController extends Controller
         $validated = $request->validate([
             'area' => 'nullable|exists:areas,areacode',
             'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/']
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/'],
         ]);
 
-        //nepali date validation
+        // nepali date validation
         if ($request['start-date'] > $request['end-date']) {
             return back()->withInput($request->input())->withErrors(['end-date' => 'The end date must be after or equal to the start date.']);
         }
@@ -271,15 +271,15 @@ class AreaVisitController extends Controller
             'to' => ['nullable', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'after_or_equal:from', 'required_with:from'],
         ]);
 
-        $hasDateRange = !empty($validated['from']) && !empty($validated['to']);
+        $hasDateRange = ! empty($validated['from']) && ! empty($validated['to']);
 
         $from = $hasDateRange ? $this->custom_BS_to_AD($validated['from']) : null;
         $to = $hasDateRange ? $this->custom_BS_to_AD($validated['to']) : null;
 
-        $isUnlisted = $id === "Unlisted_dealer_visit";
+        $isUnlisted = $id === 'Unlisted_dealer_visit';
 
         if ($isUnlisted) {
-            $area = new \stdClass();
+            $area = new \stdClass;
             $area->id = '';
             $area->areacode = 'Unlisted_dealer_visit';
             $area->area = 'Unlisted Area Visit';
@@ -331,7 +331,7 @@ class AreaVisitController extends Controller
             'cheque_discount' => 0,
         ];
 
-        if (!$isUnlisted) {
+        if (! $isUnlisted) {
             $paymentQuery = Payment::where('areacode', $id);
 
             if ($hasDateRange) {
@@ -353,7 +353,7 @@ class AreaVisitController extends Controller
 
         $dealerCodes = $sessions->pluck('dealer_code')->unique()->filter()->values();
 
-        if (!$isUnlisted && $dealerCodes->isNotEmpty()) {
+        if (! $isUnlisted && $dealerCodes->isNotEmpty()) {
             $purposeQuery = VisitPurpose::whereIn('dealer_code', $dealerCodes);
 
             if ($hasDateRange) {
@@ -370,7 +370,7 @@ class AreaVisitController extends Controller
             $purposes = collect();
         }
 
-        if (!$isUnlisted && $dealerCodes->isNotEmpty()) {
+        if (! $isUnlisted && $dealerCodes->isNotEmpty()) {
             $collectionQuery = Payment::whereIn('dealer_code', $dealerCodes);
 
             if ($hasDateRange) {

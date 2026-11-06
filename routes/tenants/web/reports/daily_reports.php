@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\TadaReportController;
 use Illuminate\Support\Facades\Route;
+
 // TADA Report
 Route::group(['middleware' => ['permission:reports', 'feature:daily_reports']], function () {
     // Note: dashboard-based creation is disabled. Keep other resource routes but exclude create/store.

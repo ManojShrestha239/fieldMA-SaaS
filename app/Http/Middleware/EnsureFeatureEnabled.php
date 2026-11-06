@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureFeatureEnabled
@@ -28,7 +29,7 @@ class EnsureFeatureEnabled
                 }
             }
 
-            if (!$hasAnyFeature) {
+            if (! $hasAnyFeature) {
                 if ($request->expectsJson() || $request->is('api/*')) {
                     return response()->json([
                         'status' => false,
@@ -44,13 +45,14 @@ class EnsureFeatureEnabled
                     ], 403);
                 }
 
-                if (\Illuminate\Support\Facades\Route::has('dashboard')) {
+                if (Route::has('dashboard')) {
                     return redirect()->route('dashboard')->with('error', "Your current subscription plan does not include access to the '{$feature}' feature.");
                 }
 
                 return redirect('/')->with('error', "Your current subscription plan does not include access to the '{$feature}' feature.");
             }
         }
+
         return $next($request);
     }
 }

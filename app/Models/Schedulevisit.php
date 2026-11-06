@@ -24,14 +24,17 @@ class Schedulevisit extends Model
     {
         return $this->hasMany(SchedulePurpose::class, 'visitschedule_id');
     }
+
     public function dealer()
     {
         return $this->belongsTo(Dealer::class, 'dealer_code');
     }
+
     public function user()
     {
         return $this->belongsTo(Mobileuser::class, 'user_id');
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

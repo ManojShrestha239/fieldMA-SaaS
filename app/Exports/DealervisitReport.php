@@ -3,22 +3,29 @@
 namespace App\Exports;
 
 use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromView;
 
 class DealervisitReport implements FromView
 {
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function collection()
     {
         //
     }
+
     /**
      * @return Illuminate\Contracts\View\View
      */
-    protected $data, $dealer, $from, $to;
+    protected $data;
+
+    protected $dealer;
+
+    protected $from;
+
+    protected $to;
 
     public function __construct($data, $dealer, $from, $to)
     {
@@ -34,7 +41,7 @@ class DealervisitReport implements FromView
             'list' => $this->data,
             'dealer' => $this->dealer,
             'from' => $this->from,
-            'to' => $this->to
+            'to' => $this->to,
         ]);
     }
 }

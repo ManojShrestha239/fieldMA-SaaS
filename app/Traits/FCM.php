@@ -19,29 +19,26 @@ use GuzzleHttp\Client;
 
 trait FCM
 {
-
-    function sendGroupNotification($flag, $title, $content)
+    public function sendGroupNotification($flag, $title, $content)
     {
 
-        $client = new Client();
+        $client = new Client;
 
         $res = $client->request(
             'POST',
-            config('app.NotificationAppUrl') . '/topticmessage',
+            config('app.NotificationAppUrl').'/topticmessage',
             [
-                'headers' =>
-                [
-                    'Content-Type' => "application/x-www-form-urlencoded"
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
                 ],
-                'form_params' =>
-                [
+                'form_params' => [
                     // 'schoolid' => $schoolid,
                     'flag' => $flag,
                     'title' => $title,
                     'body' => $content,
                     'tag' => 'na',
-                    'authKey' => config('app.FCMAuth')
-                ]
+                    'authKey' => config('app.FCMAuth'),
+                ],
             ]
         );
         if ($res->getStatusCode() === 200) {
@@ -51,29 +48,26 @@ trait FCM
         }
     }
 
-    function sendIndividualNotification($fcmid, $title, $flag, $content)
+    public function sendIndividualNotification($fcmid, $title, $flag, $content)
     {
 
-
-        $client = new Client();
+        $client = new Client;
 
         $res = $client->request(
             'POST',
-            config('app.NotificationAppUrl') . '/studentmessage',
+            config('app.NotificationAppUrl').'/studentmessage',
             [
-                'headers' =>
-                [
-                    'Content-Type' => "application/x-www-form-urlencoded"
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
                 ],
-                'form_params' =>
-                [
+                'form_params' => [
                     'fcmid' => $fcmid,
                     'title' => $title,
                     'body' => $content,
                     'flag' => $flag,
                     'tag' => 'na',
-                    'authKey' => config('app.FCMAuth')
-                ]
+                    'authKey' => config('app.FCMAuth'),
+                ],
             ]
         );
         if ($res->getStatusCode() === 200) {
@@ -83,19 +77,20 @@ trait FCM
         }
     }
 
-    function unique_multidim_array($array, $key)
+    public function unique_multidim_array($array, $key)
     {
-        $temp_array = array();
+        $temp_array = [];
         $i = 0;
-        $key_array = array();
+        $key_array = [];
 
         foreach ($array as $val) {
-            if (!in_array($val[$key], $key_array)) {
+            if (! in_array($val[$key], $key_array)) {
                 $key_array[$i] = $val[$key];
                 $temp_array[$i] = $val;
             }
             $i++;
         }
+
         return $temp_array;
     }
 
@@ -104,7 +99,7 @@ trait FCM
         $isProduction = config('app.env') === 'production';
         $credentialsPath = $isProduction ? config('app.prod-fcm_json') : config('app.dev-fcm_json');
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             throw new \Exception("FCM credentials file not found: {$credentialsPath}");
         }
         $fcmConfig = json_decode(
@@ -114,27 +109,27 @@ trait FCM
 
         $projectId = $fcmConfig['project_id'] ?? null;
 
-        if (!$projectId) {
+        if (! $projectId) {
             throw new \Exception('project_id not found in FCM credentials file');
         }
 
         $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
 
-        if (!$projectId || !$credentialsPath) {
+        if (! $projectId || ! $credentialsPath) {
             return false;
         }
 
-        $client = new Google_Client();
+        $client = new Google_Client;
         $client->setAuthConfig($credentialsPath);
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
 
         $token = $client->fetchAccessTokenWithAssertion();
-        if (!isset($token['access_token'])) {
+        if (! isset($token['access_token'])) {
             throw new \Exception('Failed to fetch access token from Firebase.');
         }
 
         $headers = [
-            'Authorization: Bearer ' . $token['access_token'],
+            'Authorization: Bearer '.$token['access_token'],
             'Content-Type: application/json',
         ];
 
@@ -150,7 +145,7 @@ trait FCM
         if ($title && $body) {
             $message['notification'] = [
                 'title' => $title,
-                'body'  => $body,
+                'body' => $body,
             ];
         }
         if ($data) {
@@ -179,7 +174,6 @@ trait FCM
             ],
         ];
 
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -198,7 +192,7 @@ trait FCM
 
     private function getFcmAccessToken(): array
     {
-        $isProduction    = config('app.env') === 'production';
+        $isProduction = config('app.env') === 'production';
         $credentialsPath = $isProduction ? config('app.prod-fcm_json') : config('app.dev-fcm_json');
 
         if (! file_exists($credentialsPath)) {
@@ -212,7 +206,7 @@ trait FCM
             throw new \Exception('project_id not found in FCM credentials file');
         }
 
-        $client = new Google_Client();
+        $client = new Google_Client;
         $client->setAuthConfig($credentialsPath);
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
 
@@ -224,7 +218,7 @@ trait FCM
 
         return [
             'access_token' => $token['access_token'],
-            'project_id'   => $projectId,
+            'project_id' => $projectId,
         ];
     }
 
@@ -233,14 +227,14 @@ trait FCM
         // Sanitize: trim, drop empty/short strings, dedupe
         $tokens = array_values(array_unique(array_filter(
             array_map('trim', $tokens),
-            fn($t) => is_string($t) && strlen($t) > 20
+            fn ($t) => is_string($t) && strlen($t) > 20
         )));
 
         $report = [
-            'success'        => 0,
-            'failure'        => 0,
+            'success' => 0,
+            'failure' => 0,
             'invalid_tokens' => [],
-            'responses'      => [],
+            'responses' => [],
         ];
 
         if (empty($tokens)) {
@@ -248,9 +242,9 @@ trait FCM
         }
 
         // One OAuth fetch for the entire batch
-        $auth        = $this->getFcmAccessToken();
+        $auth = $this->getFcmAccessToken();
         $accessToken = $auth['access_token'];
-        $projectId   = $auth['project_id'];
+        $projectId = $auth['project_id'];
 
         foreach ($tokens as $token) {
             try {
@@ -266,6 +260,7 @@ trait FCM
 
                 if ($result['status'] === 200) {
                     $report['success']++;
+
                     continue;
                 }
 
@@ -297,19 +292,17 @@ trait FCM
         ?string $projectId = null
     ) {
         if (! $accessToken || ! $projectId) {
-            $auth        = $this->getFcmAccessToken();
+            $auth = $this->getFcmAccessToken();
             $accessToken = $auth['access_token'];
-            $projectId   = $auth['project_id'];
+            $projectId = $auth['project_id'];
         }
 
         $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
 
         $headers = [
-            'Authorization: Bearer ' . $accessToken,
+            'Authorization: Bearer '.$accessToken,
             'Content-Type: application/json',
         ];
-
-
 
         // ---- Payload: unchanged from your current version ----
         $message = [];
@@ -323,7 +316,7 @@ trait FCM
         if ($title && $body) {
             $message['notification'] = [
                 'title' => $title,
-                'body'  => $body,
+                'body' => $body,
             ];
         }
 
@@ -335,6 +328,7 @@ trait FCM
                 if (is_scalar($value) || $value === null) {
                     return (string) $value;
                 }
+
                 return json_encode($value);
             }, $data);
 
@@ -344,7 +338,7 @@ trait FCM
         $message['android'] = [
             'priority' => 'high',
             'notification' => [
-                'sound'        => 'default',
+                'sound' => 'default',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ],
         ];
@@ -355,7 +349,7 @@ trait FCM
             ],
             'payload' => [
                 'aps' => [
-                    'sound'             => 'default',
+                    'sound' => 'default',
                     'content-available' => 1,
                 ],
             ],
@@ -371,7 +365,6 @@ trait FCM
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-
         if ($response === false) {
             $error = curl_error($ch);
             curl_close($ch);
@@ -381,9 +374,9 @@ trait FCM
         curl_close($ch);
 
         return [
-            'status'   => $httpCode,
-            'body'     => json_decode($response, true),
-            'target'   => $fcmid ?: $topic,
+            'status' => $httpCode,
+            'body' => json_decode($response, true),
+            'target' => $fcmid ?: $topic,
         ];
     }
 }

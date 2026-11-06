@@ -58,11 +58,11 @@
                                 <tr> 
                                     <td><span class="bold-content"> Total Working Hours: </span> @if(count($attendances)>1)
                                     <?php
-                                                $total_sec = strtotime($attendances[count($attendances)-1]->checkin_date)-strtotime($attendances[0]->checkin_date);
-                                                $total_min = intdiv($total_sec, 60);
-                                                $total_hr = abs(intdiv($total_min, 60));
-                                                $rem_min = abs($total_min % 60);
-                                                $rem_sec = abs($total_sec % 60);
+                                                $total_sec = strtotime($attendances[count($attendances) - 1]->checkin_date) - strtotime($attendances[0]->checkin_date);
+                                    $total_min = intdiv($total_sec, 60);
+                                    $total_hr = abs(intdiv($total_min, 60));
+                                    $rem_min = abs($total_min % 60);
+                                    $rem_sec = abs($total_sec % 60);
                                     ?>
                                     {{$total_hr}}hr {{$rem_min}}min {{$rem_sec}}sec
                                     @endif </td>                      

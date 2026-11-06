@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -12,11 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('products')) {
+        if (! Schema::hasTable('products')) {
             return;
         }
 
-        if (!Schema::hasColumn('products', 'name')) {
+        if (! Schema::hasColumn('products', 'name')) {
             return;
         }
 
@@ -33,7 +33,7 @@ return new class extends Migration
         if (Schema::hasColumn('products', 'category_id')) {
             $compositeConstraintExists = $this->hasUniqueConstraint('products', 'products_name_category_id_unique');
 
-            if (!$compositeConstraintExists) {
+            if (! $compositeConstraintExists) {
                 Schema::table('products', function (Blueprint $table) {
                     $table->unique(['name', 'category_id'], 'products_name_category_id_unique');
                 });
@@ -46,11 +46,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasTable('products')) {
+        if (! Schema::hasTable('products')) {
             return;
         }
 
-        if (!Schema::hasColumn('products', 'name')) {
+        if (! Schema::hasColumn('products', 'name')) {
             return;
         }
 
@@ -64,10 +64,10 @@ return new class extends Migration
         }
 
         // Recreate old unique constraint if category_id doesn't exist
-        if (!Schema::hasColumn('products', 'category_id')) {
+        if (! Schema::hasColumn('products', 'category_id')) {
             $constraintExists = $this->hasUniqueConstraint('products', 'products_name_unique');
 
-            if (!$constraintExists) {
+            if (! $constraintExists) {
                 Schema::table('products', function (Blueprint $table) {
                     $table->unique('name', 'products_name_unique');
                 });
@@ -84,8 +84,8 @@ return new class extends Migration
                 [$table, $constraintName]
             );
 
-            return !empty($constraints);
-        } catch (\Exception $e) {
+            return ! empty($constraints);
+        } catch (Exception $e) {
             return false;
         }
     }

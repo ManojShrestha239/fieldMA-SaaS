@@ -6,7 +6,7 @@ trait Geocodable
 {
     public function reverseGeocode($lat, $lng)
     {
-        $apiKey = "AIzaSyA3dbB5PCrN-1AW1ipmdM6RFrsdNdks3cU";
+        $apiKey = 'AIzaSyA3dbB5PCrN-1AW1ipmdM6RFrsdNdks3cU';
 
         $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&result_type=street_address|route|neighborhood&key=$apiKey";
 
@@ -20,13 +20,15 @@ trait Geocodable
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
             curl_close($ch);
+
             return 'Address not found';
         }
         curl_close($ch);
         $data = json_decode($response, true);
 
-        if ($data['status'] == "OK" && isset($data['results'][0]['formatted_address'])) {
+        if ($data['status'] == 'OK' && isset($data['results'][0]['formatted_address'])) {
             $address = $data['results'][0]['formatted_address'];
+
             return $address;
         } else {
             return 'Address not found';

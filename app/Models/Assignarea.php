@@ -10,8 +10,9 @@ class Assignarea extends Model
     use HasFactory;
 
     protected $fillable = [
-        'areacode','subarea_id'
+        'areacode', 'subarea_id',
     ];
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

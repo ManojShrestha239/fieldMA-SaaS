@@ -25,18 +25,20 @@ class Dealer extends Model
         'active_status',
         'proprietor_name',
         'pan_vat_no',
-        'subarea'
+        'subarea',
     ];
 
     protected $primaryKey = 'code';
-    public $incrementing = false;
-    protected $keyType = 'string';
 
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     public function order()
     {
         return $this->hasMany(Order::class);
     }
+
     public function collection()
     {
         return $this->hasOne(Payment::class)->orderBy('id', 'desc');
@@ -51,6 +53,7 @@ class Dealer extends Model
     {
         return $this->hasMany(Session::class);
     }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

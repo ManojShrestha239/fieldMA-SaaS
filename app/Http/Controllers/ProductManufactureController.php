@@ -36,7 +36,6 @@ class ProductManufactureController extends Controller
 
         // session()->forget('Status');
 
-
         if ($request->product_id) {
             $rawProduct = RawProduct::where('product_id', $request->product_id)->first();
 
@@ -60,12 +59,9 @@ class ProductManufactureController extends Controller
         return view('dashboards.productmanufactures.create', compact('products', 'rawMaterialsForProduct'));
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
-
-
     public function store(Request $request)
     {
         $request->validate([
@@ -91,17 +87,19 @@ class ProductManufactureController extends Controller
 
                 $rawStock = RawStock::where('r_id', $rawMaterialId)->first();
 
-                if (!$rawStock) {
+                if (! $rawStock) {
                     DB::rollBack();
+
                     return back()->withErrors([
-                        'quantities.' . $index => "Raw stock not found for raw material ID: $rawMaterialId.",
+                        'quantities.'.$index => "Raw stock not found for raw material ID: $rawMaterialId.",
                     ])->withInput();
                 }
 
                 if ($qtyUsed > $available || $qtyUsed > $rawStock->available) {
                     DB::rollBack();
+
                     return back()->withErrors([
-                        'quantities.' . $index => "Used quantity ($qtyUsed) exceeds available ($available) for raw material ID: $rawMaterialId.",
+                        'quantities.'.$index => "Used quantity ($qtyUsed) exceeds available ($available) for raw material ID: $rawMaterialId.",
                     ])->withInput();
                 }
             }
@@ -153,12 +151,10 @@ class ProductManufactureController extends Controller
             return back()->with('Status', 'Product and Raw Materials recorded successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Server error: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Server error: '.$e->getMessage());
         }
     }
-
-
-
 
     /**
      * Display the specified resource.

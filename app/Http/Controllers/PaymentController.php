@@ -2,25 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Mobileuser;
-use App\Models\Payment;
+use App\Models\Area;
 use App\Models\Dealer;
 use App\Models\LogDetail;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use App\Http\Controllers\NotificationController;
+use App\Models\Mobileuser;
+use App\Models\Payment;
+use App\Traits\CustomNepaliCalendarConverter;
 use App\Traits\FCM;
 use App\Traits\Nepali_Calendar;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Area;
-use App\Traits\CustomNepaliCalendarConverter;
+use Carbon\Carbon;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
+    use CustomNepaliCalendarConverter, Nepali_Calendar;
     use FCM, ValidatesRequests;
-    use Nepali_Calendar, CustomNepaliCalendarConverter;
+
     //
     public function list()
     {
@@ -28,7 +28,7 @@ class PaymentController extends Controller
         $engfrom = Carbon::now()->subDays(30)->format('Y-m-d');
         $from = $this->custom_AD_to_BS($engfrom);
         $to = $this->custom_AD_to_BS(date('Y-m-d'));
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -56,7 +56,7 @@ class PaymentController extends Controller
             ->get();
 
         foreach ($payment as $payments) {
-            $payments->previous_amt = LogDetail::where(['ordercoll_id' => $payments->id, 'flag' => "collection"])->latest()->first();
+            $payments->previous_amt = LogDetail::where(['ordercoll_id' => $payments->id, 'flag' => 'collection'])->latest()->first();
         }
 
         foreach ($payment as $n) {
@@ -68,10 +68,10 @@ class PaymentController extends Controller
         $data['mr'] = '';
         $data['from'] = $from;
         $data['to'] = $to;
-        $data['start'] = "index";
+        $data['start'] = 'index';
         $data['total'] = $totalcoll;
         $data['discount'] = $discount;
-        $data['status'] = "cash";
+        $data['status'] = 'cash';
 
         return view('dashboards.payments.index', $data);
     }
@@ -83,9 +83,9 @@ class PaymentController extends Controller
         $today = $this->custom_AD_to_BS(date('Y-m-d'));
         // return $today;
         $this->validate($request, [
-            'end-date' =>  ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:start-date'], //'required|date_format:Y-m-d|after_or_equal:start-date',
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:end-date'], //'nullable|required_with_all:end-date|date|date_format:Y-m-d',
-            'user' => 'nullable|exists:mobileusers,id'
+            'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:start-date'], // 'required|date_format:Y-m-d|after_or_equal:start-date',
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:end-date'], // 'nullable|required_with_all:end-date|date|date_format:Y-m-d',
+            'user' => 'nullable|exists:mobileusers,id',
         ]);
         if ($request['start-date'] > $request['end-date']) {
             return back()->withInput($request->input())->withErrors(['end-date' => 'end date must be after or equal with start date']);
@@ -95,7 +95,7 @@ class PaymentController extends Controller
         //     return redirect('dashboard/collection')->with('status', 'The start-date must be a date before or equal to today');
         // }
 
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -119,8 +119,7 @@ class PaymentController extends Controller
         $t = $request['end-date'];
         // $users = Mobileuser::where('role_id', 1)->get();
 
-
-        if (!empty($user)) {
+        if (! empty($user)) {
             $payment = DB::table('payments')
                 ->join('mobileusers', 'mobileusers.id', 'payments.user_id')
                 ->join('dealers', 'dealers.code', 'payments.dealer_code')
@@ -143,7 +142,7 @@ class PaymentController extends Controller
         }
 
         foreach ($payment as $payments) {
-            $payments->previous_amt = LogDetail::where(['ordercoll_id' => $payments->id, 'flag' => "collection"])->latest()->first();
+            $payments->previous_amt = LogDetail::where(['ordercoll_id' => $payments->id, 'flag' => 'collection'])->latest()->first();
         }
 
         foreach ($payment as $n) {
@@ -167,7 +166,7 @@ class PaymentController extends Controller
             //     'status' => $n->status,
             // );
         }
-        if (!empty($user)) {
+        if (! empty($user)) {
             $mrk = Mobileuser::where('id', $user)->first();
             $mr = $mrk->name;
         } else {
@@ -178,11 +177,12 @@ class PaymentController extends Controller
         $data['mr'] = $mr;
         $data['from'] = $fr;
         $data['to'] = $t;
-        $data['start'] = "";
+        $data['start'] = '';
         $data['total'] = $totalcoll;
         $data['discount'] = $discount;
         $data['userid'] = $user;
-        $data['status'] = "cash";
+        $data['status'] = 'cash';
+
         return view('dashboards.payments.index', $data);
         // if (empty($list)) {
         //     return view('dashboards.payments.index', ['payment' => '', 'users' => $users, 'mr' => $mr, 'from' => $fr, 'to' => $t, 'start' => '', 'total' => $totalcoll, 'discount' => $discount, 'userid' => $request->user]);
@@ -197,7 +197,7 @@ class PaymentController extends Controller
         $engfrom = Carbon::now()->subDays(30)->format('Y-m-d');
         $from = $this->custom_AD_to_BS($engfrom);
         $to = $this->custom_AD_to_BS(date('Y-m-d'));
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -230,8 +230,8 @@ class PaymentController extends Controller
             ->sum('discount');
 
         foreach ($payment as $n) {
-            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => "collection"])->latest()->first();
-            if (!empty($n->payment_date)) {
+            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => 'collection'])->latest()->first();
+            if (! empty($n->payment_date)) {
                 $payment_date = $this->custom_AD_to_BS($n->payment_date);
             } else {
                 $payment_date = '';
@@ -244,17 +244,17 @@ class PaymentController extends Controller
 
         $data['payment'] = $payment;
         $data['users'] = $users;
-        $data['mr'] = "";
+        $data['mr'] = '';
         $data['from'] = $from;
         $data['to'] = $to;
-        $data['start'] = "index";
+        $data['start'] = 'index';
         $data['total'] = $totalcoll;
         $data['discount'] = $discount;
-        $data['status'] = "cheque";
+        $data['status'] = 'cheque';
 
         return view('dashboards.payments.cheque', $data);
 
-        if (!empty($list)) {
+        if (! empty($list)) {
             return view('dashboards.payments.cheque', ['payment' => $list, 'users' => $users, 'mr' => '', 'from' => '', 'to' => '', 'start' => 'index', 'total' => $totalcoll, 'discount' => $discount]);
         } else {
             return view('dashboards.payments.cheque', ['payment' => '', 'users' => $users, 'mr' => '', 'from' => '', 'to' => '', 'start' => 'index', 'total' => 0, 'discount' => $discount]);
@@ -264,9 +264,9 @@ class PaymentController extends Controller
     public function cheque_filter(Request $request)
     {
         $this->validate($request, [
-            'end-date' =>  ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:start-date'], //'nullable|date_format:Y-m-d|after_or_equal:start-date',
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:end-date'], //'nullable|required_with_all:end-date|date|date_format:Y-m-d',
-            'user' => 'nullable|exists:mobileusers,id'
+            'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:start-date'], // 'nullable|date_format:Y-m-d|after_or_equal:start-date',
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:end-date'], // 'nullable|required_with_all:end-date|date|date_format:Y-m-d',
+            'user' => 'nullable|exists:mobileusers,id',
         ]);
         if ($request['start-date'] > $request['end-date']) {
             return back()->withInput($request->input())->withErrors(['end-date' => 'end date must be after or equal with start date']);
@@ -285,7 +285,7 @@ class PaymentController extends Controller
         $fr = $request['start-date'];
         $t = $request['end-date'];
 
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -298,7 +298,6 @@ class PaymentController extends Controller
             $mobileuser = Mobileuser::pluck('id');
             $users = Mobileuser::get();
         }
-
 
         if ($user) {
             $payment = DB::table('payments')
@@ -326,11 +325,11 @@ class PaymentController extends Controller
                 ->get();
         }
         foreach ($payment as $n) {
-            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => "collection"])->latest()->first();
+            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => 'collection'])->latest()->first();
             $totalcoll = $totalcoll + $n->amount;
             $discount = $discount + $n->discount;
 
-            if (!empty($n->payment_date)) {
+            if (! empty($n->payment_date)) {
                 $payment_date = $this->custom_AD_to_BS($n->payment_date);
             } else {
                 $payment_date = '';
@@ -340,7 +339,7 @@ class PaymentController extends Controller
             $n->collection_date = $date;
             $n->token = $n->tokenvalue;
         }
-        if (!empty($user)) {
+        if (! empty($user)) {
             $mrk = Mobileuser::where('id', $user)->first();
             $mr = $mrk->name;
         } else {
@@ -352,10 +351,10 @@ class PaymentController extends Controller
         $data['mr'] = $mr;
         $data['from'] = $fr;
         $data['to'] = $t;
-        $data['start'] = "";
+        $data['start'] = '';
         $data['total'] = $totalcoll;
         $data['discount'] = $discount;
-        $data['status'] = "cheque";
+        $data['status'] = 'cheque';
         $data['userid'] = $request->user;
 
         return view('dashboards.payments.cheque', $data);
@@ -371,7 +370,7 @@ class PaymentController extends Controller
         $payment->save();
 
         $date = date('Y-m-d');
-        $log = new LogDetail();
+        $log = new LogDetail;
         $log->flag = 'collection';
         $log->ordercoll_id = $payment->id;
         $log->cheque_no = $payment->cheque_num;
@@ -387,11 +386,11 @@ class PaymentController extends Controller
         $user = Mobileuser::find($payment->user_id);
 
         if ($user && $user->fcm_id) {
-            $title = "Collection Status Updated";
-            $body  = "{$payment->dealer->name} collection status has been updated to {$payment->status}";
+            $title = 'Collection Status Updated';
+            $body = "{$payment->dealer->name} collection status has been updated to {$payment->status}";
 
             $data = [
-                'route_channel' => 'collection?collection_id=' . $payment->id . '&dealer=' . $payment->dealer,
+                'route_channel' => 'collection?collection_id='.$payment->id.'&dealer='.$payment->dealer,
             ];
 
             $this->runFirebaseNotification($user->fcm_id, null, $title, $body, $data);
@@ -411,8 +410,8 @@ class PaymentController extends Controller
     {
         $payment = Payment::findorFail($id);
 
-        if (!$payment->is_edit == 0 || !$payment->is_edit == null) {
-            return back()->with('Status', "Collection already was edit.");
+        if (! $payment->is_edit == 0 || ! $payment->is_edit == null) {
+            return back()->with('Status', 'Collection already was edit.');
         }
 
         $payment->remarks = request('remarks');
@@ -422,7 +421,7 @@ class PaymentController extends Controller
         $payment->save();
 
         $date = date('Y-m-d');
-        $log = new LogDetail();
+        $log = new LogDetail;
         $log->flag = 'collection';
         $log->ordercoll_id = $payment->id;
         $log->cheque_no = $payment->cheque_num;
@@ -438,9 +437,9 @@ class PaymentController extends Controller
         $del = explode('::', $dealer->name);
         $dealer_name = implode('', $del);
 
-        if (!empty($otp = Mobileuser::where(['id' => $payment->user_id])->first())) {
+        if (! empty($otp = Mobileuser::where(['id' => $payment->user_id])->first())) {
             $fcmid = $otp->fcm_id;
-            $title = "Sales Tracker";
+            $title = 'Sales Tracker';
             $flag = 'collection';
             $detail = $payment->id;
             $amount = $payment->amount;
@@ -448,28 +447,28 @@ class PaymentController extends Controller
             if (empty($mess)) {
                 $mess = 'Collection amount Updated';
             }
-            $content = array(
+            $content = [
                 'Title' => 'Collection Status Updated',
                 'Message' => $mess,
                 'payment_id' => $payment->id,
                 'dealer_name' => $dealer_name,
                 'dealer_code' => $dealer->code,
                 'dealer_address' => $dealer->address,
-                'Amount' => request('amount')
-            );
-            if (!empty($fcmid)) {
-                $notice = new NotificationController();
+                'Amount' => request('amount'),
+            ];
+            if (! empty($fcmid)) {
+                $notice = new NotificationController;
             }
         }
 
-        return back()->with('Status', "Collection amount Updated.");
+        return back()->with('Status', 'Collection amount Updated.');
     }
 
     public function direct_list()
     {
         $from = $this->custom_AD_to_BS(date('Y-m-d'));
         $to = $this->custom_AD_to_BS(date('Y-m-d'));
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -502,8 +501,8 @@ class PaymentController extends Controller
             ->sum('discount');
 
         foreach ($payment as $n) {
-            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => "collection"])->latest()->first();
-            if (!empty($n->payment_date)) {
+            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => 'collection'])->latest()->first();
+            if (! empty($n->payment_date)) {
                 $payment_date = $this->custom_AD_to_BS($n->payment_date);
             } else {
                 $payment_date = '';
@@ -516,13 +515,13 @@ class PaymentController extends Controller
 
         $data['payment'] = $payment;
         $data['users'] = $users;
-        $data['mr'] = "";
+        $data['mr'] = '';
         $data['from'] = $from;
         $data['to'] = $to;
-        $data['start'] = "index";
+        $data['start'] = 'index';
         $data['total'] = $totalcoll;
         $data['discount'] = $discount;
-        $data['status'] = "direct";
+        $data['status'] = 'direct';
 
         return view('dashboards.payments.direct', $data);
     }
@@ -530,9 +529,9 @@ class PaymentController extends Controller
     public function direct_filter(Request $request)
     {
         $this->validate($request, [
-            'end-date' =>  ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:start-date'], //'nullable|date_format:Y-m-d|after_or_equal:start-date',
-            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:end-date'], //'nullable|required_with_all:end-date|date|date_format:Y-m-d',
-            'user' => 'nullable|exists:mobileusers,id'
+            'end-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:start-date'], // 'nullable|date_format:Y-m-d|after_or_equal:start-date',
+            'start-date' => ['required', 'regex:/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-2])$/', 'required_with:end-date'], // 'nullable|required_with_all:end-date|date|date_format:Y-m-d',
+            'user' => 'nullable|exists:mobileusers,id',
         ]);
         if ($request['start-date'] > $request['end-date']) {
             return back()->withInput($request->input())->withErrors(['end-date' => 'end date must be after or equal with start date']);
@@ -551,7 +550,7 @@ class PaymentController extends Controller
         $fr = $request['start-date'];
         $t = $request['end-date'];
 
-        if (Auth::user()->user_type == "Area Service Management") {
+        if (Auth::user()->user_type == 'Area Service Management') {
             $admin_area = collect(Auth::user()->area);
             $admin_area = $admin_area->pluck('areacode');
             $mobileuser = Area::join('area_mobileuser', 'areas.areacode', 'area_mobileuser.area_code')
@@ -564,7 +563,6 @@ class PaymentController extends Controller
             $mobileuser = Mobileuser::pluck('id');
             $users = Mobileuser::get();
         }
-
 
         if ($user) {
             $payment = DB::table('payments')
@@ -592,11 +590,11 @@ class PaymentController extends Controller
                 ->get();
         }
         foreach ($payment as $n) {
-            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => "collection"])->latest()->first();
+            $n->previous_amt = LogDetail::where(['ordercoll_id' => $n->id, 'flag' => 'collection'])->latest()->first();
             $totalcoll = $totalcoll + $n->amount;
             $discount = $discount + $n->discount;
 
-            if (!empty($n->payment_date)) {
+            if (! empty($n->payment_date)) {
                 $payment_date = $this->custom_AD_to_BS($n->payment_date);
             } else {
                 $payment_date = '';
@@ -606,7 +604,7 @@ class PaymentController extends Controller
             $n->collection_date = $date;
             $n->token = $n->tokenvalue;
         }
-        if (!empty($user)) {
+        if (! empty($user)) {
             $mrk = Mobileuser::where('id', $user)->first();
             $mr = $mrk->name;
         } else {
@@ -618,10 +616,10 @@ class PaymentController extends Controller
         $data['mr'] = $mr;
         $data['from'] = $fr;
         $data['to'] = $t;
-        $data['start'] = "";
+        $data['start'] = '';
         $data['total'] = $totalcoll;
         $data['discount'] = $discount;
-        $data['status'] = "direct";
+        $data['status'] = 'direct';
         $data['userid'] = $request->user;
 
         return view('dashboards.payments.direct', $data);
@@ -642,13 +640,12 @@ class PaymentController extends Controller
             $nepaliMth = $currentNepaliDay['month'];
             $d = strlen($nepaliMth);
             if ($d == 1) {
-                $nepaliMth = '0' . $nepaliMth;
+                $nepaliMth = '0'.$nepaliMth;
             }
             $nepaliYr = $currentNepaliDay['year'];
-            $date = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+            $date = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
 
-
-            $list[] = array(
+            $list[] = [
                 'ordercoll_id' => $n->ordercoll_id,
                 'status' => $n->status,
                 'cheque_no' => $n->cheque_no,
@@ -656,14 +653,15 @@ class PaymentController extends Controller
                 'admin' => $n->admin,
                 'remarks' => $n->remarks,
                 'date' => $date,
-            );
+            ];
         }
-        if (!empty($list)) {
+        if (! empty($list)) {
             return view('dashboards.payments.list', ['log' => $list]);
         } else {
             return view('dashboards.payments.list');
         }
     }
+
     public function cashPop($id)
     {
         $log = LogDetail::with('adminUser')
@@ -683,21 +681,21 @@ class PaymentController extends Controller
             $nepaliMth = $currentNepaliDay['month'];
             $d = strlen($nepaliMth);
             if ($d == 1) {
-                $nepaliMth = '0' . $nepaliMth;
+                $nepaliMth = '0'.$nepaliMth;
             }
             $nepaliYr = $currentNepaliDay['year'];
-            $date = $nepaliYr . '-' . $nepaliMth . '-' . $nepaliDay;
+            $date = $nepaliYr.'-'.$nepaliMth.'-'.$nepaliDay;
 
-            $list[] = array(
+            $list[] = [
                 'ordercoll_id' => $n->ordercoll_id,
                 'status' => $n->status,
                 'previous_status' => $n->previous_status,
                 'admin' => $n->adminUser->name,
                 'remarks' => $n->remarks,
                 'date' => $date,
-            );
+            ];
         }
-        if (!empty($list)) {
+        if (! empty($list)) {
             return view('dashboards.payments.cashcoll', ['log' => $list]);
         } else {
             return view('dashboards.payments.cashcoll');

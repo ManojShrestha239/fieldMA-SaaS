@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Dealer;
+use App\Models\Mobileuser;
+use App\Models\Order;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
@@ -79,14 +82,14 @@ class TenantController extends Controller
         $status = $validated['status'];
 
         // Calculate trial_ends_at
-        $trialEndsAt = !empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at']) : null;
-        if ($status === 'trial' && !$trialEndsAt) {
+        $trialEndsAt = ! empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at']) : null;
+        if ($status === 'trial' && ! $trialEndsAt) {
             $trialEndsAt = now()->addDays(14);
         }
 
         // Calculate plan_ends_at
-        $planEndsAt = !empty($validated['plan_ends_at']) ? Carbon::parse($validated['plan_ends_at']) : null;
-        if (!empty($validated['subscription_plan_id']) && !$planEndsAt) {
+        $planEndsAt = ! empty($validated['plan_ends_at']) ? Carbon::parse($validated['plan_ends_at']) : null;
+        if (! empty($validated['subscription_plan_id']) && ! $planEndsAt) {
             $plan = SubscriptionPlan::find($validated['subscription_plan_id']);
             if ($plan) {
                 if ($plan->billing_interval === 'yearly') {
@@ -115,23 +118,23 @@ class TenantController extends Controller
 
             // Save virtual columns directly on model so VirtualColumn trait packs them
             $tenant->theme_color = $validated['theme_color'] ?? '#C0392B';
-            $tenant->fcm_topic = $slug . '_fieldMA_allUser';
+            $tenant->fcm_topic = $slug.'_fieldMA_allUser';
             $tenant->feature_overrides = [];
 
             if ($request->hasFile('logo')) {
                 $logoPath = $request->file('logo')->store('branding/logos', 'public');
-                $tenant->logo_url = '/storage/' . $logoPath;
+                $tenant->logo_url = '/storage/'.$logoPath;
             }
 
             if ($request->hasFile('favicon')) {
                 $faviconPath = $request->file('favicon')->store('branding/favicons', 'public');
-                $tenant->favicon_url = '/storage/' . $faviconPath;
+                $tenant->favicon_url = '/storage/'.$faviconPath;
             }
 
             $tenant->save();
 
             // Ensure database exists and is migrated (fallback safety check)
-            if (!$tenant->database()->manager()->databaseExists($tenant->database()->getName())) {
+            if (! $tenant->database()->manager()->databaseExists($tenant->database()->getName())) {
                 $tenant->database()->manager()->createDatabase($tenant);
                 Artisan::call('tenants:migrate', [
                     '--tenants' => [$tenant->id],
@@ -145,11 +148,11 @@ class TenantController extends Controller
 
             // 2. Attach Primary Subdomain (created from slug)
             $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
-            $subdomain = $slug . '.' . $centralDomain;
+            $subdomain = $slug.'.'.$centralDomain;
             $tenant->domains()->create(['domain' => $subdomain]);
 
             // 3. Attach Custom Domain (only if explicitly provided in request)
-            if (!empty($validated['custom_domain'])) {
+            if (! empty($validated['custom_domain'])) {
                 $customDomain = strtolower(trim($validated['custom_domain']));
                 $tenant->domains()->create(['domain' => $customDomain]);
             }
@@ -168,7 +171,7 @@ class TenantController extends Controller
                     $user = User::updateOrCreate(
                         ['email' => $validated['email']],
                         [
-                            'name' => $validated['company_name'] . ' Admin',
+                            'name' => $validated['company_name'].' Admin',
                             'phone' => $validated['phone'] ?? '0000000000',
                             'password' => Hash::make($validated['password']),
                             'user_type' => 'super',
@@ -180,7 +183,7 @@ class TenantController extends Controller
                     $user->assignRole($role);
                 });
             } catch (\Throwable $e) {
-                Log::warning("Tenant admin setup warning: " . $e->getMessage());
+                Log::warning('Tenant admin setup warning: '.$e->getMessage());
             }
 
             return redirect()->route('super-admin.tenants.show', $tenant)
@@ -193,7 +196,8 @@ class TenantController extends Controller
                     // cleanup
                 }
             }
-            return back()->withInput()->withErrors(['error' => 'Failed to provision tenant workspace: ' . $e->getMessage()]);
+
+            return back()->withInput()->withErrors(['error' => 'Failed to provision tenant workspace: '.$e->getMessage()]);
         }
     }
 
@@ -211,10 +215,10 @@ class TenantController extends Controller
 
         try {
             $tenant->run(function () use (&$stats) {
-                $stats['users_count'] = \App\Models\User::count();
-                $stats['mobile_users_count'] = \App\Models\Mobileuser::count();
-                $stats['dealers_count'] = \App\Models\Dealer::count();
-                $stats['orders_count'] = \App\Models\Order::count();
+                $stats['users_count'] = User::count();
+                $stats['mobile_users_count'] = Mobileuser::count();
+                $stats['dealers_count'] = Dealer::count();
+                $stats['orders_count'] = Order::count();
             });
         } catch (\Throwable $e) {
             // DB might be pending migration or offline
@@ -264,14 +268,14 @@ class TenantController extends Controller
         $newPassword = $validated['password'] ?? null;
 
         // Calculate trial_ends_at
-        $trialEndsAt = !empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at']) : null;
-        if ($validated['status'] === 'trial' && !$trialEndsAt && !$tenant->trial_ends_at) {
+        $trialEndsAt = ! empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at']) : null;
+        if ($validated['status'] === 'trial' && ! $trialEndsAt && ! $tenant->trial_ends_at) {
             $trialEndsAt = now()->addDays(14);
         }
 
         // Calculate plan_ends_at
-        $planEndsAt = !empty($validated['plan_ends_at']) ? Carbon::parse($validated['plan_ends_at']) : null;
-        if (!empty($validated['subscription_plan_id']) && !$planEndsAt && !$tenant->plan_ends_at) {
+        $planEndsAt = ! empty($validated['plan_ends_at']) ? Carbon::parse($validated['plan_ends_at']) : null;
+        if (! empty($validated['subscription_plan_id']) && ! $planEndsAt && ! $tenant->plan_ends_at) {
             $plan = SubscriptionPlan::find($validated['subscription_plan_id']);
             if ($plan) {
                 if ($plan->billing_interval === 'yearly') {
@@ -295,7 +299,7 @@ class TenantController extends Controller
         ]);
 
         // Update virtual columns directly on model
-        if (!empty($validated['theme_color'])) {
+        if (! empty($validated['theme_color'])) {
             $tenant->theme_color = $validated['theme_color'];
         }
 
@@ -310,7 +314,7 @@ class TenantController extends Controller
                 Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->logo_url));
             }
             $logoPath = $request->file('logo')->store('branding/logos', 'public');
-            $tenant->logo_url = '/storage/' . $logoPath;
+            $tenant->logo_url = '/storage/'.$logoPath;
         }
 
         // Handle favicon upload / removal
@@ -324,7 +328,7 @@ class TenantController extends Controller
                 Storage::disk('public')->delete(str_replace('/storage/', '', $tenant->favicon_url));
             }
             $faviconPath = $request->file('favicon')->store('branding/favicons', 'public');
-            $tenant->favicon_url = '/storage/' . $faviconPath;
+            $tenant->favicon_url = '/storage/'.$faviconPath;
         }
 
         $tenant->save();
@@ -338,23 +342,23 @@ class TenantController extends Controller
 
                 if ($user) {
                     $user->email = $newEmail;
-                    $user->name = $validated['company_name'] . ' Admin';
-                    if (!empty($validated['phone'])) {
+                    $user->name = $validated['company_name'].' Admin';
+                    if (! empty($validated['phone'])) {
                         $user->phone = $validated['phone'];
                     }
-                    if (!empty($newPassword)) {
+                    if (! empty($newPassword)) {
                         $user->password = Hash::make($newPassword);
                     }
                     $user->save();
                 }
             });
         } catch (\Throwable $e) {
-            Log::warning("Tenant admin update warning: " . $e->getMessage());
+            Log::warning('Tenant admin update warning: '.$e->getMessage());
         }
 
         // Manage custom domain (optional)
         $currentCustomDomain = $tenant->getCustomDomain();
-        $newCustomDomain = !empty($validated['custom_domain']) ? strtolower(trim($validated['custom_domain'])) : null;
+        $newCustomDomain = ! empty($validated['custom_domain']) ? strtolower(trim($validated['custom_domain'])) : null;
 
         if ($newCustomDomain) {
             if ($currentCustomDomain) {
@@ -387,7 +391,7 @@ class TenantController extends Controller
     public function migrate(Tenant $tenant)
     {
         try {
-            if (!$tenant->database()->manager()->databaseExists($tenant->database()->getName())) {
+            if (! $tenant->database()->manager()->databaseExists($tenant->database()->getName())) {
                 $tenant->database()->manager()->createDatabase($tenant);
             }
 
@@ -398,7 +402,7 @@ class TenantController extends Controller
 
             return back()->with('success', "Migrations executed successfully for tenant {$tenant->company_name}.");
         } catch (\Throwable $e) {
-            return back()->with('error', "Migration failed: " . $e->getMessage());
+            return back()->with('error', 'Migration failed: '.$e->getMessage());
         }
     }
 
@@ -412,7 +416,7 @@ class TenantController extends Controller
 
             return back()->with('success', "Migration rollback executed successfully for tenant {$tenant->company_name}.");
         } catch (\Throwable $e) {
-            return back()->with('error', "Migration rollback failed: " . $e->getMessage());
+            return back()->with('error', 'Migration rollback failed: '.$e->getMessage());
         }
     }
 
@@ -421,9 +425,9 @@ class TenantController extends Controller
         try {
             Artisan::call('storage:link');
 
-            return back()->with('success', "Storage symbolic link created successfully.");
+            return back()->with('success', 'Storage symbolic link created successfully.');
         } catch (\Throwable $e) {
-            return back()->with('error', "Storage link failed: " . $e->getMessage());
+            return back()->with('error', 'Storage link failed: '.$e->getMessage());
         }
     }
 
@@ -433,9 +437,9 @@ class TenantController extends Controller
             Artisan::call('optimize:clear');
             Artisan::call('config:cache');
 
-            return back()->with('success', "Application cache cleared and configuration cached successfully.");
+            return back()->with('success', 'Application cache cleared and configuration cached successfully.');
         } catch (\Throwable $e) {
-            return back()->with('error', "Failed to optimize and cache config: " . $e->getMessage());
+            return back()->with('error', 'Failed to optimize and cache config: '.$e->getMessage());
         }
     }
 
@@ -443,7 +447,7 @@ class TenantController extends Controller
     {
         $dropDatabase = $request->boolean('drop_database', false);
 
-        if (!$dropDatabase) {
+        if (! $dropDatabase) {
             // Temporarily disable DB deletion hook
             $tenant->delete();
         } else {
